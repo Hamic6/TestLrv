@@ -18,6 +18,7 @@ import createEmotionCache from "./utils/createEmotionCache";
 
 import { AuthProvider } from "./contexts/FirebaseAuthContext"; // Utilisation de FirebaseAuthContext
 
+
 const clientSideEmotionCache = createEmotionCache();
 
 function App({ emotionCache = clientSideEmotionCache }) {
@@ -35,7 +36,9 @@ function App({ emotionCache = clientSideEmotionCache }) {
         <Provider store={store}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <MuiThemeProvider theme={createTheme(theme)}>
-              <AuthProvider>{content}</AuthProvider>
+              <AuthProvider>
+                {content}
+              </AuthProvider>
             </MuiThemeProvider>
           </LocalizationProvider>
         </Provider>

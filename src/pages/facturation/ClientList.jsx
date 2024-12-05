@@ -14,6 +14,7 @@ import {
   Snackbar,
   Alert,
   CardActions,
+  Avatar // Import Avatar pour afficher le logo du client
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -88,6 +89,7 @@ const ClientList = () => {
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
+
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -113,20 +115,25 @@ const ClientList = () => {
           <Grid item xs={12} sm={6} md={4} key={client.id}>
             <Card>
               <CardContent>
-                <Typography variant="h5" component="div">
-                  <Link to={`/facturation/clients/${client.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    {client.name}
-                  </Link>
-                </Typography>
-                <Typography color="textSecondary">
-                  {client.email}
-                </Typography>
-                <Typography color="textSecondary">
-                  {client.phone}
-                </Typography>
-                <Typography variant="body2">
-                  {client.address}
-                </Typography>
+                <Box display="flex" alignItems="center">
+                  {client.logoUrl && <Avatar src={client.logoUrl} alt="logo" style={{ width: '60px', height: '60px', marginRight: '10px' }} />}
+                  <Box>
+                    <Typography variant="h5" component="div">
+                      <Link to={`/facturation/clients/${client.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        {client.name}
+                      </Link>
+                    </Typography>
+                    <Typography color="textSecondary">
+                      {client.email}
+                    </Typography>
+                    <Typography color="textSecondary">
+                      {client.phone}
+                    </Typography>
+                    <Typography variant="body2">
+                      {client.address}
+                    </Typography>
+                  </Box>
+                </Box>
               </CardContent>
               <CardActions>
                 <IconButton aria-label="edit" onClick={() => handleOpenModal(client)}>

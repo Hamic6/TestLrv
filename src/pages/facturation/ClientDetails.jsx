@@ -1,46 +1,51 @@
 import React, { useEffect, useState } from 'react';
-import { db, storage } from '../../firebaseConfig';
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { db } from '../../firebaseConfig'; // Assure-toi que ces chemins sont corrects
+import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { useParams } from 'react-router-dom';
 import {
   Typography,
   Paper,
   Button,
-  TextField,
   Avatar,
   TableContainer,
   Table,
   TableHead,
   TableRow,
   TableCell,
-  TableBody
+  TableBody,
+  Input,
+  Box // Ajout de Box pour la mise en page
 } from '@mui/material';
+import axios from 'axios';
 
 const ClientDetails = () => {
   const { clientId } = useParams();
   const [client, setClient] = useState({});
-  const [invoices, setInvoices] = useState([]); // Initialisation de invoices
+  const [invoices, setInvoices] = useState([]);
   const [logo, setLogo] = useState(null);
   const [logoUrl, setLogoUrl] = useState("");
 
   useEffect(() => {
     const fetchClientDetails = async () => {
-      const clientDoc = await getDoc(doc(db, "clients", clientId));
-      const clientData = clientDoc.data();
-      setClient(clientData);
-      setLogoUrl(clientData.logoUrl || "");
+      try {
+        const clientDoc = await getDoc(doc(db, "clients", clientId));
+        const clientData = clientDoc.data();
+        setClient(clientData);
+        setLogoUrl(clientData.logoUrl || "");
 
-      const q = query(collection(db, "invoices"), where("clientId", "==", clientId));
-      const querySnapshot = await getDocs(q);
-      const invoicesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setInvoices(invoicesList); // Mise à jour de invoices
+        const q = query(collection(db, "invoices"), where("clientId", "==", clientId));
+        const querySnapshot = await getDocs(q);
+        const invoicesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setInvoices(invoicesList);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des détails du client :", error);
+      }
     };
 
     fetchClientDetails();
   }, [clientId]);
 
-  const handleLogoChange = async (e) => {
+  const handleLogoChange = (e) => {
     if (e.target.files[0]) {
       setLogo(e.target.files[0]);
     }
@@ -48,18 +53,28 @@ const ClientDetails = () => {
 
   const handleUploadLogo = async () => {
     if (!logo) return;
-    const logoRef = ref(storage, `logos/${clientId}`);
-    await uploadBytes(logoRef, logo);
-    const url = await getDownloadURL(logoRef);
-    await updateDoc(doc(db, "clients", clientId), { logoUrl: url });
-    setLogoUrl(url);
+
+    const formData = new FormData();
+    formData.append('file', logo);
+    formData.append('upload_preset', 'Test44'); // Utilisation du preset de téléchargement fourni
+
+    try {
+      const response = await axios.post('https://api.cloudinary.com/v1_1/dyfxfhe4o/image/upload', formData); // Utilisation des informations de Cloudinary fournies
+      const downloadURL = response.data.secure_url;
+      await updateDoc(doc(db, "clients", clientId), { logoUrl: downloadURL });
+      setLogoUrl(downloadURL);
+    } catch (error) {
+      console.error("Erreur lors du téléchargement du logo :", error.message);
+    }
   };
 
   const handleDeleteLogo = async () => {
-    const logoRef = ref(storage, `logos/${clientId}`);
-    await deleteObject(logoRef);
-    await updateDoc(doc(db, "clients", clientId), { logoUrl: "" });
-    setLogoUrl("");
+    try {
+      await updateDoc(doc(db, "clients", clientId), { logoUrl: "" });
+      setLogoUrl("");
+    } catch (error) {
+      console.error("Erreur lors de la suppression du logo :", error.message);
+    }
   };
 
   return (
@@ -68,12 +83,26 @@ const ClientDetails = () => {
         Détails du Client
       </Typography>
       <Paper style={{ padding: '20px', marginBottom: '20px' }}>
-        <Typography variant="h5">{client.name}</Typography>
+        <Box display="flex" alignItems="center">
+          {logoUrl && <Avatar src={logoUrl} alt="logo" style={{ width: '60px', height: '60px', marginRight: '10px' }} />}
+          <Typography variant="h5">{client.name}</Typography>
+        </Box>
         <Typography variant="body1">Email: {client.email}</Typography>
         <Typography variant="body1">Téléphone: {client.phone}</Typography>
         <Typography variant="body1">Adresse: {client.address}</Typography>
         <div style={{ margin: '20px 0' }}>
-          <input type="file" onChange={handleLogoChange} />
+          <Input 
+            type="file"
+            onChange={handleLogoChange}
+            inputProps={{ accept: "image/*" }}
+            style={{ display: 'none' }}
+            id="upload-logo-input"
+          />
+          <label htmlFor="upload-logo-input">
+            <Button variant="contained" color="primary" component="span" style={{ margin: '10px' }}>
+              Choisir un Fichier
+            </Button>
+          </label>
           <Button variant="contained" color="primary" onClick={handleUploadLogo} style={{ margin: '10px' }}>
             Ajouter Logo
           </Button>
@@ -81,7 +110,6 @@ const ClientDetails = () => {
             Supprimer Logo
           </Button>
         </div>
-        {logoUrl && <Avatar src={logoUrl} alt="logo" style={{ width: '100px', height: '100px' }} />}
       </Paper>
       <Typography variant="h5" gutterBottom>
         Historique des Factures
