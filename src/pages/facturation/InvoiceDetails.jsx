@@ -18,15 +18,15 @@ import {
 } from './InvoiceDetailsStyles';
 import { saveInvoiceToFirebase } from '../../utils/firebaseFunctions';
 import { db } from '../../firebaseConfig';
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, orderBy, limit, doc, getDoc, setDoc } from "firebase/firestore";
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
 `;
 
 const InvoiceDetails = () => {
-  const [logo, setLogo] = useState('https://via.placeholder.com/150');
-  const [invoiceReady, setInvoiceReady] = useState(false);
+  const [logo, setLogo] = useState('/static/img/avatars/logo.png'); // Utiliser le logo par défaut à partir du chemin spécifié
+  const [invoiceReady, setInvoiceReady] = useState(true); // Afficher le bouton par défaut
 
   const [companyInfo, setCompanyInfo] = useState({
     name: 'Le Rayon Vert',
@@ -62,6 +62,20 @@ const InvoiceDetails = () => {
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
 
+  const getLastInvoiceNumber = async () => {
+    const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastInvoiceNumber'));
+    if (lastNumberDoc.exists()) {
+      return lastNumberDoc.data().number;
+    } else {
+      await setDoc(doc(db, 'metadata', 'lastInvoiceNumber'), { number: 0 });
+      return 0;
+    }
+  };
+
+  const updateLastInvoiceNumber = async (number) => {
+    await setDoc(doc(db, 'metadata', 'lastInvoiceNumber'), { number });
+  };
+
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -76,6 +90,20 @@ const InvoiceDetails = () => {
     fetchClients();
   }, []);
 
+  const generateInvoiceNumber = async () => {
+    const lastInvoiceNumber = await getLastInvoiceNumber();
+    const newInvoiceNumber = (lastInvoiceNumber + 1).toString().padStart(4, '0');
+    return newInvoiceNumber;
+  };
+
+  useEffect(() => {
+    const setInvoiceNumber = async () => {
+      const number = await generateInvoiceNumber();
+      setInvoiceInfo(prevInfo => ({ ...prevInfo, number }));
+    };
+
+    setInvoiceNumber();
+  }, []);
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     const reader = new FileReader();
@@ -113,6 +141,7 @@ const InvoiceDetails = () => {
       email: client.email
     });
   };
+
   const handleServiceChange = (index, e) => {
     const { name, value } = e.target;
     const newServices = [...services];
@@ -160,16 +189,28 @@ const InvoiceDetails = () => {
   };
 
   const handleSaveInvoice = async () => {
+    const newInvoiceNumber = await generateInvoiceNumber();
+    setInvoiceInfo((prevInfo) => ({ ...prevInfo, number: newInvoiceNumber }));
+
+    const invoiceData = {
+      companyInfo,
+      invoiceInfo: { ...invoiceInfo, number: newInvoiceNumber },
+      billTo,
+      services,
+      subtotal: calculateSubtotal(),
+      vatAmount: calculateVat(calculateSubtotal(), invoiceInfo.vatPercent),
+      total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), invoiceInfo.vatPercent)),
+      paymentInfo,
+      additionalNotes
+    };
+
     await saveInvoiceToFirebase(invoiceData);
+    await updateLastInvoiceNumber(parseInt(newInvoiceNumber, 10));
     alert('Facture enregistrée avec succès dans Firebase');
   };
 
   return (
     <>
-      <div {...getRootProps()} style={{ marginBottom: '20px', padding: '10px', border: '2px dashed #666', cursor: 'pointer', textAlign: 'center' }}>
-        <input {...getInputProps()} />
-        <p>Glissez-déposez le logo de votre entreprise ici, ou cliquez pour sélectionner un fichier</p>
-      </div>
       <form>
         <h3>Informations de l'entreprise</h3>
         <Grid container spacing={3}>
@@ -240,6 +281,7 @@ const InvoiceDetails = () => {
               fullWidth
               value={invoiceInfo.number}
               onChange={handleInvoiceInfoChange}
+              disabled // Désactiver la modification du numéro de facture
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -444,7 +486,6 @@ const InvoiceDetails = () => {
           style={{ marginTop: '20px' }}
         />
       </form>
-
       {invoiceReady && (
         <PDFDownloadLink
           document={<Invoice1PDF invoice={invoiceData} />}
@@ -480,7 +521,7 @@ const InvoiceDetails = () => {
             <p>{companyInfo.address}</p>
             <p>{companyInfo.phone}</p>
             <p>{companyInfo.email}</p>
-            <p>{companyInfo.taxNumber}</p> {/* Afficher le numéro d'impôt */}
+            <p>{companyInfo.taxNumber}</p>
           </CompanyDetails>
           <InvoiceDetailsSection>
             <h3>FACTURE <AiFillFilePdf /></h3>
@@ -501,9 +542,9 @@ const InvoiceDetails = () => {
             <thead>
               <tr>
                 <th>Description du service</th>
-                <th>Libellé</th> {/* Remplacement de "N° Avis" par "Libellé" */}
-                <th>Quantité</th> {/* Nouvelle colonne pour la quantité */}
-                <th>Prix Unitaire ({invoiceInfo.currency})</th> {/* Nouvelle colonne pour le prix unitaire */}
+                <th>Libellé</th>
+                <th>Quantité</th>
+                <th>Prix Unitaire ({invoiceInfo.currency})</th>
                 <th>Montant ({invoiceInfo.currency})</th>
               </tr>
             </thead>
