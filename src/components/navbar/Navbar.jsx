@@ -2,7 +2,7 @@ import React from "react";
 import styled from "@emotion/styled";
 import { withTheme } from "@emotion/react";
 import { darken } from "polished";
-import { Search as SearchIcon } from "lucide-react";
+
 import { useTranslation } from "react-i18next";
 
 import {
@@ -17,8 +17,6 @@ import { Menu as MenuIcon } from "@mui/icons-material";
 import logo from "../../vendor/logo.svg"; // Chemin corrigé pour accéder au logo
 
 import NavbarNotificationsDropdown from "./NavbarNotificationsDropdown";
-import NavbarMessagesDropdown from "./NavbarMessagesDropdown";
-import NavbarLanguagesDropdown from "./NavbarLanguagesDropdown";
 import NavbarUserDropdown from "./NavbarUserDropdown";
 
 const AppBar = styled(MuiAppBar)`
@@ -106,9 +104,8 @@ const Navbar = ({ onDrawerToggle }) => {
            
             <Grid size="grow" />
             <Grid>
-              <NavbarMessagesDropdown />
+              
               <NavbarNotificationsDropdown />
-              <NavbarLanguagesDropdown />
               <NavbarUserDropdown />
             </Grid>
           </Grid>
