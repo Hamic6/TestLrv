@@ -12,8 +12,8 @@ import {
   IconButton as MuiIconButton,
 } from "@mui/material";
 import { spacing } from "@mui/system";
-
-import useAuth from "@/hooks/useAuth";  // Assurez-vous que ce hook est bien défini pour gérer l'authentification
+import useAuth from "@/hooks/useAuth";
+import { getInitials } from "../../utils/getInitials"; // Assurez-vous que ce chemin est correct
 
 const IconButton = styled(MuiIconButton)`
   ${spacing};
@@ -37,7 +37,7 @@ const AvatarBadge = styled(Badge)`
 function NavbarUserDropdown() {
   const [anchorMenu, setAnchorMenu] = React.useState(null);
   const navigate = useNavigate();
-  const { user, logout } = useAuth();  // Utilisation du hook useAuth pour obtenir les informations utilisateur et la fonction de déconnexion
+  const { user, logout } = useAuth();
 
   const toggleMenu = (event) => {
     setAnchorMenu(event.currentTarget);
@@ -49,8 +49,15 @@ function NavbarUserDropdown() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/auth/sign-in");  // Redirection vers la page de connexion après déconnexion
+    navigate("/auth/sign-in");
   };
+
+  const handleProfile = () => {
+    closeMenu();
+    navigate("/profile"); // Redirection vers la page de profil
+  };
+
+  const initials = user ? getInitials(user.email) : "";
 
   return (
     <React.Fragment>
@@ -71,12 +78,14 @@ function NavbarUserDropdown() {
             }}
             variant="dot"
           >
-            {!!user && <Avatar alt={user.displayName || user.email} src={user.photoURL || user.avatar} />}
-            {!user && (
-              <Avatar
-                alt="Utilisateur"
-                src="/static/img/avatars/logo.png"
-              />
+            {!!user ? (
+              user.photoURL ? (
+                <Avatar alt={user.displayName || user.email} src={user.photoURL} />
+              ) : (
+                <Avatar>{initials}</Avatar>
+              )
+            ) : (
+              <Avatar alt="Utilisateur">{initials}</Avatar>
             )}
           </AvatarBadge>
         </IconButton>
@@ -87,7 +96,7 @@ function NavbarUserDropdown() {
         open={Boolean(anchorMenu)}
         onClose={closeMenu}
       >
-        <MenuItem onClick={closeMenu}>Profil</MenuItem>
+        <MenuItem onClick={handleProfile}>Profil</MenuItem>
         <MenuItem onClick={closeMenu}>Paramètres & Confidentialité</MenuItem>
         <Divider />
         <MenuItem onClick={closeMenu}>Aide</MenuItem>

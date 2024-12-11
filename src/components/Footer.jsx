@@ -48,16 +48,16 @@ function Footer() {
         >
           <List>
             <ListItemButton component="a" href="#">
-              <ListItemText primary="Support" />
+              <ListItemText primary="Assistance" />
             </ListItemButton>
             <ListItemButton component="a" href="#">
-              <ListItemText primary="Help Center" />
+              <ListItemText primary="Centre d'aide" />
             </ListItemButton>
             <ListItemButton component="a" href="#">
-              <ListItemText primary="Privacy" />
+              <ListItemText primary="Confidentialité" />
             </ListItemButton>
             <ListItemButton component="a" href="#">
-              <ListItemText primary="Terms of Service" />
+              <ListItemText primary="Conditions d'utilisation" />
             </ListItemButton>
           </List>
         </Grid>

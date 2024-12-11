@@ -13,7 +13,7 @@ import AuthGuard from "@/components/guards/AuthGuard";
 // Auth components
 import SignIn from "@/pages/auth/SignIn";
 import SignUp from "@/pages/auth/SignUp";
-import ResetPassword from "@/pages/auth/ResetPassword";
+import ResetPassword from "@/pages/auth/Page404";
 import Page404 from "@/pages/auth/Page404";
 import Page500 from "@/pages/auth/Page500";
 
@@ -28,9 +28,12 @@ const DetailsFacture = async(() => import("@/pages/facturation/InvoiceDetails"))
 const CreerFacture = async(() => import("@/pages/facturation/InvoiceDetails"));
 const ModifierFacture = async(() => import("@/pages/facturation/InvoiceDetails"));
 const GestionDesClients = async(() => import("@/pages/facturation/ClientList"));
-const ClientDetails = async(() => import("@/pages/facturation/ClientDetails")); // Nouvelle page pour les détails du client
+const ClientDetails = async(() => import("@/pages/facturation/ClientDetails"));
 const TableauDeBord = async(() => import("@/pages/facturation/InvoiceDetails"));
 const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
+
+// Profile component
+const Profile = async(() => import("@/pages/pages/Profile"));
 
 const routes = [
   {
@@ -107,7 +110,7 @@ const routes = [
       },
       {
         path: "clients/:clientId",
-        element: <ClientDetails />, // Nouvelle route pour les détails du client
+        element: <ClientDetails />,
       },
       {
         path: "tableau-de-bord",
@@ -116,6 +119,20 @@ const routes = [
       {
         path: "rapports",
         element: <Rapports />,
+      },
+    ],
+  },
+  {
+    path: "profile", // Nouvelle route pour le profil
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "",
+        element: <Profile />,
       },
     ],
   },
