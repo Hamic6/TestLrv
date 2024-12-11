@@ -53,9 +53,9 @@ const Filters = ({ onApplyFilters }) => {
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
-          <MenuItem value="payée">Payée</MenuItem>
-          <MenuItem value="non payée">Non Payée</MenuItem>
-          <MenuItem value="envoyée">Envoyée</MenuItem>
+          <MenuItem value="payé">Payée</MenuItem>
+          <MenuItem value="non payé">Non Payée</MenuItem>
+          <MenuItem value="envoyé">Envoyée</MenuItem>
         </TextField>
       </Grid>
       <Grid item xs={12} sm={6} md={4}>
