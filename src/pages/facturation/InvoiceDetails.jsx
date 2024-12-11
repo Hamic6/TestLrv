@@ -41,7 +41,7 @@ const InvoiceDetails = () => {
     number: '',
     date: '',
     dueDate: '',
-    vatPercent: 16,
+    vatPercent: 16, // TVA par défaut
     currency: 'USD'
   });
 
@@ -61,7 +61,6 @@ const InvoiceDetails = () => {
 
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
-
   const getLastInvoiceNumber = async () => {
     const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastInvoiceNumber'));
     if (lastNumberDoc.exists()) {
@@ -104,6 +103,7 @@ const InvoiceDetails = () => {
 
     setInvoiceNumber();
   }, []);
+
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     const reader = new FileReader();
@@ -119,7 +119,6 @@ const InvoiceDetails = () => {
     onDrop,
     accept: 'image/*'
   });
-
   const handleCompanyInfoChange = (e) => {
     const { name, value } = e.target;
     setCompanyInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
@@ -311,6 +310,18 @@ const InvoiceDetails = () => {
               }}
               fullWidth
               value={invoiceInfo.dueDate}
+              onChange={handleInvoiceInfoChange}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              id="vatPercent"
+              name="vatPercent"
+              label="TVA (%)"
+              type="number"
+              fullWidth
+              value={invoiceInfo.vatPercent}
               onChange={handleInvoiceInfoChange}
             />
           </Grid>
@@ -525,7 +536,7 @@ const InvoiceDetails = () => {
           </CompanyDetails>
           <InvoiceDetailsSection>
             <h3>FACTURE <AiFillFilePdf /></h3>
-            <p>#{invoiceInfo.number}</p>
+            <p>LRV{invoiceInfo.number}</p>
             <p>Date : {invoiceInfo.date}</p>
             <p>Date d'échéance : {invoiceInfo.dueDate}</p>
           </InvoiceDetailsSection>
@@ -557,7 +568,7 @@ const InvoiceDetails = () => {
                   <td>{parseFloat(service.unitPrice).toFixed(2)}</td>
                   <td>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</td>
                 </tr>
-              ))}
+              ))}                            
             </tbody>
           </table>
         </TableContainer>

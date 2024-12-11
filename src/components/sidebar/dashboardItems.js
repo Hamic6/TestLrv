@@ -1,9 +1,8 @@
-import {
+import { 
   CreditCard,
   Sliders,
   Archive,
   CheckCircle,
-  Shield,
   Key,
 } from "lucide-react";
 import { 
@@ -12,7 +11,8 @@ import {
   People as PeopleIcon, 
   Dashboard as DashboardIcon, 
   Assessment as AssessmentIcon, 
-} from '@mui/icons-material'
+  Announcement as AnnouncementIcon, // Importation de l'icône Announcement
+} from '@mui/icons-material';
 
 const pagesSection = [
   {
@@ -47,13 +47,11 @@ const pagesSection = [
         icon: DescriptionIcon,
         title: "Liste des Factures",
       },
-      
       {
         href: "/facturation/creer-facture",
         icon: CreateIcon,
         title: "Créer une Facture",
       },
-      
       {
         href: "/facturation/gestion-des-clients",
         icon: PeopleIcon,
@@ -70,6 +68,11 @@ const pagesSection = [
         title: "Rapports de Facturation",
       },
     ],
+  },
+  {
+    href: "/roles-permissions",
+    icon: AnnouncementIcon, // Utilisation de l'icône Announcement
+    title: "Avis de Passage",
   },
   {
     href: "/stock-management",
@@ -136,7 +139,7 @@ const pagesSection = [
   },
   {
     href: "/roles-permissions",
-    icon: Shield,
+    icon: Key,
     title: "Gestion des Rôles et Permissions",
     children: [
       {

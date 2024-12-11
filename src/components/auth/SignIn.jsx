@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "@emotion/styled";
 import { Link as RouterLink } from "react-router-dom";
@@ -12,7 +12,10 @@ import {
   TextField as MuiTextField,
   Link,
   Typography as MuiTypography,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { spacing } from "@mui/system";
 
 import useAuth from "@/hooks/useAuth"; // Assure-toi que le chemin est correct
@@ -32,6 +35,15 @@ const Typography = styled(MuiTypography)(spacing);
 function SignIn() {
   const navigate = useNavigate();
   const { signIn } = useAuth(); // Vérifie que signIn est bien importée
+  const [showPassword, setShowPassword] = useState(false); // Ajouter l'état pour la visibilité du mot de passe
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
 
   return (
     <Formik
@@ -91,7 +103,7 @@ function SignIn() {
             my={2}
           />
           <TextField
-            type="password"
+            type={showPassword ? "text" : "password"} // Modifie le type en fonction de la visibilité du mot de passe
             name="password"
             label="Mot de passe"
             value={values.password}
@@ -101,6 +113,19 @@ function SignIn() {
             onBlur={handleBlur}
             onChange={handleChange}
             my={2}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Typography as="div" mb={2} variant="caption">
             <Link to="../reset-password" component={RouterLink}>

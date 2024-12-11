@@ -10,7 +10,10 @@ import {
   TextField as MuiTextField,
   Typography,
   Link,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { spacing } from "@mui/system";
 
 import useAuth from "@/hooks/useAuth";
@@ -28,6 +31,20 @@ const Centered = styled(Typography)`
 function SignUp() {
   const { signUp } = useAuth();
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Ajouter l'état pour la visibilité du mot de passe
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Ajouter l'état pour la visibilité du mot de passe de confirmation
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleClickShowConfirmPassword = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
 
   return (
     <Formik
@@ -41,7 +58,7 @@ function SignUp() {
       }}
       validationSchema={Yup.object().shape({
         firstName: Yup.string().max(255).required("Le prénom est nécessaire"),
-        lastName: Yup.string().max(255).required("Nom de famille obligatoire"),
+        lastName: Yup.string().max(255).required("Le Nom est nécessaire"),
         email: Yup.string()
           .email("Doit être un email valide")
           .max(255)
@@ -108,7 +125,7 @@ function SignUp() {
           <TextField
             type="text"
             name="lastName"
-            label="Nom de famille"
+            label="Nom"
             value={values.lastName}
             error={Boolean(touched.lastName && errors.lastName)}
             fullWidth
@@ -130,7 +147,7 @@ function SignUp() {
             my={3}
           />
           <TextField
-            type="password"
+            type={showPassword ? "text" : "password"} // Modifie le type en fonction de la visibilité du mot de passe
             name="password"
             label="Mot de passe"
             value={values.password}
@@ -140,9 +157,22 @@ function SignUp() {
             onBlur={handleBlur}
             onChange={handleChange}
             my={3}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <TextField
-            type="password"
+            type={showConfirmPassword ? "text" : "password"} // Modifie le type en fonction de la visibilité du mot de passe de confirmation
             name="confirmPassword"
             label="Confirmer le mot de passe"
             value={values.confirmPassword}
@@ -152,6 +182,19 @@ function SignUp() {
             onBlur={handleBlur}
             onChange={handleChange}
             my={3}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowConfirmPassword}
+                    onMouseDown={handleMouseDownPassword}
+                  >
+                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             type="submit"
