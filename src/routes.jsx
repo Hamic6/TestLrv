@@ -32,6 +32,16 @@ const ClientDetails = async(() => import("@/pages/facturation/ClientDetails"));
 const TableauDeBord = async(() => import("@/pages/facturation/InvoiceDetails"));
 const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
 
+// Devis & Avis de Passage components
+const CreateDevis = async(() => import("@/pages/Devis/CreateDevis"));
+const SendDevis = async(() => import("@/pages/Devis/SendDevis"));
+const TransformDevis = async(() => import("@/pages/Devis/TransformDevis"));
+const SearchDevis = async(() => import("@/pages/Devis/SearchDevis"));
+const CreateAvisDePassage = async(() => import("@/pages/Devis/CreateAvisDePassage"));
+const SendAvisDePassage = async(() => import("@/pages/Devis/SendAvisDePassage"));
+const TrackAvisDePassage = async(() => import("@/pages/Devis/TrackAvisDePassage"));
+const SearchAvisDePassage = async(() => import("@/pages/Devis/SearchAvisDePassage"));
+
 // Profile component
 const Profile = async(() => import("@/pages/pages/Profile"));
 
@@ -119,6 +129,48 @@ const routes = [
       {
         path: "rapports",
         element: <Rapports />,
+      },
+    ],
+  },
+  {
+    path: "devis-avis",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "creer-devis",
+        element: <CreateDevis />,
+      },
+      {
+        path: "envoyer-devis",
+        element: <SendDevis />,
+      },
+      {
+        path: "transformer-devis",
+        element: <TransformDevis />,
+      },
+      {
+        path: "rechercher-devis",
+        element: <SearchDevis />,
+      },
+      {
+        path: "creer-avis-passage",
+        element: <CreateAvisDePassage />,
+      },
+      {
+        path: "envoyer-avis-passage",
+        element: <SendAvisDePassage />,
+      },
+      {
+        path: "suivre-avis-passage",
+        element: <TrackAvisDePassage />,
+      },
+      {
+        path: "rechercher-avis-passage",
+        element: <SearchAvisDePassage />,
       },
     ],
   },
