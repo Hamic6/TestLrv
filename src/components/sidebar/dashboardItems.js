@@ -78,7 +78,7 @@ const pagesSection = [
   {
     href: "/devis-avis",
     icon: AnnouncementIcon, // Utilisation de l'icône Announcement
-    title: "Devis & Avis de Passage",
+    title: "Avis de Passage",
     children: [
       {
         href: "/devis-avis/creer-devis",

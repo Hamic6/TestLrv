@@ -4,14 +4,6 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import styled from 'styled-components';
 import AvisDePassagePDF from './AvisDePassagePDF';
-import {
-  AvisContainer,
-  HeaderSection,
-  CompanyDetails,
-  AvisDetailsSection,
-  BillingSection,
-  NotesSection
-} from './AvisDePassageStyles';
 import { saveAvisToDatabase } from '../../utils/api';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
@@ -23,10 +15,9 @@ const StyledButton = styled(Button)`
   margin-top: 20px;
 `;
 
-const CreateAvisDePassageDetails = () => {
+const CreateAvisDePassage = () => {
   const [logo, setLogo] = useState('/static/img/avatars/logo.png'); // Utiliser le logo par défaut à partir du chemin spécifié
   const [avisReady, setAvisReady] = useState(true); // Afficher le bouton par défaut
-
   const [companyInfo, setCompanyInfo] = useState({
     name: 'Le Rayon Vert',
     address: '01, Av. OUA (concession PROCOKI)',
@@ -35,29 +26,29 @@ const CreateAvisDePassageDetails = () => {
     taxNumber: 'Numéro impot :0801888M',
     logo: logo
   });
-
   const [avisInfo, setAvisInfo] = useState({
     number: '',
     date: '',
+    startTime: '', // Heure de début ajoutée
+    endTime: '', // Heure de fin ajoutée
     currency: 'USD'
   });
-
   const [billTo, setBillTo] = useState({
     company: '',
     address: '',
     phone: '',
     email: ''
   });
-
   const [services, setServices] = useState([
     { description: '', libelle: '' }
   ]);
-
-  const [additionalNotes, setAdditionalNotes] = useState('Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G');
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
   const [signature, setSignature] = useState('');
-  const [photo, setPhoto] = useState(null);
+  const [photos, setPhotos] = useState([]);
+  const [verifiedBy, setVerifiedBy] = useState(''); // Ajouté
+  const [verifiedDate, setVerifiedDate] = useState(''); // Ajouté
+
   const getLastAvisNumber = async () => {
     const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastAvisNumber'));
     if (lastNumberDoc.exists()) {
@@ -67,7 +58,6 @@ const CreateAvisDePassageDetails = () => {
       return 0;
     }
   };
-
   const updateLastAvisNumber = async (number) => {
     await setDoc(doc(db, 'metadata', 'lastAvisNumber'), { number });
   };
@@ -82,7 +72,6 @@ const CreateAvisDePassageDetails = () => {
         console.error("Erreur lors de la récupération des clients :", error);
       }
     };
-
     fetchClients();
   }, []);
 
@@ -97,9 +86,9 @@ const CreateAvisDePassageDetails = () => {
       const number = await generateAvisNumber();
       setAvisInfo(prevInfo => ({ ...prevInfo, number }));
     };
-
     setAvisNumber();
   }, []);
+
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     const reader = new FileReader();
@@ -110,7 +99,6 @@ const CreateAvisDePassageDetails = () => {
     };
     reader.readAsDataURL(file);
   }, []);
-
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: 'image/*'
@@ -145,21 +133,22 @@ const CreateAvisDePassageDetails = () => {
     setServices(newServices);
   };
 
-  const handleAdditionalNotesChange = (e) => {
-    setAdditionalNotes(e.target.value);
-  };
   const addService = () => {
     setServices([...services, { description: '', libelle: '' }]);
   };
 
+  const handlePhotosCaptured = (capturedPhotos) => {
+    setPhotos(capturedPhotos);
+  };
   const avisData = {
     companyInfo,
     avisInfo,
     billTo,
     services,
-    additionalNotes,
     signature,
-    photo
+    photos, // Ajouté
+    verifiedBy,
+    verifiedDate
   };
 
   const handleSaveAvis = async () => {
@@ -171,9 +160,10 @@ const CreateAvisDePassageDetails = () => {
       avisInfo: { ...avisInfo, number: newAvisNumber },
       billTo,
       services,
-      additionalNotes,
       signature,
-      photo
+      photos, // Ajouté
+      verifiedBy,
+      verifiedDate
     };
 
     await saveAvisToDatabase(avisData);
@@ -275,8 +265,38 @@ const CreateAvisDePassageDetails = () => {
               onChange={handleAvisInfoChange}
             />
           </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              id="startTime"
+              name="startTime"
+              label="Heure de début"
+              type="time"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              fullWidth
+              value={avisInfo.startTime}
+              onChange={handleAvisInfoChange}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              id="endTime"
+              name="endTime"
+              label="Heure de fin"
+              type="time"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              fullWidth
+              value={avisInfo.endTime}
+              onChange={handleAvisInfoChange}
+            />
+          </Grid>
         </Grid>
-        <h3>Facturé à</h3>
+        <h3>Client</h3> {/* Changement de "Facturé à" en "Client" */}
         <FormControl fullWidth margin="normal">
           <InputLabel id="client-select-label">Sélectionner un Client</InputLabel>
           <Select
@@ -341,18 +361,7 @@ const CreateAvisDePassageDetails = () => {
         {services.map((service, index) => (
           <div key={index}>
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  id="description"
-                  name="description"
-                  label="Description"
-                  fullWidth
-                  value={service.description}
-                  onChange={(e) => handleServiceChange(index, e)}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={12}>
                 <TextField
                   required
                   id="libelle"
@@ -360,6 +369,17 @@ const CreateAvisDePassageDetails = () => {
                   label="Libellé"
                   fullWidth
                   value={service.libelle}
+                  onChange={(e) => handleServiceChange(index, e)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={12}>
+                <TextField
+                  required
+                  id="description"
+                  name="description"
+                  label="Description"
+                  fullWidth
+                  value={service.description}
                   onChange={(e) => handleServiceChange(index, e)}
                 />
               </Grid>
@@ -375,23 +395,39 @@ const CreateAvisDePassageDetails = () => {
         >
           Ajouter un service
         </Button>
-        <h3>Notes supplémentaires</h3>
-        <TextField
-          required
-          id="additionalNotes"
-          name="additionalNotes"
-          label="Notes supplémentaires"
-          fullWidth
-          multiline
-          rows={4}
-          value={additionalNotes}
-          onChange={handleAdditionalNotesChange}
-          style={{ marginTop: '20px' }}
-        />
+        <h3>Travail vu et contrôlé par :</h3>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              id="verifiedBy"
+              name="verifiedBy"
+              label="Nom"
+              fullWidth
+              value={verifiedBy}
+              onChange={(e) => setVerifiedBy(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              id="verifiedDate"
+              name="verifiedDate"
+              label="Date"
+              type="date"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              fullWidth
+              value={verifiedDate}
+              onChange={(e) => setVerifiedDate(e.target.value)}
+            />
+          </Grid>
+        </Grid>
         <h3>Signature</h3>
         <SignatureComponent setSignature={setSignature} />
         <h3>Photo</h3>
-        <PhotoCapture setPhoto={savePhoto} />
+        <PhotoCapture onPhotosCaptured={handlePhotosCaptured} />
       </form>
       {avisReady && (
         <PDFDownloadLink
@@ -421,4 +457,4 @@ const CreateAvisDePassageDetails = () => {
   );
 };
 
-export default CreateAvisDePassageDetails;
+export default CreateAvisDePassage;

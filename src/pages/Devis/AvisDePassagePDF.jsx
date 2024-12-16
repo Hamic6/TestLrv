@@ -1,7 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
 
-// Créez des styles pour votre document PDF
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -10,7 +9,6 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
   },
   headerSection: {
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
@@ -49,7 +47,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   tableColHeader: {
-    width: '50%',
+    flex: 1,
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#bfbfbf',
@@ -57,7 +55,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   tableCol: {
-    width: '50%',
+    flex: 1,
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#bfbfbf',
@@ -70,11 +68,6 @@ const styles = StyleSheet.create({
   },
   tableCell: {
     fontSize: 10,
-  },
-  notesSection: {
-    marginTop: 20,
-    textAlign: 'left',
-    color: 'black',
   },
   footer: {
     marginTop: 20,
@@ -91,6 +84,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     marginBottom: 15,
+    marginRight: 10,
   },
   signature: {
     width: 150,
@@ -98,19 +92,25 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 20,
+  },
+  photoGrid: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
   }
 });
 
-// Créez un composant Document pour le PDF
 const AvisDePassagePDF = ({ avis }) => {
   const {
     companyInfo,
     avisInfo,
     billTo,
     services,
-    additionalNotes,
-    photo,
-    signature
+    photos,
+    signature,
+    verifiedBy,
+    verifiedDate
   } = avis;
 
   return (
@@ -123,18 +123,20 @@ const AvisDePassagePDF = ({ avis }) => {
             <Text>{companyInfo.address}</Text>
             <Text>{companyInfo.phone}</Text>
             <Text>{companyInfo.email}</Text>
-            <Text>{companyInfo.taxNumber}</Text> {/* Ajout du numéro d'impôt */}
+            <Text>{companyInfo.taxNumber}</Text>
           </View>
           <View style={styles.avisDetailsSection}>
-            <Text>#{avisInfo.number}</Text>
+            <Text>Num Avis :{avisInfo.number}</Text>
             <Text>Date : {avisInfo.date}</Text>
+            <Text>Heure de début : {avisInfo.startTime}</Text>
+            <Text>Heure de fin : {avisInfo.endTime}</Text>
           </View>
         </View>
         <View style={styles.avisTitleSection}>
           <Text>AVIS DE PASSAGE</Text>
         </View>
         <View style={styles.billingSection}>
-          <Text>Facturé à :</Text>
+          <Text>Client :</Text>
           <Text>{billTo.name}</Text>
           <Text>{billTo.company}</Text>
           <Text>{billTo.address}</Text>
@@ -146,7 +148,7 @@ const AvisDePassagePDF = ({ avis }) => {
             <View style={styles.tableColHeader}>
               <Text style={styles.tableCellHeader}>Description du service</Text>
             </View>
-            <View style={styles.tableColHeader}>
+            <View style={[styles.tableColHeader, { flex: 2 }]}>
               <Text style={styles.tableCellHeader}>Libellé</Text>
             </View>
           </View>
@@ -155,26 +157,28 @@ const AvisDePassagePDF = ({ avis }) => {
               <View style={styles.tableCol}>
                 <Text style={styles.tableCell}>{service.description}</Text>
               </View>
-              <View style={styles.tableCol}>
+              <View style={[styles.tableCol, { flex: 2 }]}>
                 <Text style={styles.tableCell}>{service.libelle}</Text>
               </View>
             </View>
           ))}
         </View>
-        <View style={styles.notesSection}>
-          <Text>Notes supplémentaires :</Text>
-          <Text>{additionalNotes}</Text>
-        </View>
-        {photo && (
+        {photos && photos.length > 0 && (
           <View style={styles.section}>
-            <Text>Photo :</Text>
-            <Image style={styles.image} src={photo} />
+            <Text>Photos :</Text>
+            <View style={styles.photoGrid}>
+              {photos.map((photo, index) => (
+                <Image key={index} style={styles.image} src={photo} />
+              ))}
+            </View>
           </View>
         )}
         {signature && (
           <View style={styles.section}>
-            <Text>Signature :</Text>
+            <Text>Travail vu et contrôlé par :</Text>
             <Image style={styles.signature} src={signature} />
+            <Text>{verifiedBy}</Text>
+            <Text>{verifiedDate}</Text>
           </View>
         )}
         <View style={styles.footer}>
@@ -183,6 +187,6 @@ const AvisDePassagePDF = ({ avis }) => {
       </Page>
     </Document>
   );
-}
+};
 
 export default AvisDePassagePDF;
