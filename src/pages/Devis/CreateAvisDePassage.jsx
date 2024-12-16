@@ -58,6 +58,7 @@ const CreateAvisDePassage = () => {
       return 0;
     }
   };
+
   const updateLastAvisNumber = async (number) => {
     await setDoc(doc(db, 'metadata', 'lastAvisNumber'), { number });
   };
@@ -99,6 +100,7 @@ const CreateAvisDePassage = () => {
     };
     reader.readAsDataURL(file);
   }, []);
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: 'image/*'
@@ -113,7 +115,6 @@ const CreateAvisDePassage = () => {
     const { name, value } = e.target;
     setAvisInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
   };
-
   const handleClientChange = (e) => {
     const clientId = e.target.value;
     const client = clients.find(client => client.id === clientId);
@@ -140,6 +141,7 @@ const CreateAvisDePassage = () => {
   const handlePhotosCaptured = (capturedPhotos) => {
     setPhotos(capturedPhotos);
   };
+
   const avisData = {
     companyInfo,
     avisInfo,
@@ -161,7 +163,7 @@ const CreateAvisDePassage = () => {
       billTo,
       services,
       signature,
-      photos, // Ajouté
+      photos,
       verifiedBy,
       verifiedDate
     };
@@ -169,10 +171,6 @@ const CreateAvisDePassage = () => {
     await saveAvisToDatabase(avisData);
     await updateLastAvisNumber(parseInt(newAvisNumber, 10));
     alert('Avis de passage enregistré avec succès dans Firebase');
-  };
-
-  const savePhoto = (photoData) => {
-    setPhoto(photoData);
   };
 
   return (

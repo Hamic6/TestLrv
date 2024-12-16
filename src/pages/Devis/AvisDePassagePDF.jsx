@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   image: {
-    width: 50,
-    height: 50,
-    marginBottom: 15,
-    marginRight: 10,
+    width: 40,
+    height: 40,
+    marginBottom: 10,
+    marginRight: 5,
   },
   signature: {
     width: 150,
@@ -126,7 +126,7 @@ const AvisDePassagePDF = ({ avis }) => {
             <Text>{companyInfo.taxNumber}</Text>
           </View>
           <View style={styles.avisDetailsSection}>
-            <Text>Num Avis :{avisInfo.number}</Text>
+            <Text>#{avisInfo.number}</Text>
             <Text>Date : {avisInfo.date}</Text>
             <Text>Heure de début : {avisInfo.startTime}</Text>
             <Text>Heure de fin : {avisInfo.endTime}</Text>
@@ -175,7 +175,7 @@ const AvisDePassagePDF = ({ avis }) => {
         )}
         {signature && (
           <View style={styles.section}>
-            <Text>Travail vu et contrôlé par :</Text>
+            <Text>Signature :</Text>
             <Image style={styles.signature} src={signature} />
             <Text>{verifiedBy}</Text>
             <Text>{verifiedDate}</Text>

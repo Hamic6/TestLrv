@@ -1,14 +1,18 @@
 .signature-container {
-    border: 2px dashed #000;
-    padding: 10px;
-    display: inline-block;
-    margin-bottom: 20px;
-  }
+  border: 2px dashed #000;
+  padding: 20px;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.sigCanvas {
+  border: 1px solid #ccc;
+  background-color: #fff;
+  width: 100%;
+  height: auto; /* Augmenter la hauteur à 300px */
+}
+
   
-  .sigCanvas {
-    border: 1px solid #ccc;
-    background-color: #fff;
-  }
   .photo-container {
     border: 2px dashed #000;
     padding: 10px;
