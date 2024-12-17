@@ -14,9 +14,7 @@ import {
   Announcement as AnnouncementIcon, 
   Receipt as ReceiptIcon,
   Send as SendIcon,
-  Transform as TransformIcon,
   Search as SearchIcon,
-  LocationOn as LocationOnIcon, 
   TrackChanges as TrackChangesIcon,
 } from '@mui/icons-material';
 
@@ -73,50 +71,40 @@ const pagesSection = [
         icon: AssessmentIcon,
         title: "Rapports de Facturation",
       },
-    ],
-  },
-  {
-    href: "/devis-avis",
-    icon: AnnouncementIcon, // Utilisation de l'icône Announcement
-    title: "Avis de Passage",
-    children: [
       {
-        href: "/devis-avis/creer-devis",
+        href: "/facturation/creer-devis",
         icon: CreateIcon,
         title: "Créer un Devis",
       },
       {
-        href: "/devis-avis/envoyer-devis",
+        href: "/facturation/envoyer-devis",
         icon: SendIcon,
         title: "Envoyer un Devis",
       },
+    ],
+  },
+  {
+    href: "/avis-de-passage",
+    icon: AnnouncementIcon, // Utilisation de l'icône Announcement
+    title: "Avis de Passage",
+    children: [
       {
-        href: "/devis-avis/transformer-devis",
-        icon: TransformIcon,
-        title: "Transformer un Devis",
-      },
-      {
-        href: "/devis-avis/rechercher-devis",
-        icon: SearchIcon,
-        title: "Rechercher un Devis",
-      },
-      {
-        href: "/devis-avis/creer-avis-passage",
+        href: "/avis-de-passage/creer-avis-passage",
         icon: ReceiptIcon,
         title: "Créer un Avis de Passage",
       },
       {
-        href: "/devis-avis/envoyer-avis-passage",
+        href: "/avis-de-passage/envoyer-avis-passage",
         icon: SendIcon,
         title: "Envoyer un Avis de Passage",
       },
       {
-        href: "/devis-avis/suivre-avis-passage",
+        href: "/avis-de-passage/suivre-avis-passage",
         icon: TrackChangesIcon,
         title: "Suivre les Avis de Passage",
       },
       {
-        href: "/devis-avis/rechercher-avis-passage",
+        href: "/avis-de-passage/rechercher-avis-passage",
         icon: SearchIcon,
         title: "Rechercher un Avis de Passage",
       },

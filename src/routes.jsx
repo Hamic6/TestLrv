@@ -13,7 +13,7 @@ import AuthGuard from "@/components/guards/AuthGuard";
 // Auth components
 import SignIn from "@/pages/auth/SignIn";
 import SignUp from "@/pages/auth/SignUp";
-import ResetPassword from "@/pages/auth/ResetPassword";  // Correction de l'importation
+import ResetPassword from "@/pages/auth/ResetPassword";
 import Page404 from "@/pages/auth/Page404";
 import Page500 from "@/pages/auth/Page500";
 
@@ -32,15 +32,11 @@ const ClientDetails = async(() => import("@/pages/facturation/ClientDetails"));
 const TableauDeBord = async(() => import("@/pages/facturation/InvoiceDetails"));
 const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
 
-// Devis & Avis de Passage components
-const CreateDevis = async(() => import("@/pages/Devis/CreateDevis"));
-const SendDevis = async(() => import("@/pages/Devis/SendDevis"));
-const TransformDevis = async(() => import("@/pages/Devis/TransformDevis"));
-const SearchDevis = async(() => import("@/pages/Devis/SearchDevis"));
-const CreateAvisDePassage = async(() => import("@/pages/Devis/CreateAvisDePassage"));
-const SendAvisDePassage = async(() => import("@/pages/Devis/SendAvisDePassage"));
-const TrackAvisDePassage = async(() => import("@/pages/Devis/TrackAvisDePassage"));
-const SearchAvisDePassage = async(() => import("@/pages/Devis/SearchAvisDePassage"));
+// Avis de Passage components
+const CreateAvisDePassage = async(() => import("@/pages/AvisDePassage/CreateAvisDePassage"));
+const SendAvisDePassage = async(() => import("@/pages/AvisDePassage/SendAvisDePassage"));
+const TrackAvisDePassage = async(() => import("@/pages/AvisDePassage/TrackAvisDePassage"));
+const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvisDePassage"));
 
 // Profile component
 const Profile = async(() => import("@/pages/pages/Profile"));
@@ -59,7 +55,7 @@ const routes = [
         element: <SignUp />,
       },
       {
-        path: "reset-password",  // Ajout de la route correcte pour ResetPassword
+        path: "reset-password",
         element: <ResetPassword />,
       },
       {
@@ -133,29 +129,13 @@ const routes = [
     ],
   },
   {
-    path: "devis-avis",
+    path: "avis-de-passage",
     element: (
       <AuthGuard>
         <DashboardLayout />
       </AuthGuard>
     ),
     children: [
-      {
-        path: "creer-devis",
-        element: <CreateDevis />,
-      },
-      {
-        path: "envoyer-devis",
-        element: <SendDevis />,
-      },
-      {
-        path: "transformer-devis",
-        element: <TransformDevis />,
-      },
-      {
-        path: "rechercher-devis",
-        element: <SearchDevis />,
-      },
       {
         path: "creer-avis-passage",
         element: <CreateAvisDePassage />,
@@ -175,7 +155,7 @@ const routes = [
     ],
   },
   {
-    path: "profile", // Nouvelle route pour le profil
+    path: "profile",
     element: (
       <AuthGuard>
         <DashboardLayout />

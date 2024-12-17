@@ -7,9 +7,9 @@ import AvisDePassagePDF from './AvisDePassagePDF';
 import { saveAvisToDatabase } from '../../utils/api';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
-import SignaturePadComponent from '@/pages/Devis/SignaturePadComponent';
-import PhotoCapture from '@/pages/Devis/PhotoCapture';
-import './SignaturePadComponent.css'; // Importer le fichier CSS
+import SignaturePadComponent from '@/pages/AvisDePassage/SignaturePadComponent';
+import PhotoCapture from '@/pages/AvisDePassage/PhotoCapture';
+import './SignaturePadComponent.css';
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
@@ -75,7 +75,6 @@ const CreateAvisDePassage = () => {
     };
     fetchClients();
   }, []);
-
   const generateAvisNumber = async () => {
     const lastAvisNumber = await getLastAvisNumber();
     const newAvisNumber = (lastAvisNumber + 1).toString().padStart(4, '0');
@@ -115,6 +114,7 @@ const CreateAvisDePassage = () => {
     const { name, value } = e.target;
     setAvisInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
   };
+
   const handleClientChange = (e) => {
     const clientId = e.target.value;
     const client = clients.find(client => client.id === clientId);
@@ -141,14 +141,13 @@ const CreateAvisDePassage = () => {
   const handlePhotosCaptured = (capturedPhotos) => {
     setPhotos(capturedPhotos);
   };
-
   const avisData = {
     companyInfo,
     avisInfo,
     billTo,
     services,
     signature,
-    photos, // Ajouté
+    photos,
     verifiedBy,
     verifiedDate
   };
