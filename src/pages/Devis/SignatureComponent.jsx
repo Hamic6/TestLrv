@@ -1,42 +1,37 @@
 import React, { useRef } from 'react';
 import SignaturePad from 'react-signature-canvas';
-import { Button, Grid } from '@mui/material';
+import { Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import './SignatureComponent.css';
 
-const StyledButton = styled(Button)(({ theme }) => ({
-  marginTop: theme.spacing(2),
-}));
+const StyledButton = styled(Button)`
+  margin-top: 20px;
+`;
 
 const SignatureComponent = ({ setSignature }) => {
-  const sigPad = useRef(null);
+  const sigCanvas = useRef({});
 
-  const clearSignature = (e) => {
-    e.preventDefault();
-    sigPad.current.clear();
-    setSignature('');
-  };
+  const clear = () => sigCanvas.current.clear();
 
-  const saveSignature = (e) => {
-    e.preventDefault();
-    const signature = sigPad.current.getTrimmedCanvas().toDataURL('image/png');
-    setSignature(signature);
+  const save = () => {
+    setSignature(sigCanvas.current.getTrimmedCanvas().toDataURL('image/png'));
+    alert('Signature enregistrée avec succès !');
   };
 
   return (
-    <div className="signature-container">
-      <SignaturePad ref={sigPad} canvasProps={{ className: 'sigCanvas' }} />
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <StyledButton variant="contained" color="primary" onClick={clearSignature}>
-            Effacer
-          </StyledButton>
-        </Grid>
-        <Grid item xs={6}>
-          <StyledButton variant="contained" color="primary" onClick={saveSignature}>
-            Sauvegarder
-          </StyledButton>
-        </Grid>
-      </Grid>
+    <div>
+      <div className="signature-container">
+        <SignaturePad
+          ref={sigCanvas}
+          canvasProps={{ className: 'sigCanvas' }}
+        />
+      </div>
+      <StyledButton variant="contained" color="primary" onClick={save}>
+        Sauvegarder la Signature
+      </StyledButton>
+      <StyledButton variant="outlined" color="secondary" onClick={clear}>
+        Effacer
+      </StyledButton>
     </div>
   );
 };

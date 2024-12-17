@@ -7,9 +7,9 @@ import AvisDePassagePDF from './AvisDePassagePDF';
 import { saveAvisToDatabase } from '../../utils/api';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
-import SignatureComponent from '@/pages/Devis/SignatureComponent';
+import SignaturePadComponent from '@/pages/Devis/SignaturePadComponent';
 import PhotoCapture from '@/pages/Devis/PhotoCapture';
-import './SignatureComponent.css'; // Importer le fichier CSS
+import './SignaturePadComponent.css'; // Importer le fichier CSS
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
@@ -423,7 +423,7 @@ const CreateAvisDePassage = () => {
           </Grid>
         </Grid>
         <h3>Signature</h3>
-        <SignatureComponent setSignature={setSignature} />
+        <SignaturePadComponent setSignature={setSignature} />
         <h3>Photo</h3>
         <PhotoCapture onPhotosCaptured={handlePhotosCaptured} />
       </form>

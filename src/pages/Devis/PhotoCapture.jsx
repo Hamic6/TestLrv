@@ -19,6 +19,7 @@ const PhotoCapture = ({ onPhotosCaptured }) => {
     e.preventDefault();
     if (photos.length > 0) {
       onPhotosCaptured(photos);
+      alert('Photos enregistrées avec succès !');
     }
   };
 
