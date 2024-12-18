@@ -177,7 +177,7 @@ const AvisDePassagePDF = ({ avis }) => {
           <View style={styles.section}>
             <Text>Signature :</Text>
             <Image style={styles.signature} src={signature} />
-            <Text>{verifiedBy}</Text>
+            <Text>Travail vu et controlé par :{verifiedBy}</Text>
             <Text>{verifiedDate}</Text>
           </View>
         )}
