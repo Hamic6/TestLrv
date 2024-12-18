@@ -31,11 +31,11 @@ const GestionDesClients = async(() => import("@/pages/facturation/ClientList"));
 const ClientDetails = async(() => import("@/pages/facturation/ClientDetails"));
 const TableauDeBord = async(() => import("@/pages/facturation/InvoiceDetails"));
 const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
+const CreateDevis = async(() => import("@/pages/facturation/CreateDevis")); // Ajout du composant CreateDevis
 
 // Avis de Passage components
 const CreateAvisDePassage = async(() => import("@/pages/AvisDePassage/CreateAvisDePassage"));
 const SendAvisDePassage = async(() => import("@/pages/AvisDePassage/SendAvisDePassage"));
-const TrackAvisDePassage = async(() => import("@/pages/AvisDePassage/TrackAvisDePassage"));
 const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvisDePassage"));
 
 // Profile component
@@ -126,6 +126,10 @@ const routes = [
         path: "rapports",
         element: <Rapports />,
       },
+      {
+        path: "creer-devis", // Route pour créer un devis
+        element: <CreateDevis />,
+      },
     ],
   },
   {
@@ -143,10 +147,6 @@ const routes = [
       {
         path: "envoyer-avis-passage",
         element: <SendAvisDePassage />,
-      },
-      {
-        path: "suivre-avis-passage",
-        element: <TrackAvisDePassage />,
       },
       {
         path: "rechercher-avis-passage",

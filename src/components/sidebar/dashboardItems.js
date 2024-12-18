@@ -98,11 +98,7 @@ const pagesSection = [
         icon: SendIcon,
         title: "Envoyer un Avis de Passage",
       },
-      {
-        href: "/avis-de-passage/suivre-avis-passage",
-        icon: TrackChangesIcon,
-        title: "Suivre les Avis de Passage",
-      },
+     
       {
         href: "/avis-de-passage/rechercher-avis-passage",
         icon: SearchIcon,
