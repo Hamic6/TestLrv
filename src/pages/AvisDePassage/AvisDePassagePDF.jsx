@@ -126,7 +126,7 @@ const AvisDePassagePDF = ({ avis }) => {
             <Text>{companyInfo.taxNumber}</Text>
           </View>
           <View style={styles.avisDetailsSection}>
-            <Text>#{avisInfo.number}</Text>
+            <Text>Num Avis :{avisInfo.number}</Text>
             <Text>Date : {avisInfo.date}</Text>
             <Text>Heure de début : {avisInfo.startTime}</Text>
             <Text>Heure de fin : {avisInfo.endTime}</Text>
