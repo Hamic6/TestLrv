@@ -10,6 +10,7 @@ import "animate.css/animate.min.css";
 import App from "./App";
 import reportWebVitals from "@/utils/reportWebVitals";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { UserProvider } from "@/contexts/UserContext"; // Import du UserProvider
 
 // Note: Remove the following line if you want to disable the API mocks.
 import "@/mocks";
@@ -20,7 +21,9 @@ const root = createRoot(container);
 root.render(
   <BrowserRouter>
     <ThemeProvider>
-      <App />
+      <UserProvider> {/* Envelopper l'application avec UserProvider */}
+        <App />
+      </UserProvider>
     </ThemeProvider>
   </BrowserRouter>
 );

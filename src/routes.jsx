@@ -29,9 +29,9 @@ const CreerFacture = async(() => import("@/pages/facturation/InvoiceDetails"));
 const ModifierFacture = async(() => import("@/pages/facturation/InvoiceDetails"));
 const GestionDesClients = async(() => import("@/pages/facturation/ClientList"));
 const ClientDetails = async(() => import("@/pages/facturation/ClientDetails"));
-const TableauDeBord = async(() => import("@/pages/facturation/InvoiceDetails"));
+const TableauDeBord = async(() => import("@/pages/tableau_de_bord/DashboardOverview"));
 const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
-const CreateDevis = async(() => import("@/pages/facturation/CreateDevis")); // Ajout du composant CreateDevis
+const CreateDevis = async(() => import("@/pages/facturation/CreateDevis"));
 
 // Avis de Passage components
 const CreateAvisDePassage = async(() => import("@/pages/AvisDePassage/CreateAvisDePassage"));
@@ -87,6 +87,38 @@ const routes = [
     ],
   },
   {
+    path: "tableau-de-bord",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "",
+        element: <TableauDeBord />,
+      },
+      {
+        path: "apercu",
+        element: <TableauDeBord />,
+      },
+    ],
+  },
+  {
+    path: "rapports",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "",
+        element: <Rapports />,
+      },
+    ],
+  },
+  {
     path: "facturation",
     element: (
       <AuthGuard>
@@ -119,15 +151,7 @@ const routes = [
         element: <ClientDetails />,
       },
       {
-        path: "tableau-de-bord",
-        element: <TableauDeBord />,
-      },
-      {
-        path: "rapports",
-        element: <Rapports />,
-      },
-      {
-        path: "creer-devis", // Route pour créer un devis
+        path: "creer-devis",
         element: <CreateDevis />,
       },
     ],

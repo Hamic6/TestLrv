@@ -122,7 +122,7 @@ const DevisPDF = ({ devis }) => {
             <Text>{companyInfo.taxNumber}</Text>
           </View>
           <View style={styles.devisDetailsSection}>
-            <Text>#{invoiceInfo.number}</Text>
+            <Text>{invoiceInfo.number}</Text>
             <Text>Date : {invoiceInfo.date}</Text> {/* Correction pour utiliser invoiceInfo.date */}
           </View>
         </View>

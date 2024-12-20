@@ -15,7 +15,6 @@ import {
   Receipt as ReceiptIcon,
   Send as SendIcon,
   Search as SearchIcon,
-  TrackChanges as TrackChangesIcon,
 } from '@mui/icons-material';
 
 const pagesSection = [
@@ -42,6 +41,23 @@ const pagesSection = [
     ],
   },
   {
+    href: "/tableau-de-bord",
+    icon: DashboardIcon,
+    title: "Tableau de Bord",
+    children: [
+      {
+        href: "/tableau-de-bord/apercu",
+        icon: Sliders,
+        title: "Aperçu",
+      },
+    ],
+  },
+  {
+    href: "/rapports",
+    icon: AssessmentIcon,
+    title: "Rapports de Facturation",
+  },
+  {
     href: "/facturation",
     icon: CreditCard,
     title: "Facturation",
@@ -60,16 +76,6 @@ const pagesSection = [
         href: "/facturation/gestion-des-clients",
         icon: PeopleIcon,
         title: "Gestion des Clients",
-      },
-      {
-        href: "/facturation/tableau-de-bord",
-        icon: DashboardIcon,
-        title: "Tableau de Bord",
-      },
-      {
-        href: "/facturation/rapports",
-        icon: AssessmentIcon,
-        title: "Rapports de Facturation",
       },
       {
         href: "/facturation/creer-devis",
@@ -98,7 +104,6 @@ const pagesSection = [
         icon: SendIcon,
         title: "Envoyer un Avis de Passage",
       },
-     
       {
         href: "/avis-de-passage/rechercher-avis-passage",
         icon: SearchIcon,

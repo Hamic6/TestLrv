@@ -127,7 +127,7 @@ const Invoice1PDF = ({ invoice }) => {
             <Text>{companyInfo.taxNumber}</Text> {/* Ajout du numéro d'impôt */}
           </View>
           <View style={styles.invoiceDetailsSection}>
-            <Text>#{invoiceInfo.number}</Text>
+            <Text>LRV{invoiceInfo.number}</Text>
             <Text>Date : {invoiceInfo.date}</Text>
           </View>
         </View>

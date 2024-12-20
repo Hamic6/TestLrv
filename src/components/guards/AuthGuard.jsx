@@ -3,12 +3,12 @@ import { Navigate } from "react-router-dom";
 
 import useAuth from "@/hooks/useAuth";
 
-// For routes that can only be accessed by authenticated users
+// La route est accessible uniquement pour les utilisateur authentifiés
 function AuthGuard({ children }) {
-  const { isAuthenticated, isInitialized } = useAuth();
+  const { user, isInitialized } = useAuth();
 
-  if (isInitialized && !isAuthenticated) {
-    return <Navigate to="/auth/sign-in" />;
+  if (isInitialized && !user) {
+    return <Navigate to="/sign-in" />;
   }
 
   return <React.Fragment>{children}</React.Fragment>;
