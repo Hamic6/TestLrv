@@ -1,3 +1,5 @@
+// src/routes.jsx
+
 import React from "react";
 import { Navigate } from "react-router-dom";
 import async from "@/components/Async";
@@ -48,6 +50,10 @@ const routes = [
     children: [
       {
         path: "",
+        element: <Navigate to="/sign-in" replace />,
+      },
+      {
+        path: "sign-in",
         element: <SignIn />,
       },
       {
@@ -95,26 +101,8 @@ const routes = [
     ),
     children: [
       {
-        path: "",
-        element: <TableauDeBord />,
-      },
-      {
         path: "apercu",
         element: <TableauDeBord />,
-      },
-    ],
-  },
-  {
-    path: "rapports",
-    element: (
-      <AuthGuard>
-        <DashboardLayout />
-      </AuthGuard>
-    ),
-    children: [
-      {
-        path: "",
-        element: <Rapports />,
       },
     ],
   },

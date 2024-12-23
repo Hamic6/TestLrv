@@ -2,20 +2,33 @@
 
 import { useState, useEffect, useContext } from 'react';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import firebaseApp from '../firebaseConfig'; // Assurez-vous que le chemin est correct
-import UserContext from '@/contexts/UserContext'; // Import du UserContext par défaut
+import { useNavigate } from 'react-router-dom';
+import firebaseApp from '../firebaseConfig';
+import UserContext from '@/contexts/UserContext';
 
 const useAuth = () => {
   const [user, setUser] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const auth = getAuth(firebaseApp);
-  const { setUser: setContextUser } = useContext(UserContext); // Utilisation du UserContext
+  const { setUser: setContextUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setIsInitialized(true);
       if (currentUser) {
         setUser(currentUser);
         setContextUser({ email: currentUser.email });
         localStorage.setItem('user', JSON.stringify(currentUser));
+        
+        // Set session expiration timer
+        const expirationTime = 30 * 1000; // 30 seconds for testing
+        const timer = setTimeout(() => {
+          signOut(auth);
+          navigate('/sign-in');
+        }, expirationTime);
+        
+        return () => clearTimeout(timer);
       } else {
         setUser(null);
         setContextUser(null);
@@ -24,7 +37,7 @@ const useAuth = () => {
     });
 
     return () => unsubscribe();
-  }, [auth, setContextUser]);
+  }, [auth, setContextUser, navigate]);
 
   const signIn = (email, password) => {
     return signInWithEmailAndPassword(auth, email, password);
@@ -34,7 +47,7 @@ const useAuth = () => {
     signOut(auth);
   };
 
-  return { user, signIn, logout };
+  return { user, isInitialized, signIn, logout };
 };
 
 export default useAuth;

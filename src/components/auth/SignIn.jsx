@@ -17,19 +17,15 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { spacing } from "@mui/system";
-
 import useAuth from "@/hooks/useAuth"; // Assure-toi que le chemin est correct
+import { cleanInput } from '@/utils/cleanInput'; // Assurez-vous que la fonction cleanInput est correctement importée
 
 const Alert = styled(MuiAlert)(spacing);
-
 const TextField = styled(MuiTextField)(spacing);
-
 const Button = styled(MuiButton)(spacing);
-
 const Centered = styled(MuiTypography)`
   text-align: center;
 `;
-
 const Typography = styled(MuiTypography)(spacing);
 
 function SignIn() {
@@ -61,10 +57,18 @@ function SignIn() {
       })}
       onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
         try {
-          await signIn(values.email, values.password);
+          // Nettoyez les entrées utilisateur avant de les utiliser
+          const cleanEmail = cleanInput(values.email);
+          const cleanPassword = cleanInput(values.password);
+
+          console.log("Clean Email: ", cleanEmail);
+          console.log("Clean Password: ", cleanPassword);
+
+          await signIn(cleanEmail, cleanPassword);
           navigate("/dashboard");
         } catch (error) {
           const message = error.message || "Quelque chose n'a pas fonctionné";
+          console.log("Erreur: ", message);
           setStatus({ success: false });
           setErrors({ submit: message });
           setSubmitting(false);
@@ -82,7 +86,7 @@ function SignIn() {
       }) => (
         <form noValidate onSubmit={handleSubmit}>
           <Alert mt={3} mb={3} severity="info">
-            Cette application est <strong>reservé à</strong> quelques{" "}
+            Cette application est <strong>reservée à</strong> quelques{" "}
             <strong>employés</strong> du rayon vert
           </Alert>
           {errors.submit && (
