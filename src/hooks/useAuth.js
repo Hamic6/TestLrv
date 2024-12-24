@@ -22,7 +22,7 @@ const useAuth = () => {
         localStorage.setItem('user', JSON.stringify(currentUser));
         
         // Set session expiration timer
-        const expirationTime = 30 * 1000; // 30 seconds for testing
+        const expirationTime = 9 * 60 * 60 * 1000; // 9 hours
         const timer = setTimeout(() => {
           signOut(auth);
           navigate('/sign-in');
