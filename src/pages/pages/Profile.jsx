@@ -101,7 +101,7 @@ function Profile() {
           <Card mb={6}>
             <CardContent>
               <Centered>
-                <Avatar alt={displayName || "User"} src={photoURL || "/static/img/avatars/avatar-1.jpg"} style={{ width: 128, height: 128, marginBottom: '1rem' }} />
+                <Avatar alt={displayName || "User"} src={photoURL || ""} style={{ width: 128, height: 128, marginBottom: '1rem' }} />
                 <Typography variant="h6" gutterBottom>{displayName || "User"}</Typography>
                 <Typography variant="body2" component="div" gutterBottom>
                   <Box fontWeight="fontWeightRegular">{email}</Box>
