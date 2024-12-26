@@ -1,12 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from "@emotion/styled";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { Grid, Divider as MuiDivider, Typography as MuiTypography } from "@mui/material";
 import { spacing } from "@mui/system";
 import { green, red } from "@mui/material/colors";
-import { useUser } from '@/contexts/UserContext'; // Import du contexte utilisateur
-
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Actions from './Actions';
 import BarChart from './BarChart';
 import DoughnutChart from './DoughnutChart';
@@ -19,7 +18,18 @@ const Typography = styled(MuiTypography)(spacing);
 
 const DashboardOverview = () => {
   const { t } = useTranslation();
-  const { user } = useUser(); // Utilisation du contexte utilisateur
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserName(user.displayName || "Utilisateur");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div>
@@ -30,7 +40,7 @@ const DashboardOverview = () => {
             Tableau de bord 
           </Typography>
           <Typography variant="subtitle1">
-            {t("Bienvenue !")} {user?.email || "Utilisateur"} {t("")} 👋
+            {t("Bienvenue !")} {userName} {t("")} 👋
           </Typography>
         </Grid>
         <Grid item>

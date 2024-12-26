@@ -21,8 +21,8 @@ const useAuth = () => {
         setContextUser({ email: currentUser.email });
         localStorage.setItem('user', JSON.stringify(currentUser));
         
-        // Set session expiration timer
-        const expirationTime = 9 * 60 * 60 * 1000; // 9 hours
+        // Le délai d'expiration de chaque session
+        const expirationTime = 9 * 60 * 60 * 1000; // 9 heures
         const timer = setTimeout(() => {
           signOut(auth);
           navigate('/sign-in');
