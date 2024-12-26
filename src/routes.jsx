@@ -1,5 +1,3 @@
-// src/routes.jsx
-
 import React from "react";
 import { Navigate } from "react-router-dom";
 import async from "@/components/Async";
@@ -42,6 +40,11 @@ const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvis
 
 // Profile component
 const Profile = async(() => import("@/pages/pages/Profile"));
+
+// Utilisateurs components
+const ListUsers = async(() => import("@/pages/Users/ListUsers"));
+const Ajout_User = async(() => import("@/pages/Users/Ajout_User"));
+const Roles = async(() => import("@/pages/Users/Roles"));
 
 const routes = [
   {
@@ -177,6 +180,28 @@ const routes = [
       {
         path: "",
         element: <Profile />,
+      },
+    ],
+  },
+  {
+    path: "utilisateurs",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "liste",
+        element: <ListUsers />,
+      },
+      {
+        path: "ajouter",
+        element: <Ajout_User />,
+      },
+      {
+        path: "attribuer-roles",
+        element: <Roles />,
       },
     ],
   },

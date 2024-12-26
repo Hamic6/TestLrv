@@ -15,6 +15,8 @@ import {
   Receipt as ReceiptIcon,
   Send as SendIcon,
   Search as SearchIcon,
+  Group as GroupIcon,
+  AssignmentInd as AssignmentIndIcon,
 } from '@mui/icons-material';
 
 const pagesSection = [
@@ -91,7 +93,7 @@ const pagesSection = [
   },
   {
     href: "/avis-de-passage",
-    icon: AnnouncementIcon, // Utilisation de l'icône Announcement
+    icon: AnnouncementIcon,
     title: "Avis de Passage",
     children: [
       {
@@ -175,23 +177,23 @@ const pagesSection = [
     ],
   },
   {
-    href: "/roles-permissions",
-    icon: Key,
-    title: "Gestion des Rôles et Permissions",
+    href: "/utilisateurs",
+    icon: GroupIcon,
+    title: "Utilisateurs",
     children: [
       {
-        href: "/roles",
-        icon: Key,
-        title: "Rôles",
+        href: "/utilisateurs/liste",
+        icon: PeopleIcon,
+        title: "Liste des Utilisateurs",
       },
       {
-        href: "/permissions",
-        icon: Key,
-        title: "Permissions",
+        href: "/utilisateurs/ajouter",
+        icon: CreateIcon,
+        title: "Ajouter un Utilisateur",
       },
       {
-        href: "/roles-permissions/assign",
-        icon: Key,
+        href: "/utilisateurs/attribuer-roles",
+        icon: AssignmentIndIcon,
         title: "Attribuer des Rôles",
       },
     ],
