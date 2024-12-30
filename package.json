@@ -7,7 +7,7 @@
   "type": "module",
   "license": "https://mui.com/store/license/",
   "scripts": {
-    "start": "vite --port 3000",
+    "start": "node server/admin.js",   
     "dev": "vite --port 3000",
     "build": "vite build",
     "serve": "vite preview",
@@ -21,6 +21,9 @@
     "not IE 11"
   ],
   "dependencies": {
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.2",
+    
     "@auth0/auth0-spa-js": "1.22.6",
     "@babel/plugin-proposal-private-property-in-object": "7.21.11",
     "@babel/plugin-transform-private-property-in-object": "7.24.7",
@@ -67,9 +70,7 @@
     "deepmerge": "4.3.1",
     "dompurify": "^3.2.3",
     "dotenv": "^16.4.5",
-    "express": "^4.21.2",
     "firebase": "^11.0.1",
-    "firebase-admin": "^13.0.2",
     "formik": "2.4.6",
     "google-map-react": "2.2.1",
     "history": "5.3.0",
