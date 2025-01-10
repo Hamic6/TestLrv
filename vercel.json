@@ -1,0 +1,12 @@
+{
+    "version": 2,
+    "builds": [
+      { "src": "server/admin.js", "use": "@vercel/node" },
+      { "src": "vite.config.js", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
+    ],
+    "routes": [
+      { "src": "/api/(.*)", "dest": "/server/admin.js" },
+      { "src": "/(.*)", "dest": "/dist/index.html" }
+    ]
+  }
+  
