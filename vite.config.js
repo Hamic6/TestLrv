@@ -20,6 +20,7 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: 'dist',  // Ajoutez cette ligne pour définir le répertoire de sortie
     chunkSizeWarningLimit: 6000,
     rollupOptions: {
       onwarn(warning, warn) {

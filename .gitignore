@@ -28,3 +28,4 @@ yarn.lock
 
 # service account keys
 server/serviceAccountKey.json
+.vercel
