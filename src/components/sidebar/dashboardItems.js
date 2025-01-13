@@ -15,8 +15,6 @@ import {
   Receipt as ReceiptIcon,
   Send as SendIcon,
   Search as SearchIcon,
-  Group as GroupIcon,
-  AssignmentInd as AssignmentIndIcon,
 } from '@mui/icons-material';
 
 const pagesSection = [
@@ -177,23 +175,23 @@ const pagesSection = [
     ],
   },
   {
-    href: "/utilisateurs",
-    icon: GroupIcon,
-    title: "Utilisateurs",
+    href: "/roles-permissions",
+    icon: Key,
+    title: "Gestion des Rôles et Permissions",
     children: [
       {
-        href: "/utilisateurs/liste",
-        icon: PeopleIcon,
-        title: "Liste des Utilisateurs",
+        href: "/roles-permissions/roles",
+        icon: Key,
+        title: "Rôles",
       },
       {
-        href: "/utilisateurs/ajouter",
-        icon: CreateIcon,
-        title: "Ajouter un Utilisateur",
+        href: "/roles-permissions/permissions",
+        icon: Key,
+        title: "Permissions",
       },
       {
-        href: "/utilisateurs/attribuer-roles",
-        icon: AssignmentIndIcon,
+        href: "/roles-permissions/assign",
+        icon: Key,
         title: "Attribuer des Rôles",
       },
     ],
