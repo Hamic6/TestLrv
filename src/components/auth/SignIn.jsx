@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "@emotion/styled";
 import { Link as RouterLink } from "react-router-dom";
@@ -19,6 +19,10 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { spacing } from "@mui/system";
 import useAuth from "@/hooks/useAuth"; // Assure-toi que le chemin est correct
 import { cleanInput } from '@/utils/cleanInput'; // Assurez-vous que la fonction cleanInput est correctement importée
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUserData } from '../../redux/slices/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../firebaseConfig';
 
 const Alert = styled(MuiAlert)(spacing);
 const TextField = styled(MuiTextField)(spacing);
@@ -32,6 +36,18 @@ function SignIn() {
   const navigate = useNavigate();
   const { signIn } = useAuth(); // Vérifie que signIn est bien importée
   const [showPassword, setShowPassword] = useState(false); // Ajouter l'état pour la visibilité du mot de passe
+
+  const dispatch = useDispatch();
+  const { user, isInitialized, error } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        dispatch(fetchUserData(user.uid));
+      }
+    });
+    return unsubscribe;
+  }, [dispatch]);
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);

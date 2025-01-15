@@ -1,5 +1,3 @@
-// src/routes.jsx
-
 import React from "react";
 import { Navigate } from "react-router-dom";
 import async from "@/components/Async";
@@ -11,6 +9,7 @@ import ErrorLayout from "@/layouts/Error";
 
 // Guards
 import AuthGuard from "@/components/guards/AuthGuard";
+import RouteGuard from "@/components/guards/RouteGuard"; // Importer RouteGuard
 
 // Auth components
 import SignIn from "@/pages/auth/SignIn";
@@ -42,7 +41,6 @@ const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvis
 
 // Profile component
 const Profile = async(() => import("@/pages/pages/Profile"));
-
 // Importer le composant AttribuerRoles avec le bon chemin
 const AttribuerRoles = async(() => import("@/pages/roles-permissions/AttribuerRoles"));
 
@@ -87,99 +85,27 @@ const routes = [
       },
       {
         path: "analytics",
-        element: <Analytics />,
+        element: (
+          <RouteGuard requiredRoles={['admin']} requiredPages={['/dashboard/analytics']}>
+            <Analytics />
+          </RouteGuard>
+        ),
       },
       {
         path: "saas",
-        element: <SaaS />,
+        element: (
+          <RouteGuard requiredRoles={['admin']} requiredPages={['/dashboard/saas']}>
+            <SaaS />
+          </RouteGuard>
+        ),
       },
-    ],
-  },
-  {
-    path: "tableau-de-bord",
-    element: (
-      <AuthGuard>
-        <DashboardLayout />
-      </AuthGuard>
-    ),
-    children: [
       {
         path: "apercu",
-        element: <TableauDeBord />,
-      },
-    ],
-  },
-  {
-    path: "facturation",
-    element: (
-      <AuthGuard>
-        <DashboardLayout />
-      </AuthGuard>
-    ),
-    children: [
-      {
-        path: "liste-des-factures",
-        element: <ListeDesFactures />,
-      },
-      {
-        path: "details-facture/:id",
-        element: <DetailsFacture />,
-      },
-      {
-        path: "creer-facture",
-        element: <CreerFacture />,
-      },
-      {
-        path: "modifier-facture/:id",
-        element: <ModifierFacture />,
-      },
-      {
-        path: "gestion-des-clients",
-        element: <GestionDesClients />,
-      },
-      {
-        path: "clients/:clientId",
-        element: <ClientDetails />,
-      },
-      {
-        path: "creer-devis",
-        element: <CreateDevis />,
-      },
-    ],
-  },
-  {
-    path: "avis-de-passage",
-    element: (
-      <AuthGuard>
-        <DashboardLayout />
-      </AuthGuard>
-    ),
-    children: [
-      {
-        path: "creer-avis-passage",
-        element: <CreateAvisDePassage />,
-      },
-      {
-        path: "envoyer-avis-passage",
-        element: <SendAvisDePassage />,
-      },
-      {
-        path: "rechercher-avis-passage",
-        element: <SearchAvisDePassage />,
-      },
-    ],
-  },
-  {
-    path: "profile",
-    element: (
-      <AuthGuard>
-        <DashboardLayout />
-      </AuthGuard>
-    ),
-    children: [
-      {
-        path: "",
-        element: <Profile />,
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager', 'employee']} requiredPages={['/dashboard/apercu']}>
+            <TableauDeBord />
+          </RouteGuard>
+        ),
       },
     ],
   },
@@ -193,7 +119,129 @@ const routes = [
     children: [
       {
         path: "assign",
-        element: <AttribuerRoles />,
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/roles-permissions/assign']}>
+            <AttribuerRoles />
+          </RouteGuard>
+        ),
+      },
+    ],
+  },
+  {
+    path: "facturation",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "liste-des-factures",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/liste-des-factures']}>
+            <ListeDesFactures />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: "details-facture/:id",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/details-facture/:id']}>
+            <DetailsFacture />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: "creer-facture",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/creer-facture']}>
+            <CreerFacture />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: "modifier-facture/:id",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/modifier-facture/:id']}>
+            <ModifierFacture />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: "gestion-des-clients",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/gestion-des-clients']}>
+            <GestionDesClients />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: "clients/:clientId",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/clients/:clientId']}>
+            <ClientDetails />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: "creer-devis",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/creer-devis']}>
+            <CreateDevis />
+          </RouteGuard>
+        ),
+      },
+    ],
+  },
+  {
+    path: "avis-de-passage",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "creer-avis-passage",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/avis-de-passage/creer-avis-passage']}>
+            <CreateAvisDePassage />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: "envoyer-avis-passage",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/avis-de-passage/envoyer-avis-passage']}>
+            <SendAvisDePassage />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: "rechercher-avis-passage",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/avis-de-passage/rechercher-avis-passage']}>
+            <SearchAvisDePassage />
+          </RouteGuard>
+        ),
+      },
+    ],
+  },
+  {
+    path: "profile",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "",
+        element: (
+          <RouteGuard requiredRoles={['admin', 'manager', 'employee']} requiredPages={['/profile']}>
+            <Profile />
+          </RouteGuard>
+        ),
       },
     ],
   },

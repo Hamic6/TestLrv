@@ -1,6 +1,4 @@
-import { useSelector } from "react-redux";
+import { useSelector } from 'react-redux';
 
-// Use throughout your app instead of plain `useSelector`
-const useAppSelector = useSelector;
-
-export default useAppSelector;
+// Hook personnalisé pour utiliser useSelector de react-redux
+export const useAppSelector = useSelector;
