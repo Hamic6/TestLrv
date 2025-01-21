@@ -9,7 +9,6 @@ import ErrorLayout from "@/layouts/Error";
 
 // Guards
 import AuthGuard from "@/components/guards/AuthGuard";
-import RouteGuard from "@/components/guards/RouteGuard"; // Importer RouteGuard
 
 // Auth components
 import SignIn from "@/pages/auth/SignIn";
@@ -22,6 +21,7 @@ import Page500 from "@/pages/auth/Page500";
 import Default from "@/pages/dashboards/Default";
 const Analytics = async(() => import("@/pages/dashboards/Analytics"));
 const SaaS = async(() => import("@/pages/dashboards/SaaS"));
+const DashboardOverview = async(() => import("@/pages/tableau_de_bord/DashboardOverview"));
 
 // Facturation components
 const ListeDesFactures = async(() => import("@/pages/facturation/InvoiceList"));
@@ -30,19 +30,16 @@ const CreerFacture = async(() => import("@/pages/facturation/InvoiceDetails"));
 const ModifierFacture = async(() => import("@/pages/facturation/InvoiceDetails"));
 const GestionDesClients = async(() => import("@/pages/facturation/ClientList"));
 const ClientDetails = async(() => import("@/pages/facturation/ClientDetails"));
-const TableauDeBord = async(() => import("@/pages/tableau_de_bord/DashboardOverview"));
 const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
 const CreateDevis = async(() => import("@/pages/facturation/CreateDevis"));
-
-// Avis de Passage components
 const CreateAvisDePassage = async(() => import("@/pages/AvisDePassage/CreateAvisDePassage"));
 const SendAvisDePassage = async(() => import("@/pages/AvisDePassage/SendAvisDePassage"));
 const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvisDePassage"));
 
 // Profile component
 const Profile = async(() => import("@/pages/pages/Profile"));
-// Importer le composant AttribuerRoles avec le bon chemin
 const AttribuerRoles = async(() => import("@/pages/roles-permissions/AttribuerRoles"));
+const Listes = async(() => import("@/pages/roles-permissions/Listes"));  // Ajouté pour Listes.jsx
 
 const routes = [
   {
@@ -85,27 +82,25 @@ const routes = [
       },
       {
         path: "analytics",
-        element: (
-          <RouteGuard requiredRoles={['admin']} requiredPages={['/dashboard/analytics']}>
-            <Analytics />
-          </RouteGuard>
-        ),
+        element: <Analytics />,
       },
       {
         path: "saas",
-        element: (
-          <RouteGuard requiredRoles={['admin']} requiredPages={['/dashboard/saas']}>
-            <SaaS />
-          </RouteGuard>
-        ),
+        element: <SaaS />,
       },
+    ],
+  },
+  {
+    path: "tableau-de-bord",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
       {
-        path: "apercu",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager', 'employee']} requiredPages={['/dashboard/apercu']}>
-            <TableauDeBord />
-          </RouteGuard>
-        ),
+        path: "",
+        element: <DashboardOverview />,
       },
     ],
   },
@@ -119,11 +114,11 @@ const routes = [
     children: [
       {
         path: "assign",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/roles-permissions/assign']}>
-            <AttribuerRoles />
-          </RouteGuard>
-        ),
+        element: <AttribuerRoles />,
+      },
+      {
+        path: "permissions",
+        element: <Listes />,  // Ajout de la route pour Listes.jsx
       },
     ],
   },
@@ -137,59 +132,31 @@ const routes = [
     children: [
       {
         path: "liste-des-factures",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/liste-des-factures']}>
-            <ListeDesFactures />
-          </RouteGuard>
-        ),
+        element: <ListeDesFactures />,
       },
       {
         path: "details-facture/:id",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/details-facture/:id']}>
-            <DetailsFacture />
-          </RouteGuard>
-        ),
+        element: <DetailsFacture />,
       },
       {
         path: "creer-facture",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/creer-facture']}>
-            <CreerFacture />
-          </RouteGuard>
-        ),
+        element: <CreerFacture />,
       },
       {
         path: "modifier-facture/:id",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/modifier-facture/:id']}>
-            <ModifierFacture />
-          </RouteGuard>
-        ),
+        element: <ModifierFacture />,
       },
       {
         path: "gestion-des-clients",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/gestion-des-clients']}>
-            <GestionDesClients />
-          </RouteGuard>
-        ),
+        element: <GestionDesClients />,
       },
       {
         path: "clients/:clientId",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/clients/:clientId']}>
-            <ClientDetails />
-          </RouteGuard>
-        ),
+        element: <ClientDetails />,
       },
       {
         path: "creer-devis",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/facturation/creer-devis']}>
-            <CreateDevis />
-          </RouteGuard>
-        ),
+        element: <CreateDevis />,
       },
     ],
   },
@@ -203,27 +170,15 @@ const routes = [
     children: [
       {
         path: "creer-avis-passage",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/avis-de-passage/creer-avis-passage']}>
-            <CreateAvisDePassage />
-          </RouteGuard>
-        ),
+        element: <CreateAvisDePassage />,
       },
       {
         path: "envoyer-avis-passage",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/avis-de-passage/envoyer-avis-passage']}>
-            <SendAvisDePassage />
-          </RouteGuard>
-        ),
+        element: <SendAvisDePassage />,
       },
       {
         path: "rechercher-avis-passage",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager']} requiredPages={['/avis-de-passage/rechercher-avis-passage']}>
-            <SearchAvisDePassage />
-          </RouteGuard>
-        ),
+        element: <SearchAvisDePassage />,
       },
     ],
   },
@@ -237,11 +192,7 @@ const routes = [
     children: [
       {
         path: "",
-        element: (
-          <RouteGuard requiredRoles={['admin', 'manager', 'employee']} requiredPages={['/profile']}>
-            <Profile />
-          </RouteGuard>
-        ),
+        element: <Profile />,
       },
     ],
   },

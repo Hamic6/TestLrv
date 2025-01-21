@@ -1,18 +1,15 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { NavLink } from "react-router-dom";
-
 import { green } from "@mui/material/colors";
-
 import { Box, Chip, Drawer as MuiDrawer, ListItemButton } from "@mui/material";
-
 import { ReactComponent as Logo } from "@/vendor/logo.svg";
 import Footer from "./SidebarFooter";
 import SidebarNav from "./SidebarNav";
+import NavItems from "./dashboardItems"; // Importer NavItems
 
 const Drawer = styled(MuiDrawer)`
   border-right: 0;
-
   > div {
     border-right: 0;
     scrollbar-width: none;
@@ -65,7 +62,9 @@ const BrandChip = styled(Chip)`
   }
 `;
 
-const Sidebar = ({ items, showFooter = true, ...rest }) => {
+const Sidebar = ({ showFooter = true, ...rest }) => {
+  const items = NavItems(); // Utiliser NavItems pour obtenir les éléments de navigation
+
   return (
     <Drawer variant="permanent" {...rest}>
       <Brand component={NavLink} to="/">

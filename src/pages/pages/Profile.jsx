@@ -18,7 +18,8 @@ import {
 import { NavLink } from "react-router-dom";
 import { getAuth, updateProfile, onAuthStateChanged } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../../firebaseConfig";
+import { doc, updateDoc } from "firebase/firestore"; // Import for Firestore update
+import { storage, db } from "../../firebaseConfig"; // Import your Firestore db
 import useAuth from "@/hooks/useAuth";
 import { spacing } from "@mui/system";
 
@@ -78,6 +79,13 @@ function Profile() {
       }
 
       await updateProfile(user, {
+        displayName,
+        photoURL: photoURLUpdated,
+      });
+
+      // Update Firestore with the new displayName and photoURL
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
         displayName,
         photoURL: photoURLUpdated,
       });

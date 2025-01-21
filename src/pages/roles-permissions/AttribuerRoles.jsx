@@ -1,11 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import styled from '@emotion/styled';
 import { collection, addDoc, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '../../firebaseConfig';
+import {
+  Card as MuiCard,
+  CardContent as MuiCardContent,
+  Divider as MuiDivider,
+  Paper as MuiPaper,
+  Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Checkbox,
+  ListItemText,
+  Button,
+} from '@mui/material';
+import { spacing } from '@mui/system';
+
+const Card = styled(MuiCard)(spacing);
+const CardContent = styled(MuiCardContent)(spacing);
+const Divider = styled(MuiDivider)(spacing);
+const Paper = styled(MuiPaper)(spacing);
 
 const roles = ['admin', 'manager', 'employee'];
 
-const pages = [
+const allPages = [
   { href: '/dashboard', title: 'Dashboard' },
   { href: '/dashboard/default', title: 'Default' },
   { href: '/dashboard/analytics', title: 'Analytics' },
@@ -36,16 +57,15 @@ const pages = [
   { href: '/roles-permissions/assign', title: 'Attribuer des Rôles' },
   { href: '/profile', title: 'Profil' },
 ];
-
 const AttribuerRoles = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
-  const [userPages, setUserPages] = useState([]);
+  const [userPages, setUserPages] = useState(allPages.map(page => page.href)); // Pré-cocher toutes les cases
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState('');
   const [newRole, setNewRole] = useState('');
-  const [newUserPages, setNewUserPages] = useState([]);
+  const [newUserPages, setNewUserPages] = useState(allPages.map(page => page.href)); // Pré-cocher toutes les cases
 
   const handleCreateUser = async () => {
     try {
@@ -53,11 +73,13 @@ const AttribuerRoles = () => {
       const user = userCredential.user;
 
       await updateProfile(user, { displayName: 'User' });
+      const pages = allPages.map(page => page.href);
       await addDoc(collection(db, 'users'), {
         uid: user.uid,
         email: user.email,
         role: role,
-        pages: userPages,
+        pages: pages,
+        sidebar: pages,  // Ajout du champ sidebar avec toutes les pages
       });
 
       alert('Utilisateur créé avec succès!');
@@ -80,7 +102,7 @@ const AttribuerRoles = () => {
   const handleUpdateRole = async () => {
     try {
       const userRef = doc(db, 'users', selectedUser);
-      await updateDoc(userRef, { role: newRole, pages: newUserPages });
+      await updateDoc(userRef, { role: newRole, pages: newUserPages, sidebar: newUserPages }); // Met à jour le champ sidebar
       alert('Rôle mis à jour avec succès!');
       fetchUsers(); // Mettre à jour la liste des utilisateurs
     } catch (error) {
@@ -91,7 +113,8 @@ const AttribuerRoles = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
-  const handlePageSelection = (e) => {
+
+  const handlePageSelection = async (e) => {
     const value = e.target.value;
     const newSelection = [...userPages];
     if (newSelection.includes(value)) {
@@ -101,9 +124,15 @@ const AttribuerRoles = () => {
       newSelection.push(value);
     }
     setUserPages(newSelection);
+
+    // Mettre à jour Firestore en temps réel
+    if (selectedUser) {
+      const userRef = doc(db, 'users', selectedUser);
+      await updateDoc(userRef, { pages: newSelection, sidebar: newSelection });
+    }
   };
 
-  const handleNewPageSelection = (e) => {
+  const handleNewPageSelection = async (e) => {
     const value = e.target.value;
     const newSelection = [...newUserPages];
     if (newSelection.includes(value)) {
@@ -113,6 +142,12 @@ const AttribuerRoles = () => {
       newSelection.push(value);
     }
     setNewUserPages(newSelection);
+
+    // Mettre à jour Firestore en temps réel
+    if (selectedUser) {
+      const userRef = doc(db, 'users', selectedUser);
+      await updateDoc(userRef, { pages: newSelection, sidebar: newSelection });
+    }
   };
 
   const handleUserSelection = (e) => {
@@ -124,84 +159,54 @@ const AttribuerRoles = () => {
       setNewUserPages(user.pages || []); // Ajouter une vérification pour user.pages
     }
   };
-
   return (
-    <div>
-      <h2>Attribuer Rôles</h2>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Mot de passe"
-      />
-      <select value={role} onChange={(e) => setRole(e.target.value)}>
-        <option value="" disabled>Sélectionnez un rôle</option>
-        {roles.map((role) => (
-          <option key={role} value={role}>{role}</option>
-        ))}
-      </select>
-
-      <div>
-        <h3>Sélectionner les Pages pour le Rôle</h3>
-        {pages.map((page) => (
-          <div key={page.href}>
-            <input
-              type="checkbox"
-              value={page.href}
-              checked={userPages.includes(page.href)}
-              onChange={handlePageSelection}
-            />
-            <label>{page.title}</label>
-          </div>
-        ))}
-      </div>
-      
-      <button onClick={handleCreateUser}>Créer utilisateur</button>
-
-      <h3>Mettre à jour les Rôles des Utilisateurs Existants</h3>
-      <select value={selectedUser} onChange={handleUserSelection}>
-        <option value="" disabled>Sélectionnez un utilisateur</option>
-        {users.map((user) => (
-          <option key={user.id} value={user.id}>{user.email}</option>
-        ))}
-      </select>
-      <select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
-        <option value="" disabled>Sélectionnez un rôle</option>
-        {roles.map((role) => (
-          <option key={role} value={role}>{role}</option>
-        ))}
-      </select>
-
-      <div>
-        <h3>Sélectionner les Pages pour le Rôle</h3>
-        {pages.map((page) => (
-          <div key={page.href}>
-            <input
-              type="checkbox"
-              value={page.href}
-              checked={newUserPages.includes(page.href)}
-              onChange={handleNewPageSelection}
-            />
-            <label>{page.title}</label>
-          </div>
-        ))}
-      </div>
-
-      <button onClick={handleUpdateRole}>Mettre à jour le Rôle</button>
-
-      <h3>Liste des utilisateurs</h3>
-      <ul>
-        {users.map((user, index) => (
-          <li key={index}>{user.email} - Rôle : {user.role}</li>
-        ))}
-      </ul>
-    </div>
+    <Card mb={6}>
+      <CardContent pb={1}>
+        <Typography variant="h6" gutterBottom>
+          Attribuer Rôles
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Sélectionnez un utilisateur et mettez à jour son rôle et ses pages autorisées.
+        </Typography>
+      </CardContent>
+      <Paper>
+        <FormControl fullWidth>
+          <InputLabel>Utilisateur</InputLabel>
+          <Select value={selectedUser} onChange={handleUserSelection}>
+            {users.map((user) => (
+              <MenuItem key={user.id} value={user.id}>{user.email}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth>
+          <InputLabel>Rôle</InputLabel>
+          <Select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
+            {roles.map((role) => (
+              <MenuItem key={role} value={role}>{role}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth>
+          <InputLabel>Pages Autorisées</InputLabel>
+          <Select
+            multiple
+            value={newUserPages}
+            onChange={handleNewPageSelection}
+            renderValue={(selected) => selected.join(', ')}
+          >
+            {allPages.map((page) => (
+              <MenuItem key={page.href} value={page.href}>
+                <Checkbox checked={newUserPages.includes(page.href)} />
+                <ListItemText primary={page.title} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button variant="contained" color="primary" onClick={handleUpdateRole}>
+          Mettre à jour le Rôle
+        </Button>
+      </Paper>
+    </Card>
   );
 };
 

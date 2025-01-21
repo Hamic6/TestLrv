@@ -9,15 +9,24 @@ import {
   Description as DescriptionIcon, 
   Create as CreateIcon, 
   People as PeopleIcon, 
+  Group as GroupIcon,
   Dashboard as DashboardIcon, 
   Assessment as AssessmentIcon, 
   Announcement as AnnouncementIcon, 
   Receipt as ReceiptIcon,
   Send as SendIcon,
   Search as SearchIcon,
+  Group as UsersIcon,  // Ajouté pour les utilisateurs
 } from '@mui/icons-material';
+import React, { useContext } from 'react';
+import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
 
-const pagesSection = [
+const useAuth = () => {
+  const { user } = useContext(AuthContext);
+  return user ? user.pages : [];
+};
+
+const generatePagesSection = (accessiblePages = []) => [
   {
     href: "/dashboard",
     icon: Sliders,
@@ -44,13 +53,6 @@ const pagesSection = [
     href: "/tableau-de-bord",
     icon: DashboardIcon,
     title: "Tableau de Bord",
-    children: [
-      {
-        href: "/tableau-de-bord/apercu",
-        icon: Sliders,
-        title: "Aperçu",
-      },
-    ],
   },
   {
     href: "/rapports",
@@ -155,20 +157,20 @@ const pagesSection = [
           {
             href: "/validation/approved",
             icon: CheckCircle,
-            title: "Approuvées",
             parentModule: "Gestion de Stock",
+            title: "Approuvées",
           },
           {
             href: "/validation/rejected",
             icon: CheckCircle,
-            title: "Rejetées",
             parentModule: "Gestion de Stock",
+            title: "Rejetées",
           },
           {
             href: "/validation/logs",
             icon: CheckCircle,
-            title: "Historique de Validation",
             parentModule: "Gestion de Stock",
+            title: "Historique de Validation",
           },
         ],
       },
@@ -176,8 +178,8 @@ const pagesSection = [
   },
   {
     href: "/roles-permissions",
-    icon: Key,
-    title: "Gestion des Rôles et Permissions",
+    icon: GroupIcon,
+    title: "Gestion des Utilisateurs",
     children: [
       {
         href: "/roles-permissions/roles",
@@ -186,8 +188,8 @@ const pagesSection = [
       },
       {
         href: "/roles-permissions/permissions",
-        icon: Key,
-        title: "Permissions",
+        icon: UsersIcon,  // Icon mise à jour
+        title: "Utilisateurs",  // Titre mis à jour
       },
       {
         href: "/roles-permissions/assign",
@@ -198,11 +200,15 @@ const pagesSection = [
   },
 ];
 
-const navItems = [
-  {
-    title: "Pages",
-    pages: pagesSection,
-  },
-];
+const NavItems = () => {
+  const accessiblePages = useAuth();
 
-export default navItems;
+  return [
+    {
+      title: "Pages",
+      pages: generatePagesSection(accessiblePages),
+    },
+  ];
+};
+
+export default NavItems;
