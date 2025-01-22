@@ -31,7 +31,13 @@ const ModifierFacture = async(() => import("@/pages/facturation/InvoiceDetails")
 const GestionDesClients = async(() => import("@/pages/facturation/ClientList"));
 const ClientDetails = async(() => import("@/pages/facturation/ClientDetails"));
 const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
+
+// Devis components
 const CreateDevis = async(() => import("@/pages/facturation/CreateDevis"));
+const SendDevis = async(() => import("@/pages/facturation/SendDevis"));
+const DevisPDF = async(() => import("@/pages/facturation/DevisPDF"));
+
+// AvisDePassage components
 const CreateAvisDePassage = async(() => import("@/pages/AvisDePassage/CreateAvisDePassage"));
 const SendAvisDePassage = async(() => import("@/pages/AvisDePassage/SendAvisDePassage"));
 const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvisDePassage"));
@@ -154,9 +160,27 @@ const routes = [
         path: "clients/:clientId",
         element: <ClientDetails />,
       },
+    ],
+  },
+  {
+    path: "devis",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
       {
         path: "creer-devis",
         element: <CreateDevis />,
+      },
+      {
+        path: "envoyer-devis",
+        element: <SendDevis />,
+      },
+      {
+        path: "devis-pdf",
+        element: <DevisPDF />,
       },
     ],
   },
