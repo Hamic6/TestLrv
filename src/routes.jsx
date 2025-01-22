@@ -22,6 +22,7 @@ import Default from "@/pages/dashboards/Default";
 const Analytics = async(() => import("@/pages/dashboards/Analytics"));
 const SaaS = async(() => import("@/pages/dashboards/SaaS"));
 const DashboardOverview = async(() => import("@/pages/tableau_de_bord/DashboardOverview"));
+const Acceuil = async(() => import("@/pages/Acceuil/Acceuil")); // Importation correcte de Acceuil
 
 // Facturation components
 const ListeDesFactures = async(() => import("@/pages/facturation/InvoiceList"));
@@ -71,6 +72,20 @@ const routes = [
       {
         path: "404",
         element: <Page404 />,
+      },
+    ],
+  },
+  {
+    path: "acceuil",
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        path: "",
+        element: <Acceuil />,
       },
     ],
   },

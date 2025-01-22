@@ -1,10 +1,10 @@
 import { 
   CreditCard,
-  Sliders,
   Archive,
   CheckCircle,
   Key,
   FileText,
+  Home as HomeIcon, // Ajouté pour l'icône Acceuil
 } from "lucide-react";
 import { 
   Description as DescriptionIcon, 
@@ -32,27 +32,10 @@ const generatePagesSection = (roles = []) => {
 
   const pages = [
     {
-      href: "/dashboard",
-      icon: Sliders,
-      title: "Dashboard",
-      children: [
-        {
-          href: "/dashboard/default",
-          icon: Sliders,
-          title: "Default",
-        },
-        {
-          href: "/dashboard/analytics",
-          icon: Sliders,
-          title: "Analytics",
-        },
-        {
-          href: "/dashboard/saas",
-          icon: Sliders,
-          title: "SaaS",
-        },
-      ],
-      visible: isAdmin || roles.includes('manager'),
+      href: "/acceuil",
+      icon: HomeIcon,
+      title: "Acceuil",
+      visible: true, // Pour que tous les utilisateurs puissent y accéder
     },
     {
       href: "/tableau-de-bord",
@@ -215,7 +198,6 @@ const generatePagesSection = (roles = []) => {
           title: "Attribuer des Rôles",
         },
       ],
-      // visible: isAdmin || roles.includes('gestion-des-utilisateurs'),
       visible: true, // Pour que tous les utilisateurs puissent y accéder
     },
   ];

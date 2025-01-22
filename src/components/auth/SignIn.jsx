@@ -81,7 +81,7 @@ function SignIn() {
           console.log("Clean Password: ", cleanPassword);
 
           await signIn(cleanEmail, cleanPassword);
-          navigate("/dashboard");
+          navigate("/acceuil"); // Redirection vers Acceuil après connexion
         } catch (error) {
           const message = error.message || "Quelque chose n'a pas fonctionné";
           console.log("Erreur: ", message);

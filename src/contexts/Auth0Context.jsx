@@ -1,7 +1,8 @@
 import React, { createContext, useEffect, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../firebaseConfig"; // Chemin relatif mis à jour
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig"; // Chemin relatif mis à jour
 
 const INITIALIZE = "INITIALIZE";
 const SIGN_IN = "SIGN_IN";
@@ -57,13 +58,15 @@ function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userData = userDoc.data();
         dispatch({
           type: INITIALIZE,
           payload: {
             isAuthenticated: true,
-            user,
+            user: { ...user, roles: userData ? userData.roles : [] },
           },
         });
       } else {
@@ -83,11 +86,13 @@ function AuthProvider({ children }) {
   const signIn = async (email, password) => {
     await signInWithEmailAndPassword(auth, email, password);
     const user = auth.currentUser;
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const userData = userDoc.data();
     dispatch({
       type: SIGN_IN,
-      payload: { user },
+      payload: { user: { ...user, roles: userData ? userData.roles : [] } },
     });
-    navigate("/dashboard");
+    navigate("/acceuil"); // Redirection vers Acceuil après connexion
   };
 
   const signOutUser = async () => {
@@ -99,11 +104,16 @@ function AuthProvider({ children }) {
   const signUp = async (email, password) => {
     await createUserWithEmailAndPassword(auth, email, password);
     const user = auth.currentUser;
+    await addDoc(collection(db, "users"), {
+      uid: user.uid,
+      email: user.email,
+      roles: [],
+    });
     dispatch({
       type: SIGN_UP,
-      payload: { user },
+      payload: { user: { ...user, roles: [] } },
     });
-    navigate("/dashboard");
+    navigate("/acceuil"); // Redirection vers Acceuil après inscription
   };
 
   const resetPassword = async (email) => {
