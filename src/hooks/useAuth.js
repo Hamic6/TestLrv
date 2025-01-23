@@ -1,9 +1,8 @@
-// src/hooks/useAuth.js
-
 import { useState, useEffect, useContext } from 'react';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import firebaseApp from '../firebaseConfig';
+import firebaseApp, { db } from '../firebaseConfig'; // Assurez-vous que le chemin est correct
 import UserContext from '@/contexts/UserContext';
 
 const useAuth = () => {
@@ -39,6 +38,18 @@ const useAuth = () => {
     return () => unsubscribe();
   }, [auth, setContextUser, navigate]);
 
+  const signUp = async (email, password, firstName, lastName) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    await setDoc(doc(db, 'users', user.uid), {
+      uid: user.uid,
+      email,
+      firstName,
+      lastName,
+      roles: [],
+    });
+  };
+
   const signIn = (email, password) => {
     return signInWithEmailAndPassword(auth, email, password);
   };
@@ -47,7 +58,7 @@ const useAuth = () => {
     signOut(auth);
   };
 
-  return { user, isInitialized, signIn, logout };
+  return { user, isInitialized, signUp, signIn, logout };
 };
 
 export default useAuth;

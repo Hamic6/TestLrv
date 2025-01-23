@@ -19,6 +19,7 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  Alert as MuiAlert,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { spacing } from '@mui/system';
@@ -26,11 +27,13 @@ import { spacing } from '@mui/system';
 const Card = styled(MuiCard)(spacing);
 const CardContent = styled(MuiCardContent)(spacing);
 const Divider = styled(MuiDivider)(spacing);
+const Alert = styled(MuiAlert)(spacing);
 
 const Listes = () => {
   const [users, setUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [alert, setAlert] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -55,9 +58,11 @@ const Listes = () => {
     try {
       await deleteDoc(doc(db, 'users', userToDelete.id));
       setUsers(users.filter(user => user.id !== userToDelete.id));
+      setAlert({ type: 'success', message: "Profil de l'utilisateur supprimé avec succès !" });
       setOpenDialog(false);
       setUserToDelete(null);
     } catch (error) {
+      setAlert({ type: 'error', message: "Erreur lors de la suppression de l'utilisateur." });
       console.error('Erreur lors de la suppression de l\'utilisateur:', error);
     }
   };
@@ -73,9 +78,13 @@ const Listes = () => {
         <Typography variant="h6" gutterBottom>
           Liste des Utilisateurs
         </Typography>
-        
       </CardContent>
       <Divider />
+      {alert && (
+        <Alert mt={2} mb={2} severity={alert.type}>
+          {alert.message}
+        </Alert>
+      )}
       <List>
         {users.map((user) => (
           <ListItem key={user.id} secondaryAction={
@@ -97,7 +106,7 @@ const Listes = () => {
         <DialogTitle>Supprimer l'utilisateur</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Etes-vous sûr de vouloir supprimer cet utilisateur ?
+            Êtes-vous sûr de vouloir supprimer le profil de cet utilisateur ?
           </DialogContentText>
         </DialogContent>
         <DialogActions>

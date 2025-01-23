@@ -3,7 +3,6 @@ import { Link as RouterLink } from "react-router-dom";
 import styled from "@emotion/styled";
 import * as Yup from "yup";
 import { Formik } from "formik";
-
 import {
   Alert as MuiAlert,
   Button as MuiButton,
@@ -15,15 +14,11 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { spacing } from "@mui/system";
-
 import useAuth from "@/hooks/useAuth";
 
 const Alert = styled(MuiAlert)(spacing);
-
 const TextField = styled(MuiTextField)(spacing);
-
 const Button = styled(MuiButton)(spacing);
-
 const Centered = styled(Typography)`
   text-align: center;
 `;
@@ -31,8 +26,8 @@ const Centered = styled(Typography)`
 function SignUp() {
   const { signUp } = useAuth();
   const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // Ajouter l'état pour la visibilité du mot de passe
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Ajouter l'état pour la visibilité du mot de passe de confirmation
+  const [showPassword, setShowPassword] = useState(false); // État pour la visibilité du mot de passe
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // État pour la visibilité du mot de passe de confirmation
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -74,16 +69,20 @@ function SignUp() {
       })}
       onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
         try {
+          console.log('Form values:', values);
           await signUp(
             values.email,
             values.password,
             values.firstName,
             values.lastName
           );
+          console.log('User signed up successfully');
           setSuccess(true);
+          setStatus({ success: true });
+          setSubmitting(false);
         } catch (error) {
           const message = error.message || "Quelque chose n'a pas marché";
-
+          console.error('Error during sign up:', message);
           setStatus({ success: false });
           setErrors({ submit: message });
           setSubmitting(false);
@@ -98,9 +97,10 @@ function SignUp() {
         isSubmitting,
         touched,
         values,
+        status,
       }) => (
         <form noValidate onSubmit={handleSubmit}>
-          {success && (
+          {status && status.success && (
             <Alert mt={2} mb={1} severity="success">
               Inscription réussie ! Vous pouvez maintenant vous connecter.
             </Alert>
