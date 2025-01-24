@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
+import QRCode from 'qrcode';
 
 // Créez des styles pour votre document PDF
 const styles = StyleSheet.create({
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
   invoiceDetailsSection: {
     flex: 1,
     paddingLeft: 20,
-    textAlign: 'right',
+    textAlign: 'center',  // Centrer le contenu horizontalement
     color: 'black',
   },
   billingSection: {
@@ -97,9 +98,28 @@ const styles = StyleSheet.create({
     height: 60,
     marginBottom: 10,
   },
+  qrCode: {
+    width: 100,
+    height: 100,
+    marginTop: 10, // Ajustement pour l'espacement
+    alignSelf: 'center', // Centrer horizontalement
+  }
 });
+
 // Créez un composant Document pour le PDF
 const Invoice1PDF = ({ invoice }) => {
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+
+  useEffect(() => {
+    const qrCodeData = "https://rayonverts.com/";
+    QRCode.toDataURL(qrCodeData, (err, url) => {
+      if (err) {
+        console.error(err);
+      } else {
+        setQrCodeUrl(url);
+      }
+    });
+  }, []);
   const {
     companyInfo,
     invoiceInfo,
@@ -111,8 +131,6 @@ const Invoice1PDF = ({ invoice }) => {
     paymentInfo,
     additionalNotes,
   } = invoice;
-
-  const calculateVat = (subtotal, vatPercent) => (subtotal * vatPercent) / 100;
 
   return (
     <Document>
@@ -129,6 +147,11 @@ const Invoice1PDF = ({ invoice }) => {
           <View style={styles.invoiceDetailsSection}>
             <Text>LRV{invoiceInfo.number}</Text>
             <Text>Date : {invoiceInfo.date}</Text>
+            {qrCodeUrl && (
+              <View style={styles.qrCode}>
+                <Image src={qrCodeUrl} />
+              </View>
+            )}
           </View>
         </View>
         <View style={styles.invoiceTitleSection}>

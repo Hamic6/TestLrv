@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
+import QRCode from 'qrcode';
 
 const styles = StyleSheet.create({
   page: {
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
   devisDetailsSection: {
     flex: 1,
     paddingLeft: 20,
-    textAlign: 'right',
+    textAlign: 'center',  // Centrer le contenu horizontalement
     color: 'black',
   },
   billingSection: {
@@ -96,9 +97,27 @@ const styles = StyleSheet.create({
     height: 60,
     marginBottom: 10,
   },
+  qrCode: {
+    width: 100,
+    height: 100,
+    marginTop: 10, // Ajustement pour l'espacement
+    alignSelf: 'center', // Centrer horizontalement
+  }
 });
 
 const DevisPDF = ({ devis }) => {
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+
+  useEffect(() => {
+    const qrCodeData = "https://rayonverts.com/";
+    QRCode.toDataURL(qrCodeData, (err, url) => {
+      if (err) {
+        console.error(err);
+      } else {
+        setQrCodeUrl(url);
+      }
+    });
+  }, []);
   const {
     companyInfo = {},
     invoiceInfo = {}, // Utilisation cohérente de invoiceInfo
@@ -124,6 +143,11 @@ const DevisPDF = ({ devis }) => {
           <View style={styles.devisDetailsSection}>
             <Text>{invoiceInfo.number}</Text>
             <Text>Date : {invoiceInfo.date}</Text> {/* Correction pour utiliser invoiceInfo.date */}
+            {qrCodeUrl && (
+              <View style={styles.qrCode}>
+                <Image src={qrCodeUrl} />
+              </View>
+            )}
           </View>
         </View>
         <View style={styles.devisTitleSection}>
@@ -189,3 +213,4 @@ const DevisPDF = ({ devis }) => {
 }
 
 export default DevisPDF;
+
