@@ -70,7 +70,7 @@ const Sidebar = ({ showFooter = true, ...rest }) => {
       <Brand component={NavLink} to="/">
         <BrandIcon />{" "}
         <Box ml={1}>
-          Le Rayon Vert <BrandChip label="APP" />
+          Le Rayon Vert <BrandChip label="online" />
         </Box>
       </Brand>
       <SidebarNav items={items} />

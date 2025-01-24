@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import firebaseApp, { db } from '../firebaseConfig'; // Assurez-vous que le chemin est correct
@@ -54,11 +54,15 @@ const useAuth = () => {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  const resetPassword = (email) => {
+    return sendPasswordResetEmail(auth, email);
+  };
+
   const logout = () => {
     signOut(auth);
   };
 
-  return { user, isInitialized, signUp, signIn, logout };
+  return { user, isInitialized, signUp, signIn, resetPassword, logout };
 };
 
 export default useAuth;

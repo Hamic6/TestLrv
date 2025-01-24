@@ -31,7 +31,7 @@ function App({ emotionCache = clientSideEmotionCache }) {
       <HelmetProvider>
         <Helmet
           titleTemplate="%s | Le Rayon vert"
-          defaultTitle="Le Rayon Vert APP"
+          defaultTitle="Le rayon-vert online"
         />
         <Provider store={store}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>

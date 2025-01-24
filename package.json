@@ -49,6 +49,7 @@
     "@react-pdf/renderer": "^4.0.0",
     "@redux-devtools/extension": "3.3.0",
     "@reduxjs/toolkit": "1.9.7",
+    "@sendgrid/mail": "^8.1.4",
     "@svgr/rollup": "8.1.0",
     "@vitejs/plugin-react-swc": "3.7.0",
     "amazon-cognito-identity-js": "5.2.14",

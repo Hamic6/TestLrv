@@ -18,6 +18,7 @@ import {
   Send as SendIcon,
   Search as SearchIcon,
   Group as UsersIcon,  // Ajouté pour les utilisateurs
+  PersonAdd as PersonAddIcon, // Icone pour Ajouter un Utilisateur
 } from '@mui/icons-material';
 import React, { useContext } from 'react';
 import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
@@ -181,11 +182,13 @@ const generatePagesSection = (roles = []) => {
       href: "/roles-permissions",
       icon: GroupIcon,
       title: "Gestion des Utilisateurs",
+      visible: isAdmin, // Seuls les administrateurs peuvent voir cette section
+    
       children: [
         {
-          href: "/roles-permissions/roles",
-          icon: Key,
-          title: "Rôles",
+          href: "/roles-permissions/add-user",
+          icon: PersonAddIcon,
+          title: "Ajouter un Utilisateur",
         },
         {
           href: "/roles-permissions/permissions",
@@ -198,7 +201,7 @@ const generatePagesSection = (roles = []) => {
           title: "Attribuer des Rôles",
         },
       ],
-      visible: true, // Pour que tous les utilisateurs puissent y accéder
+      visible: isAdmin, // Seuls les administrateurs peuvent voir cette section
     },
   ];
 

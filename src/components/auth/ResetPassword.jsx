@@ -43,11 +43,14 @@ function ResetPassword() {
       })}
       onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
         try {
+          console.log('Submitting reset password request for email:', values.email);
           await resetPassword(values.email);
           setSuccess(true);
+          setStatus({ success: true });
+          setSubmitting(false);
         } catch (error) {
+          console.error('Error during reset password:', error);
           const message = error.message || "Something went wrong";
-
           setStatus({ success: false });
           setErrors({ submit: message });
           setSubmitting(false);
@@ -77,7 +80,7 @@ function ResetPassword() {
           <TextField
             type="email"
             name="email"
-            label="Email Address"
+            label="Tapez votre addresse email"
             value={values.email}
             error={Boolean(touched.email && errors.email)}
             fullWidth
@@ -97,9 +100,9 @@ function ResetPassword() {
             Réinitialiser le mot de passe
           </Button>
           <Centered>
-          Vous n'avez pas de compte ?{" "}
-            <Link to="../sign-up" component={RouterLink}>
-              S'Enregistrer
+            {" "}
+            <Link to="../sign-in" component={RouterLink}>
+              Retour
             </Link>
           </Centered>
         </form>
