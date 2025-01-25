@@ -47,7 +47,7 @@ const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvis
 const Profile = async(() => import("@/pages/pages/Profile"));
 const AttribuerRoles = async(() => import("@/pages/roles-permissions/AttribuerRoles"));
 const Listes = async(() => import("@/pages/roles-permissions/Listes"));  // Ajouté pour Listes.jsx
-const AddUser = async(() => import("@/pages/roles-permissions/AddUser"));  // Ajouté pour AddUser.jsx
+const Adduser = async(() => import("@/pages/roles-permissions/Adduser"));  // Ajouté pour Adduser.jsx
 
 const routes = [
   {
@@ -144,7 +144,7 @@ const routes = [
       },
       {
         path: "add-user",
-        element: <AddUser />,  // Ajout de la route pour AddUser.jsx
+        element: <Adduser />,  // Ajout de la route pour Adduser.jsx
       },
     ],
   },
