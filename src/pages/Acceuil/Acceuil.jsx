@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Typography, Box, Button } from "@mui/material";
 import Carousel from "react-material-ui-carousel";
 import { Paper } from "@mui/material";
 import styled from "@emotion/styled";
 import { spacing } from "@mui/system";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 // Images pour le carrousel (vous pouvez remplacer par les vôtres)
 import image1 from "/static/img/illustrations/image1.png";
@@ -74,10 +75,23 @@ function Acceuil() {
     }
   ];
 
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserName(user.displayName || "Utilisateur");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Container>
       <WelcomeMessage variant="h2" align="center" mt={5} mb={3}>
-        Bienvenue aux employés de Rayon Vert
+        Bonjour {userName} !
       </WelcomeMessage>
       <Carousel>
         {items.map((item, i) => (
