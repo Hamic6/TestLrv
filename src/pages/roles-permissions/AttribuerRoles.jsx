@@ -24,7 +24,19 @@ const CardContent = styled(MuiCardContent)(spacing);
 const Divider = styled(MuiDivider)(spacing);
 const Paper = styled(MuiPaper)(spacing);
 
-const roles = ['admin', 'manager', 'facturation', 'devis', 'avis-de-passage', 'gestion-de-stock', 'gestion-des-utilisateurs'];
+// Ajout des nouveaux rôles ici
+const roles = [
+  'admin', 
+  'manager', 
+  'facturation', 
+  'devis', 
+  'avis-de-passage', 
+  'gestion-de-stock', 
+  'gestion-des-utilisateurs',
+  'liste-des-factures',  // Nouveau rôle pour liste des factures
+  'creer-facture',  // Nouveau rôle pour créer des factures
+  'gestion-des-clients'    // Nouveau rôle pour gestion des clients
+];
 
 const AttribuerRoles = () => {
   const [email, setEmail] = useState('');
@@ -62,7 +74,6 @@ const AttribuerRoles = () => {
       console.error('Erreur lors de la récupération des utilisateurs:', error);
     }
   };
-
   const handleUpdateRole = async () => {
     try {
       const userRef = doc(db, 'users', selectedUser);

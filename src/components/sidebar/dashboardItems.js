@@ -54,24 +54,27 @@ const generatePagesSection = (roles = []) => {
       href: "/facturation",
       icon: CreditCard,
       title: "Facturation",
+      visible: isAdmin || roles.includes('facturation') || roles.includes('liste-des-factures') || roles.includes('creer-facture') || roles.includes('gestion-des-clients'),
       children: [
         {
           href: "/facturation/liste-des-factures",
           icon: DescriptionIcon,
           title: "Liste des Factures",
+          visible: isAdmin || roles.includes('liste-des-factures'),
         },
         {
           href: "/facturation/creer-facture",
           icon: CreateIcon,
           title: "Créer une Facture",
+          visible: isAdmin || roles.includes('creer-facture'),
         },
         {
           href: "/facturation/gestion-des-clients",
           icon: PeopleIcon,
           title: "Gestion des Clients",
+          visible: isAdmin || roles.includes('gestion-des-clients'),
         },
       ],
-      visible: isAdmin || roles.includes('facturation'),
     },
     {
       href: "/devis",
@@ -82,11 +85,13 @@ const generatePagesSection = (roles = []) => {
           href: "/devis/creer-devis",
           icon: CreateIcon,
           title: "Créer un Devis",
+          visible: isAdmin || roles.includes('devis'),
         },
         {
           href: "/devis/envoyer-devis",
           icon: SendIcon,
           title: "Envoyer un Devis",
+          visible: isAdmin || roles.includes('devis'),
         },
       ],
       visible: isAdmin || roles.includes('devis'),
@@ -100,16 +105,19 @@ const generatePagesSection = (roles = []) => {
           href: "/avis-de-passage/creer-avis-passage",
           icon: ReceiptIcon,
           title: "Créer un Avis de Passage",
+          visible: isAdmin || roles.includes('avis-de-passage'),
         },
         {
           href: "/avis-de-passage/envoyer-avis-passage",
           icon: SendIcon,
           title: "Envoyer un Avis de Passage",
+          visible: isAdmin || roles.includes('avis-de-passage'),
         },
         {
           href: "/avis-de-passage/rechercher-avis-passage",
           icon: SearchIcon,
           title: "Rechercher un Avis de Passage",
+          visible: isAdmin || roles.includes('avis-de-passage'),
         },
       ],
       visible: isAdmin || roles.includes('avis-de-passage'),
@@ -123,55 +131,65 @@ const generatePagesSection = (roles = []) => {
           href: "/stock/items",
           icon: Archive,
           title: "Liste des Articles",
+          visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
           href: "/stock/item/:id",
           icon: Archive,
           title: "Détails de l'Article",
+          visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
           href: "/stock/add",
           icon: Archive,
           title: "Ajouter un Article",
+          visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
           href: "/stock/edit/:id",
           icon: Archive,
           title: "Modifier un Article",
+          visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
           href: "/stock/reports",
           icon: Archive,
           title: "Rapports de Stock",
+          visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
           href: "/stock/validation",
           icon: CheckCircle,
           title: "Validation de Stock",
+          visible: isAdmin || roles.includes('gestion-de-stock'),
           children: [
             {
               href: "/validation/pending",
               icon: CheckCircle,
               title: "En Attente",
               parentModule: "Gestion de Stock",
+              visible: isAdmin || roles.includes('gestion-de-stock'),
             },
             {
               href: "/validation/approved",
               icon: CheckCircle,
               parentModule: "Gestion de Stock",
               title: "Approuvées",
+              visible: isAdmin || roles.includes('gestion-de-stock'),
             },
             {
               href: "/validation/rejected",
               icon: CheckCircle,
               parentModule: "Gestion de Stock",
               title: "Rejetées",
+              visible: isAdmin || roles.includes('gestion-de-stock'),
             },
             {
               href: "/validation/logs",
               icon: CheckCircle,
               parentModule: "Gestion de Stock",
               title: "Historique de Validation",
+              visible: isAdmin || roles.includes('gestion-de-stock'),
             },
           ],
         },
@@ -183,29 +201,35 @@ const generatePagesSection = (roles = []) => {
       icon: GroupIcon,
       title: "Gestion des Utilisateurs",
       visible: isAdmin, // Seuls les administrateurs peuvent voir cette section
-    
       children: [
         {
           href: "/roles-permissions/add-user",
           icon: PersonAddIcon,
           title: "Ajouter un Utilisateur",
+          visible: isAdmin,
         },
         {
           href: "/roles-permissions/permissions",
           icon: UsersIcon,  // Icon mise à jour
-          title: "Utilisateurs",  // Titre mis à jour
+          title: "Utilisateurs",
+          visible: isAdmin,
         },
         {
           href: "/roles-permissions/assign",
           icon: Key,
           title: "Attribuer des Rôles",
+          visible: isAdmin,
         },
       ],
-      visible: isAdmin, // Seuls les administrateurs peuvent voir cette section
     },
   ];
 
-  return pages.filter(page => page.visible);
+  return pages.filter(page => page.visible).map(page => {
+    if (page.children) {
+      page.children = page.children.filter(child => child.visible);
+    }
+    return page;
+  });
 };
 
 const NavItems = () => {

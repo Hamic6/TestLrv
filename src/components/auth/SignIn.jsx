@@ -166,12 +166,7 @@ function SignIn() {
           >
             Connexion
           </Button>
-          <Centered>
-            Vous n'avez pas de compte ?{" "}
-            <Link to="../sign-up" component={RouterLink}>
-              S'enregistrer
-            </Link>
-          </Centered>
+         
         </form>
       )}
     </Formik>
