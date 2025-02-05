@@ -2,7 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { AiFillFilePdf } from 'react-icons/ai';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel, Alert } from '@mui/material';
+import {
+  TextField,
+  Grid,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Snackbar,
+  Alert
+} from '@mui/material';
 import styled from 'styled-components';
 import Invoice1PDF from './Invoice1PDF';
 import {
@@ -18,43 +28,66 @@ import {
 } from './InvoiceDetailsStyles';
 import { saveInvoiceToFirebase } from '../../utils/firebaseFunctions';
 import { db } from '../../firebaseConfig';
-import { collection, getDocs, addDoc, query, orderBy, limit, doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  query,
+  orderBy,
+  limit,
+  doc,
+  getDoc,
+  setDoc
+} from 'firebase/firestore';
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
 `;
 
 const InvoiceDetails = () => {
-  const [state, setState] = useState({
-    logo: '/static/img/avatars/logo.png',
-    invoiceReady: false, // Par défaut, désactiver le téléchargement de la facture
-    companyInfo: {
-      name: 'Le Rayon Vert',
-      address: '01, Av. OUA (concession PROCOKI)',
-      phone: '0998006500',
-      email: 'direction@rayonverts.com',
-      taxNumber: 'Numéro impot :0801888M',
-      logo: '/static/img/avatars/logo.png'
-    },
-    invoiceInfo: {
-      number: '',
-      date: '',
-      dueDate: '',
-      vatPercent: 16,
-      currency: 'USD'
-    },
-    billTo: {
-      company: '',
-      address: '',
-      phone: '',
-      email: ''
-    },
-    services: [{ description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }],
-    additionalNotes: 'Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G',
-    clients: [],
-    selectedClient: '',
-    invoiceSaved: false // Suivi de l'état de sauvegarde de la facture
+  const [logo, setLogo] = useState('/static/img/avatars/logo.png'); // Utiliser le logo par défaut à partir du chemin spécifié
+  const [invoiceReady, setInvoiceReady] = useState(false); // Désactiver le bouton de téléchargement par défaut
+
+  const [companyInfo, setCompanyInfo] = useState({
+    name: 'Le Rayon Vert',
+    address: '01, Av. OUA (concession PROCOKI)',
+    phone: '0998006500',
+    email: 'direction@rayonverts.com',
+    taxNumber: 'Numéro impot :0801888M',
+    logo: logo
   });
+
+  const [invoiceInfo, setInvoiceInfo] = useState({
+    number: '',
+    date: '',
+    dueDate: '',
+    vatPercent: 16, // TVA par défaut
+    currency: 'USD'
+  });
+  const [billTo, setBillTo] = useState({
+    company: '',
+    address: '',
+    phone: '',
+    email: ''
+  });
+
+  const [services, setServices] = useState([
+    { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }
+  ]);
+
+  const [paymentInfo, setPaymentInfo] = useState(
+    'Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)'
+  );
+  const [additionalNotes, setAdditionalNotes] = useState(
+    'Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G'
+  );
+
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState('');
+
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
   const getLastInvoiceNumber = async () => {
     const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastInvoiceNumber'));
     if (lastNumberDoc.exists()) {
@@ -68,15 +101,17 @@ const InvoiceDetails = () => {
   const updateLastInvoiceNumber = async (number) => {
     await setDoc(doc(db, 'metadata', 'lastInvoiceNumber'), { number });
   };
-
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "clients"));
-        const clientsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setState(prevState => ({ ...prevState, clients: clientsList }));
+        const querySnapshot = await getDocs(collection(db, 'clients'));
+        const clientsList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setClients(clientsList);
       } catch (error) {
-        console.error("Erreur lors de la récupération des clients :", error);
+        console.error('Erreur lors de la récupération des clients :', error);
       }
     };
 
@@ -85,31 +120,27 @@ const InvoiceDetails = () => {
 
   const generateInvoiceNumber = async () => {
     const lastInvoiceNumber = await getLastInvoiceNumber();
-    const newInvoiceNumber = (lastInvoiceNumber + 1).toString().padStart(4, '0');
+    const newInvoiceNumber = (lastInvoiceNumber + 1)
+      .toString()
+      .padStart(4, '0');
     return newInvoiceNumber;
   };
+
   useEffect(() => {
     const setInvoiceNumber = async () => {
       const number = await generateInvoiceNumber();
-      setState(prevState => ({
-        ...prevState,
-        invoiceInfo: { ...prevState.invoiceInfo, number }
-      }));
+      setInvoiceInfo((prevInfo) => ({ ...prevInfo, number }));
     };
 
     setInvoiceNumber();
   }, []);
-
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     const reader = new FileReader();
     reader.onload = () => {
-      setState(prevState => ({
-        ...prevState,
-        logo: reader.result,
-        companyInfo: { ...prevState.companyInfo, logo: reader.result },
-        invoiceReady: true
-      }));
+      setLogo(reader.result);
+      setCompanyInfo((prevInfo) => ({ ...prevInfo, logo: reader.result }));
+      setInvoiceReady(true);
     };
     reader.readAsDataURL(file);
   }, []);
@@ -119,48 +150,54 @@ const InvoiceDetails = () => {
     accept: 'image/*'
   });
 
-  const handleChange = (e) => {
+  const handleCompanyInfoChange = (e) => {
     const { name, value } = e.target;
-    setState(prevState => ({
-      ...prevState,
-      [e.target.dataset.group]: { ...prevState[e.target.dataset.group], [name]: value }
-    }));
+    setCompanyInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
   };
+
+  const handleInvoiceInfoChange = (e) => {
+    const { name, value } = e.target;
+    setInvoiceInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
+  };
+
   const handleClientChange = (e) => {
     const clientId = e.target.value;
-    const client = state.clients.find(client => client.id === clientId);
-    setState(prevState => ({
-      ...prevState,
-      selectedClient: clientId,
-      billTo: {
-        company: client.name,
-        address: client.address,
-        phone: client.phone,
-        email: client.email
-      }
-    }));
+    const client = clients.find((client) => client.id === clientId);
+    setSelectedClient(clientId);
+    setBillTo({
+      company: client.name,
+      address: client.address,
+      phone: client.phone,
+      email: client.email
+    });
   };
 
   const handleServiceChange = (index, e) => {
     const { name, value } = e.target;
-    const newServices = [...state.services];
+    const newServices = [...services];
     newServices[index][name] = value;
-    setState(prevState => ({ ...prevState, services: newServices }));
+    setServices(newServices);
+  };
+
+  const handlePaymentInfoChange = (e) => {
+    setPaymentInfo(e.target.value);
+  };
+
+  const handleAdditionalNotesChange = (e) => {
+    setAdditionalNotes(e.target.value);
   };
 
   const addService = () => {
-    setState(prevState => ({
-      ...prevState,
-      services: [...prevState.services, { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }]
-    }));
+    setServices([...services, { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }]);
   };
 
   const calculateSubtotal = () => {
-    return state.services.reduce((sum, service) => {
+    return services.reduce((sum, service) => {
       const amount = parseFloat(service.unitPrice || 0) * parseFloat(service.quantity || 0);
       return sum + amount;
     }, 0);
   };
+
   const calculateVat = (subtotal, vatPercent) => {
     return (subtotal * vatPercent) / 100;
   };
@@ -168,43 +205,52 @@ const InvoiceDetails = () => {
   const calculateTotal = (subtotal, vatAmount) => {
     return subtotal + vatAmount;
   };
-
   const invoiceData = {
-    companyInfo: state.companyInfo,
-    invoiceInfo: state.invoiceInfo,
-    billTo: state.billTo,
-    services: state.services,
+    companyInfo,
+    invoiceInfo,
+    billTo,
+    services,
     subtotal: calculateSubtotal(),
-    vatAmount: calculateVat(calculateSubtotal(), state.invoiceInfo.vatPercent),
-    total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), state.invoiceInfo.vatPercent)),
-    additionalNotes: state.additionalNotes
+    vatAmount: calculateVat(calculateSubtotal(), invoiceInfo.vatPercent),
+    total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), invoiceInfo.vatPercent)),
+    paymentInfo,
+    additionalNotes
   };
 
   const handleSaveInvoice = async () => {
     const newInvoiceNumber = await generateInvoiceNumber();
-    setState(prevState => ({
-      ...prevState,
-      invoiceInfo: { ...prevState.invoiceInfo, number: newInvoiceNumber }
-    }));
+    setInvoiceInfo((prevInfo) => ({ ...prevInfo, number: newInvoiceNumber }));
 
     const invoiceData = {
-      companyInfo: state.companyInfo,
-      invoiceInfo: { ...state.invoiceInfo, number: newInvoiceNumber },
-      billTo: state.billTo,
-      services: state.services,
+      companyInfo,
+      invoiceInfo: { ...invoiceInfo, number: newInvoiceNumber },
+      billTo,
+      services,
       subtotal: calculateSubtotal(),
-      vatAmount: calculateVat(calculateSubtotal(), state.invoiceInfo.vatPercent),
-      total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), state.invoiceInfo.vatPercent)),
-      additionalNotes: state.additionalNotes
+      vatAmount: calculateVat(calculateSubtotal(), invoiceInfo.vatPercent),
+      total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), invoiceInfo.vatPercent)),
+      paymentInfo,
+      additionalNotes
     };
-    await saveInvoiceToFirebase(invoiceData);
-    await updateLastInvoiceNumber(parseInt(newInvoiceNumber, 10));
-    setState(prevState => ({ ...prevState, invoiceReady: true, invoiceSaved: true }));
+
+    try {
+      await saveInvoiceToFirebase(invoiceData);
+      await updateLastInvoiceNumber(parseInt(newInvoiceNumber, 10));
+      setInvoiceReady(true);
+      setAlertMessage('Facture enregistrée avec succès dans Firebase');
+      setAlertOpen(true);
+    } catch (error) {
+      setAlertMessage('Erreur lors de l\'enregistrement de la facture');
+      setAlertOpen(true);
+      console.error('Erreur lors de l\'enregistrement de la facture :', error);
+    }
   };
 
+  const handleAlertClose = () => {
+    setAlertOpen(false);
+  };
   return (
     <>
-      {state.invoiceSaved && <Alert severity="success">Facture enregistrée avec succès dans Firebase</Alert>}
       <form>
         <h3>Informations de l'entreprise</h3>
         <Grid container spacing={3}>
@@ -215,9 +261,8 @@ const InvoiceDetails = () => {
               name="name"
               label="Nom de l'entreprise"
               fullWidth
-              value={state.companyInfo.name}
-              onChange={handleChange}
-              data-group="companyInfo"
+              value={companyInfo.name}
+              onChange={handleCompanyInfoChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -227,9 +272,8 @@ const InvoiceDetails = () => {
               name="address"
               label="Adresse"
               fullWidth
-              value={state.companyInfo.address}
-              onChange={handleChange}
-              data-group="companyInfo"
+              value={companyInfo.address}
+              onChange={handleCompanyInfoChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -239,9 +283,8 @@ const InvoiceDetails = () => {
               name="phone"
               label="Téléphone"
               fullWidth
-              value={state.companyInfo.phone}
-              onChange={handleChange}
-              data-group="companyInfo"
+              value={companyInfo.phone}
+              onChange={handleCompanyInfoChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -251,9 +294,8 @@ const InvoiceDetails = () => {
               name="email"
               label="Email"
               fullWidth
-              value={state.companyInfo.email}
-              onChange={handleChange}
-              data-group="companyInfo"
+              value={companyInfo.email}
+              onChange={handleCompanyInfoChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -263,9 +305,8 @@ const InvoiceDetails = () => {
               name="taxNumber"
               label="Numéro d'impôt"
               fullWidth
-              value={state.companyInfo.taxNumber}
-              onChange={handleChange}
-              data-group="companyInfo"
+              value={companyInfo.taxNumber}
+              onChange={handleCompanyInfoChange}
             />
           </Grid>
         </Grid>
@@ -278,9 +319,8 @@ const InvoiceDetails = () => {
               name="number"
               label="Numéro"
               fullWidth
-              value={state.invoiceInfo.number}
-              onChange={handleChange}
-              data-group="invoiceInfo"
+              value={invoiceInfo.number}
+              onChange={handleInvoiceInfoChange}
               disabled // Désactiver la modification du numéro de facture
             />
           </Grid>
@@ -295,9 +335,8 @@ const InvoiceDetails = () => {
                 shrink: true,
               }}
               fullWidth
-              value={state.invoiceInfo.date}
-              onChange={handleChange}
-              data-group="invoiceInfo"
+              value={invoiceInfo.date}
+              onChange={handleInvoiceInfoChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -311,9 +350,8 @@ const InvoiceDetails = () => {
                 shrink: true,
               }}
               fullWidth
-              value={state.invoiceInfo.dueDate}
-              onChange={handleChange}
-              data-group="invoiceInfo"
+              value={invoiceInfo.dueDate}
+              onChange={handleInvoiceInfoChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -324,9 +362,8 @@ const InvoiceDetails = () => {
               label="TVA (%)"
               type="number"
               fullWidth
-              value={state.invoiceInfo.vatPercent}
-              onChange={handleChange}
-              data-group="invoiceInfo"
+              value={invoiceInfo.vatPercent}
+              onChange={handleInvoiceInfoChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -337,9 +374,8 @@ const InvoiceDetails = () => {
               label="Devise"
               select
               fullWidth
-              value={state.invoiceInfo.currency}
-              onChange={handleChange}
-              data-group="invoiceInfo"
+              value={invoiceInfo.currency}
+              onChange={handleInvoiceInfoChange}
               SelectProps={{
                 native: true,
               }}
@@ -355,10 +391,10 @@ const InvoiceDetails = () => {
           <InputLabel id="client-select-label">Sélectionner un Client</InputLabel>
           <Select
             labelId="client-select-label"
-            value={state.selectedClient}
+            value={selectedClient}
             onChange={handleClientChange}
           >
-            {state.clients.map((client) => (
+            {clients.map((client) => (
               <MenuItem key={client.id} value={client.id}>
                 {client.name}
               </MenuItem>
@@ -373,9 +409,8 @@ const InvoiceDetails = () => {
               name="company"
               label="Entreprise"
               fullWidth
-              value={state.billTo.company}
-              onChange={handleChange}
-              data-group="billTo"
+              value={billTo.company}
+              onChange={(e) => setBillTo({ ...billTo, company: e.target.value })}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -385,9 +420,8 @@ const InvoiceDetails = () => {
               name="address"
               label="Adresse"
               fullWidth
-              value={state.billTo.address}
-              onChange={handleChange}
-              data-group="billTo"
+              value={billTo.address}
+              onChange={(e) => setBillTo({ ...billTo, address: e.target.value })}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -397,9 +431,8 @@ const InvoiceDetails = () => {
               name="phone"
               label="Téléphone"
               fullWidth
-              value={state.billTo.phone}
-              onChange={handleChange}
-              data-group="billTo"
+              value={billTo.phone}
+              onChange={(e) => setBillTo({ ...billTo, phone: e.target.value })}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -409,14 +442,13 @@ const InvoiceDetails = () => {
               name="email"
               label="Email"
               fullWidth
-              value={state.billTo.email}
-              onChange={handleChange}
-              data-group="billTo"
+              value={billTo.email}
+              onChange={(e) => setBillTo({ ...billTo, email: e.target.value })}
             />
           </Grid>
         </Grid>
         <h3>Services</h3>
-        {state.services.map((service, index) => (
+        {services.map((service, index) => (
           <div key={index}>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
@@ -477,6 +509,19 @@ const InvoiceDetails = () => {
         >
           Ajouter un service
         </Button>
+        <h3>Informations de paiement</h3>
+        <TextField
+          required
+          id="paymentInfo"
+          name="paymentInfo"
+          label="Informations de paiement"
+          fullWidth
+          multiline
+          rows={4}
+          value={paymentInfo}
+          disabled // Désactiver la modification du champ Informations de paiement
+          style={{ marginTop: '20px' }}
+        />
 
         <h3>Notes supplémentaires</h3>
         <TextField
@@ -487,13 +532,12 @@ const InvoiceDetails = () => {
           fullWidth
           multiline
           rows={4}
-          value={state.additionalNotes}
-          onChange={handleChange}
-          data-group="additionalNotes"
+          value={additionalNotes}
+          onChange={handleAdditionalNotesChange}
           style={{ marginTop: '20px' }}
         />
       </form>
-      {state.invoiceReady && (
+      {invoiceReady && (
         <PDFDownloadLink
           document={<Invoice1PDF invoice={invoiceData} />}
           fileName="facture.pdf"
@@ -504,7 +548,7 @@ const InvoiceDetails = () => {
               variant="contained"
               color="primary"
               style={{ marginTop: '20px' }}
-              disabled={!state.invoiceReady} // Désactiver le bouton de téléchargement jusqu'à ce que la facture soit sauvegardée
+              disabled={!invoiceReady} // Désactiver le téléchargement tant que la facture n'est pas sauvegardée
             >
               {loading ? 'Chargement du document...' : 'Télécharger la facture'}
             </Button>
@@ -524,26 +568,26 @@ const InvoiceDetails = () => {
       <InvoiceContainer>
         <HeaderSection>
           <CompanyDetails>
-            <img src={state.logo} alt='Logo' />
-            <h2>{state.companyInfo.name}</h2>
-            <p>{state.companyInfo.address}</p>
-            <p>{state.companyInfo.phone}</p>
-            <p>{state.companyInfo.email}</p>
-            <p>{state.companyInfo.taxNumber}</p>
+            <img src={logo} alt='Logo' />
+            <h2>{companyInfo.name}</h2>
+            <p>{companyInfo.address}</p>
+            <p>{companyInfo.phone}</p>
+            <p>{companyInfo.email}</p>
+            <p>{companyInfo.taxNumber}</p>
           </CompanyDetails>
           <InvoiceDetailsSection>
             <h3>FACTURE <AiFillFilePdf /></h3>
-            <p>LRV{state.invoiceInfo.number}</p>
-            <p>Date : {state.invoiceInfo.date}</p>
-            <p>Date d'échéance : {state.invoiceInfo.dueDate}</p>
+            <p>LRV{invoiceInfo.number}</p>
+            <p>Date : {invoiceInfo.date}</p>
+            <p>Date d'échéance : {invoiceInfo.dueDate}</p>
           </InvoiceDetailsSection>
         </HeaderSection>
         <BillingSection>
           <h4>Facturé à :</h4>
-          <p>{state.billTo.company}</p>
-          <p>{state.billTo.address}</p>
-          <p>{state.billTo.phone}</p>
-          <p>{state.billTo.email}</p>
+          <p>{billTo.company}</p>
+          <p>{billTo.address}</p>
+          <p>{billTo.phone}</p>
+          <p>{billTo.email}</p>
         </BillingSection>
         <TableContainer>
           <table>
@@ -552,12 +596,12 @@ const InvoiceDetails = () => {
                 <th>Description du service</th>
                 <th>Libellé</th>
                 <th>Quantité</th>
-                <th>Prix Unitaire ({state.invoiceInfo.currency})</th>
-                <th>Montant ({state.invoiceInfo.currency})</th>
+                <th>Prix Unitaire ({invoiceInfo.currency})</th>
+                <th>Montant ({invoiceInfo.currency})</th>
               </tr>
             </thead>
             <tbody>
-              {state.services.map((service, index) => (
+              {services.map((service, index) => (
                 <tr key={index}>
                   <td>{service.description}</td>
                   <td>{service.libelle}</td>
@@ -565,14 +609,14 @@ const InvoiceDetails = () => {
                   <td>{parseFloat(service.unitPrice).toFixed(2)}</td>
                   <td>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</td>
                 </tr>
-              ))}                            
+              ))}
             </tbody>
           </table>
         </TableContainer>
         <TotalsSection>
-          <p>Sous-total : {state.invoiceInfo.currency} {invoiceData.subtotal.toFixed(2)}</p>
-          <p>TVA ({state.invoiceInfo.vatPercent}%) : {state.invoiceInfo.currency} {invoiceData.vatAmount.toFixed(2)}</p>
-          <p className="total">Total : {state.invoiceInfo.currency} {invoiceData.total.toFixed(2)}</p>
+          <p>Sous-total : {invoiceInfo.currency} {invoiceData.subtotal.toFixed(2)}</p>
+          <p>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {invoiceData.vatAmount.toFixed(2)}</p>
+          <p className="total">Total : {invoiceInfo.currency} {invoiceData.total.toFixed(2)}</p>
         </TotalsSection>
         <PaymentInfoSection>
           <p>Informations de paiement :</p>
@@ -582,6 +626,11 @@ const InvoiceDetails = () => {
           <p>{invoiceData.additionalNotes}</p>
         </NotesSection>
       </InvoiceContainer>
+      <Snackbar open={alertOpen} autoHideDuration={6000} onClose={handleAlertClose}>
+        <Alert onClose={handleAlertClose} severity="success" sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
