@@ -49,7 +49,7 @@ function NavbarUserDropdown() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/auth/sign-in");
+    navigate("/sign-in");
   };
 
   const handleProfile = () => {
