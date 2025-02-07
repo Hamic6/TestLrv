@@ -7,6 +7,9 @@ import AuthLayout from "@/layouts/Auth";
 import DashboardLayout from "@/layouts/Dashboard";
 import ErrorLayout from "@/layouts/Error";
 
+// Guards
+import AuthGuard from "@/components/guards/AuthGuard";
+
 // Auth components
 import SignIn from "@/pages/auth/SignIn";
 import SignUp from "@/pages/auth/SignUp";
@@ -80,7 +83,11 @@ const routes = [
   },
   {
     path: "acceuil",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         path: "",
@@ -90,7 +97,11 @@ const routes = [
   },
   {
     path: "dashboard",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         path: "",
@@ -108,7 +119,11 @@ const routes = [
   },
   {
     path: "tableau-de-bord",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         path: "",
@@ -138,7 +153,11 @@ const routes = [
   },
   {
     path: "roles-permissions",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         path: "assign",
@@ -156,7 +175,11 @@ const routes = [
   },
   {
     path: "facturation",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         path: "liste-des-factures",
@@ -186,7 +209,11 @@ const routes = [
   },
   {
     path: "devis",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         path: "creer-devis",
@@ -204,7 +231,11 @@ const routes = [
   },
   {
     path: "avis-de-passage",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         path: "creer-avis-passage",
@@ -222,7 +253,11 @@ const routes = [
   },
   {
     path: "profile",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGuard>
+        <DashboardLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         path: "",

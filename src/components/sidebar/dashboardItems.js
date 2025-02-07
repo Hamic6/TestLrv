@@ -43,12 +43,44 @@ const generatePagesSection = (roles = []) => {
       icon: DashboardIcon,
       title: "Tableau de Bord",
       visible: isAdmin || roles.includes('manager'),
-    },
-    {
-      href: "/rapports",
-      icon: AssessmentIcon,
-      title: "Rapports de Facturation",
-      visible: isAdmin || roles.includes('manager'),
+      children: [
+        {
+          href: "/tableau-de-bord",
+          icon: DashboardIcon,
+          title: "Aperçu Général",
+          visible: isAdmin || roles.includes('manager'),
+        },
+        {
+          href: "/stats",
+          icon: AssessmentIcon,
+          title: "Statistiques de facturation",
+          visible: isAdmin || roles.includes('manager'),
+        },
+        {
+          href: "/graphs",
+          icon: AssessmentIcon,
+          title: "Graphiques et visualisations",
+          visible: isAdmin || roles.includes('manager'),
+        },
+        {
+          href: "/client-stats",
+          icon: PeopleIcon,
+          title: "Statistiques des clients",
+          visible: isAdmin || roles.includes('manager'),
+        },
+        {
+          href: "/performance",
+          icon: AssessmentIcon,
+          title: "Indicateurs de performance",
+          visible: isAdmin || roles.includes('manager'),
+        },
+        {
+          href: "/alerts",
+          icon: AnnouncementIcon,
+          title: "Alertes et notifications",
+          visible: isAdmin || roles.includes('manager'),
+        }
+      ]
     },
     {
       href: "/facturation",
@@ -59,7 +91,7 @@ const generatePagesSection = (roles = []) => {
         {
           href: "/facturation/liste-des-factures",
           icon: DescriptionIcon,
-          title: "Liste des Factures",
+          title: "Rapports & Listes",
           visible: isAdmin || roles.includes('liste-des-factures'),
         },
         {

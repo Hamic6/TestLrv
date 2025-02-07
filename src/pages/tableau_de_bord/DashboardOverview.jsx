@@ -9,13 +9,13 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Actions from './Actions';
 import BarChart from './BarChart';
 import DoughnutChart from './DoughnutChart';
-import USAMap from './USAMap';
+// Supprimer l'importation de USAMap car le fichier n'existe plus
+// import USAMap from './USAMap';
 import Stats from './Stats';
 import Table from './Table';
 
 const Divider = styled(MuiDivider)(spacing);
 const Typography = styled(MuiTypography)(spacing);
-
 const DashboardOverview = () => {
   const { t } = useTranslation();
   const [userName, setUserName] = useState("");
@@ -40,7 +40,7 @@ const DashboardOverview = () => {
             Tableau de bord 
           </Typography>
           <Typography variant="subtitle1">
-            {t("Bienvenue !")} {userName} {t("")} 👋
+            {t("Bienvenue !")} {userName} 👋
           </Typography>
         </Grid>
         <Grid item>
@@ -60,7 +60,7 @@ const DashboardOverview = () => {
         </Grid>
         <Grid item xs={12} md={6} lg={3}>
           <Stats
-            title="Visitors"
+            title="Factures émises"
             amount="150.121"
             chip="Annual"
             percentagetext="-12%"
@@ -88,9 +88,10 @@ const DashboardOverview = () => {
         </Grid>
       </Grid>
       <Grid container spacing={6}>
-        <Grid item xs={12} lg={5}>
+        {/* Supprimer l'utilisation de USAMap car le fichier n'existe plus */}
+        {/* <Grid item xs={12} lg={5}>
           <USAMap />
-        </Grid>
+        </Grid> */}
         <Grid item xs={12} lg={7}>
           <BarChart />
         </Grid>
