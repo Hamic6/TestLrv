@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel, Alert } from '@mui/material';
 import styled from 'styled-components';
 import AvisDePassagePDF from './AvisDePassagePDF';
 import { saveAvisToDatabase } from '../../utils/api';
@@ -48,7 +48,9 @@ const CreateAvisDePassage = () => {
   const [photos, setPhotos] = useState([]);
   const [verifiedBy, setVerifiedBy] = useState(''); // Ajouté
   const [verifiedDate, setVerifiedDate] = useState(''); // Ajouté
-
+  const [signatureSaved, setSignatureSaved] = useState(false); // Ajouté
+  const [photosSaved, setPhotosSaved] = useState(false); // Ajouté
+  const [avisSaved, setAvisSaved] = useState(false); // Ajouté
   const getLastAvisNumber = async () => {
     const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastAvisNumber'));
     if (lastNumberDoc.exists()) {
@@ -75,6 +77,7 @@ const CreateAvisDePassage = () => {
     };
     fetchClients();
   }, []);
+  
   const generateAvisNumber = async () => {
     const lastAvisNumber = await getLastAvisNumber();
     const newAvisNumber = (lastAvisNumber + 1).toString().padStart(4, '0');
@@ -140,7 +143,9 @@ const CreateAvisDePassage = () => {
 
   const handlePhotosCaptured = (capturedPhotos) => {
     setPhotos(capturedPhotos);
+    setPhotosSaved(true); // Définir les photos comme sauvegardées
   };
+
   const avisData = {
     companyInfo,
     avisInfo,
@@ -169,7 +174,7 @@ const CreateAvisDePassage = () => {
 
     await saveAvisToDatabase(avisData);
     await updateLastAvisNumber(parseInt(newAvisNumber, 10));
-    alert('Avis de passage enregistré avec succès dans Firebase');
+    setAvisSaved(true); // Définir l'avis comme sauvegardé
   };
 
   return (
@@ -233,6 +238,7 @@ const CreateAvisDePassage = () => {
             />
           </Grid>
         </Grid>
+        
         <h3>Informations de l'avis</h3>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
@@ -293,6 +299,7 @@ const CreateAvisDePassage = () => {
             />
           </Grid>
         </Grid>
+        
         <h3>Client</h3> {/* Changement de "Facturé à" en "Client" */}
         <FormControl fullWidth margin="normal">
           <InputLabel id="client-select-label">Sélectionner un Client</InputLabel>
@@ -354,11 +361,12 @@ const CreateAvisDePassage = () => {
             />
           </Grid>
         </Grid>
+        
         <h3>Services</h3>
         {services.map((service, index) => (
           <div key={index}>
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={12}>
+            <Grid item xs={12} sm={12}>
                 <TextField
                   required
                   id="libelle"
@@ -422,7 +430,7 @@ const CreateAvisDePassage = () => {
           </Grid>
         </Grid>
         <h3>Signature</h3>
-        <SignaturePadComponent setSignature={setSignature} />
+        <SignaturePadComponent setSignature={value => {setSignature(value); setSignatureSaved(true);}} />
         <h3>Photo</h3>
         <PhotoCapture onPhotosCaptured={handlePhotosCaptured} />
       </form>
@@ -441,6 +449,9 @@ const CreateAvisDePassage = () => {
           </Button>
         </PDFDownloadLink>
       )}
+      {signatureSaved && <Alert severity="success">Signature sauvegardée avec succès !</Alert>}
+      {photosSaved && <Alert severity="success">Photos sauvegardées avec succès !</Alert>}
+      {avisSaved && <Alert severity="success">Avis de passage sauvegardé avec succès !</Alert>}
       <Button
         type="button"
         variant="contained"
