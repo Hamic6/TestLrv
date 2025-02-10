@@ -16,6 +16,7 @@ import Table from './Table';
 
 const Divider = styled(MuiDivider)(spacing);
 const Typography = styled(MuiTypography)(spacing);
+
 const DashboardOverview = () => {
   const { t } = useTranslation();
   const [userName, setUserName] = useState("");
