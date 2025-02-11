@@ -208,7 +208,7 @@ function Adduser() {
               disabled={isSubmitting}
               mb={3}
             >
-              S'inscrire
+              Inscrire
             </Button>
             <Centered>
               Vous avez déjà un compte ?{" "}
