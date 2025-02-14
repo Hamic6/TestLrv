@@ -42,7 +42,6 @@ const DevisPDF = async(() => import("@/pages/facturation/DevisPDF"));
 
 // AvisDePassage components
 const CreateAvisDePassage = async(() => import("@/pages/AvisDePassage/CreateAvisDePassage"));
-const SendAvisDePassage = async(() => import("@/pages/AvisDePassage/SendAvisDePassage"));
 const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvisDePassage"));
 
 // Profile component
@@ -210,10 +209,7 @@ const routes = [
         path: "creer-avis-passage",
         element: <CreateAvisDePassage />,
       },
-      {
-        path: "envoyer-avis-passage",
-        element: <SendAvisDePassage />,
-      },
+      
       {
         path: "rechercher-avis-passage",
         element: <SearchAvisDePassage />,

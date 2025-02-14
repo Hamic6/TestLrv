@@ -139,12 +139,7 @@ const generatePagesSection = (roles = []) => {
           title: "Créer un Avis de Passage",
           visible: isAdmin || roles.includes('avis-de-passage'),
         },
-        {
-          href: "/avis-de-passage/envoyer-avis-passage",
-          icon: SendIcon,
-          title: "Envoyer un Avis de Passage",
-          visible: isAdmin || roles.includes('avis-de-passage'),
-        },
+        
         {
           href: "/avis-de-passage/rechercher-avis-passage",
           icon: SearchIcon,

@@ -51,7 +51,7 @@ const InvoiceDetails = () => {
   const [companyInfo, setCompanyInfo] = useState({
     name: 'Le Rayon Vert',
     address: '01, Av. OUA (concession PROCOKI)',
-    phone: '0998006500',
+    phone: '+243808317816',
     email: 'direction@rayonverts.com',
     taxNumber: 'Numéro impot :0801888M',
     logo: logo

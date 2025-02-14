@@ -2,22 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { AiFillFilePdf } from 'react-icons/ai';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel, Snackbar } from '@mui/material';
+import { Alert } from '@mui/lab';
 import styled from 'styled-components';
 import DevisPDF from './DevisPDF';
-import {
-  InvoiceContainer,
-  HeaderSection,
-  CompanyDetails,
-  InvoiceDetailsSection,
-  BillingSection,
-  TableContainer,
-  TotalsSection,
-  PaymentInfoSection,
-  NotesSection
-} from './InvoiceDetailsStyles';
 import { db } from '../../firebaseConfig';
-import { collection, getDocs, getDoc, setDoc, doc } from "firebase/firestore";
+import { collection, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
@@ -30,12 +20,11 @@ const CreateDevis = () => {
   const [companyInfo, setCompanyInfo] = useState({
     name: 'Le Rayon Vert',
     address: '01, Av. OUA (concession PROCOKI)',
-    phone: '0998006500',
+    phone: '+243808317816',
     email: 'direction@rayonverts.com',
     taxNumber: 'Numéro impot :0801888M',
     logo: logo
   });
-
   const [invoiceInfo, setInvoiceInfo] = useState({
     number: '',
     date: '',
@@ -54,11 +43,12 @@ const CreateDevis = () => {
     { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }
   ]);
 
-  const [paymentInfo, setPaymentInfo] = useState('Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)');
   const [additionalNotes, setAdditionalNotes] = useState('Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G');
-
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('success');
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -73,7 +63,6 @@ const CreateDevis = () => {
 
     fetchClients();
   }, []);
-
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     const reader = new FileReader();
@@ -99,6 +88,7 @@ const CreateDevis = () => {
     const { name, value } = e.target;
     setInvoiceInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
   };
+
   const handleClientChange = (e) => {
     const clientId = e.target.value;
     const client = clients.find(client => client.id === clientId);
@@ -110,16 +100,11 @@ const CreateDevis = () => {
       email: client.email
     });
   };
-
   const handleServiceChange = (index, e) => {
     const { name, value } = e.target;
     const newServices = [...services];
     newServices[index][name] = value;
     setServices(newServices);
-  };
-
-  const handlePaymentInfoChange = (e) => {
-    setPaymentInfo(e.target.value);
   };
 
   const handleAdditionalNotesChange = (e) => {
@@ -129,7 +114,6 @@ const CreateDevis = () => {
   const addService = () => {
     setServices([...services, { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }]);
   };
-
   const calculateSubtotal = () => {
     return services.reduce((sum, service) => {
       const amount = parseFloat(service.unitPrice || 0) * parseFloat(service.quantity || 0);
@@ -153,10 +137,21 @@ const CreateDevis = () => {
     subtotal: calculateSubtotal(),
     vatAmount: calculateVat(calculateSubtotal(), invoiceInfo.vatPercent),
     total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), invoiceInfo.vatPercent)),
-    paymentInfo,
+    paymentInfo: 'Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)',
     additionalNotes
   };
-
+  const saveInvoice = async () => {
+    try {
+      const newDocRef = doc(collection(db, "devis"));
+      await setDoc(newDocRef, invoiceData);
+      setAlertMessage('Le devis a été enregistré avec succès!');
+      setAlertSeverity('success');
+    } catch (error) {
+      setAlertMessage(`Erreur lors de l'enregistrement du devis : ${error.message}`);
+      setAlertSeverity('error');
+    }
+    setAlertOpen(true);
+  };
   return (
     <>
       <form>
@@ -411,8 +406,8 @@ const CreateDevis = () => {
           fullWidth
           multiline
           rows={4}
-          value={paymentInfo}
-          onChange={handlePaymentInfoChange}
+          value="Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)"
+          disabled
           style={{ marginTop: '20px' }}
         />
         <h3>Notes supplémentaires</h3>
@@ -446,66 +441,21 @@ const CreateDevis = () => {
           )}
         </PDFDownloadLink>
       )}
-      <InvoiceContainer>
-        <HeaderSection>
-          <CompanyDetails>
-            <img src={logo} alt="Logo" />
-            <h2>{companyInfo.name}</h2>
-            <p>{companyInfo.address}</p>
-            <p>{companyInfo.phone}</p>
-            <p>{companyInfo.email}</p>
-            <p>{companyInfo.taxNumber}</p>
-          </CompanyDetails>
-          <InvoiceDetailsSection>
-            <h3>DEVIS <AiFillFilePdf /></h3>
-            <p>LRV{invoiceInfo.number}</p>
-            <p>Date : {invoiceInfo.date}</p>
-          </InvoiceDetailsSection>
-        </HeaderSection>
-        <BillingSection>
-          <h4>Client :</h4>
-          <p>{billTo.company}</p>
-          <p>{billTo.address}</p>
-          <p>{billTo.phone}</p>
-          <p>{billTo.email}</p>
-        </BillingSection>
-        <TableContainer>
-          <table>
-            <thead>
-              <tr>
-                <th>Description du service</th>
-                <th>Libellé</th>
-                <th>Quantité</th>
-                <th>Prix Unitaire ({invoiceInfo.currency})</th>
-                <th>Montant ({invoiceInfo.currency})</th>
-              </tr>
-            </thead>
-            <tbody>
-              {services.map((service, index) => (
-                <tr key={index}>
-                  <td>{service.description}</td>
-                  <td>{service.libelle}</td>
-                  <td>{service.quantity}</td>
-                  <td>{parseFloat(service.unitPrice).toFixed(2)}</td>
-                  <td>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </TableContainer>
-        <TotalsSection>
-          <p>Sous-total : {invoiceInfo.currency} {invoiceData.subtotal.toFixed(2)}</p>
-          <p>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {invoiceData.vatAmount.toFixed(2)}</p>
-          <p className="total">Total : {invoiceInfo.currency} {invoiceData.total.toFixed(2)}</p>
-        </TotalsSection>
-        <PaymentInfoSection>
-          <p>Informations de paiement :</p>
-          <p>{invoiceData.paymentInfo}</p>
-        </PaymentInfoSection>
-        <NotesSection>
-          <p>{invoiceData.additionalNotes}</p>
-        </NotesSection>
-      </InvoiceContainer>
+      <Button
+        type="button"
+        variant="contained"
+        color="primary"
+        onClick={saveInvoice}
+        style={{ marginTop: '20px' }}
+      >
+        Sauvegarder le devis
+      </Button>
+
+      <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
+        <Alert onClose={() => setAlertOpen(false)} severity={alertSeverity}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
