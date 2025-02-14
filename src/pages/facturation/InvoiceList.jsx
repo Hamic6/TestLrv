@@ -16,12 +16,17 @@ import {
   Chip,
   Menu,
   MenuItem,
-  Button
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  TextField
 } from '@mui/material';
-import { Archive as ArchiveIcon, RemoveRedEye as RemoveRedEyeIcon } from '@mui/icons-material';
-import { NavLink } from 'react-router-dom';
+import { Archive as ArchiveIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { CSVLink } from 'react-csv'; // Importation de CSVLink
+import Invoice1PDF from './Invoice1PDF';
 import Filters from './Filters';
-import { CSVLink } from "react-csv";
 
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState([]);
@@ -38,8 +43,10 @@ const InvoiceList = () => {
       try {
         const querySnapshot = await getDocs(collection(db, "invoices"));
         const invoicesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setInvoices(invoicesList);
-        setFilteredInvoices(invoicesList.filter(invoice => !invoice.archived));
+        console.log("Factures récupérées:", invoicesList); // Journalisation des factures récupérées
+        const sortedInvoices = invoicesList.sort((a, b) => new Date(b.invoiceInfo.date) - new Date(a.invoiceInfo.date));
+        setInvoices(sortedInvoices);
+        setFilteredInvoices(sortedInvoices.filter(invoice => !invoice.archived));
       } catch (error) {
         console.error("Erreur lors de la récupération des factures :", error);
       }
@@ -95,7 +102,7 @@ const InvoiceList = () => {
       const invoiceDoc = doc(db, "invoices", id);
       await updateDoc(invoiceDoc, { archived: false });
       setInvoices(invoices.map(invoice => invoice.id === id ? { ...invoice, archived: false } : invoice));
-      setFilteredInvoices(invoices.filter(invoice => !invoice.archived || invoice.archived));
+      setFilteredInvoices(invoices.filter(invoice => !invoice.archived));
     } catch (error) {
       console.error("Erreur lors du désarchivage de la facture :", error);
     }
@@ -104,12 +111,13 @@ const InvoiceList = () => {
   const handleApplyFilters = (updatedFilters) => {
     setFilters(updatedFilters);
 
-    const { client, dateRange, status, amountRange, currency, service, archived } = updatedFilters;
+    const { client, year, month, status, amountRange, currency, service, archived } = updatedFilters;
 
     const filtered = invoices.filter(invoice => {
+      const invoiceDate = new Date(invoice.invoiceInfo?.date);
       const matchesClient = client ? invoice.billTo?.company?.toLowerCase().includes(client.toLowerCase()) : true;
-      const matchesDate = (dateRange.start ? new Date(invoice.invoiceInfo?.date) >= new Date(dateRange.start) : true) &&
-                          (dateRange.end ? new Date(invoice.invoiceInfo?.date) <= new Date(dateRange.end) : true);
+      const matchesYear = year ? invoiceDate.getFullYear() === parseInt(year) : true;
+      const matchesMonth = month ? invoiceDate.getMonth() + 1 === parseInt(month) : true;
       const matchesStatus = status ? invoice.status === status : true;
       const matchesAmount = (amountRange.min ? invoice.total >= parseFloat(amountRange.min) : true) &&
                             (amountRange.max ? invoice.total <= parseFloat(amountRange.max) : true);
@@ -117,7 +125,7 @@ const InvoiceList = () => {
       const matchesService = service ? invoice.services?.some(s => s.description?.toLowerCase().includes(service.toLowerCase())) : true;
       const matchesArchived = archived === 'toutes' ? true : archived === 'oui' ? invoice.archived : !invoice.archived;
 
-      return matchesClient && matchesDate && matchesStatus && matchesAmount && matchesCurrency && matchesService && matchesArchived;
+      return matchesClient && matchesYear && matchesMonth && matchesStatus && matchesAmount && matchesCurrency && matchesService && matchesArchived;
     });
 
     setFilteredInvoices(filtered);
@@ -160,8 +168,8 @@ const InvoiceList = () => {
 
     setSelected(newSelected);
   };
-  const isSelected = (id) => selected.indexOf(id) !== -1;
 
+  const isSelected = (id) => selected.indexOf(id) !== -1;
   const exportToCSV = () => {
     const headers = ["Numéro de Facture", "Date", "Client", "Total", "Devise", "Services", "Statut"];
     const rows = (selected.length ? selected : filteredInvoices).map(id => {
@@ -286,14 +294,13 @@ const InvoiceList = () => {
                       >
                         <ArchiveIcon />
                       </IconButton>
-                      <IconButton
-                        aria-label="details"
-                        component={NavLink}
-                        to={`/invoices/detail/${invoice.id}`}
-                        size="large"
-                      >
-                        <RemoveRedEyeIcon />
-                      </IconButton>
+                      <PDFDownloadLink document={<Invoice1PDF invoice={invoice} />} fileName={`invoice_${invoice.invoiceInfo?.number}.pdf`}>
+                        {({ loading }) => (
+                          <Button variant="contained" color="primary" startIcon={<PdfIcon />}>
+                            {loading ? 'Chargement...' : 'Télécharger PDF'}
+                          </Button>
+                        )}
+                      </PDFDownloadLink>
                     </TableCell>
                   </TableRow>
                 );

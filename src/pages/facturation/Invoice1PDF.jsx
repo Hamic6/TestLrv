@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   invoiceDetailsSection: {
     flex: 1,
     paddingLeft: 20,
-    textAlign: 'center',  // Centrer le contenu horizontalement
+    textAlign: 'center',
     color: 'black',
   },
   billingSection: {
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   tableColHeader: {
-    width: '20%', // Ajustement pour le nouveau format du tableau
+    width: '20%',
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#bfbfbf',
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   tableCol: {
-    width: '20%', // Ajustement pour le nouveau format du tableau
+    width: '20%',
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#bfbfbf',
@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
   qrCode: {
     width: 100,
     height: 100,
-    marginTop: 10, // Ajustement pour l'espacement
-    alignSelf: 'center', // Centrer horizontalement
+    marginTop: 10,
+    alignSelf: 'center',
   }
 });
 
@@ -142,7 +142,7 @@ const Invoice1PDF = ({ invoice }) => {
             <Text>{companyInfo.address}</Text>
             <Text>{companyInfo.phone}</Text>
             <Text>{companyInfo.email}</Text>
-            <Text>{companyInfo.taxNumber}</Text> {/* Ajout du numéro d'impôt */}
+            <Text>{companyInfo.taxNumber}</Text>
           </View>
           <View style={styles.invoiceDetailsSection}>
             <Text>LRV{invoiceInfo.number}</Text>
@@ -171,13 +171,13 @@ const Invoice1PDF = ({ invoice }) => {
               <Text style={styles.tableCellHeader}>Description du service</Text>
             </View>
             <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Libellé</Text> {/* Remplacement de "N° Avis" par "Libellé" */}
+              <Text style={styles.tableCellHeader}>Libellé</Text>
             </View>
             <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Quantité</Text> {/* Nouvelle colonne pour la quantité */}
+              <Text style={styles.tableCellHeader}>Quantité</Text>
             </View>
             <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Prix Unitaire ({invoiceInfo.currency})</Text> {/* Nouvelle colonne pour le prix unitaire */}
+              <Text style={styles.tableCellHeader}>Prix Unitaire ({invoiceInfo.currency})</Text>
             </View>
             <View style={styles.tableColHeader}>
               <Text style={styles.tableCellHeader}>Montant ({invoiceInfo.currency})</Text>
@@ -189,16 +189,16 @@ const Invoice1PDF = ({ invoice }) => {
                 <Text style={styles.tableCell}>{service.description}</Text>
               </View>
               <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.libelle}</Text> {/* Utilisation de "libelle" au lieu de "avis" */}
+                <Text style={styles.tableCell}>{service.libelle}</Text>
               </View>
               <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.quantity}</Text> {/* Afficher la quantité */}
+                <Text style={styles.tableCell}>{service.quantity}</Text>
               </View>
               <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{parseFloat(service.unitPrice).toFixed(2)}</Text> {/* Afficher le prix unitaire */}
+                <Text style={styles.tableCell}>{parseFloat(service.unitPrice).toFixed(2)}</Text>
               </View>
               <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</Text> {/* Calcul du montant */}
+                <Text style={styles.tableCell}>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</Text>
               </View>
             </View>
           ))}
@@ -206,17 +206,13 @@ const Invoice1PDF = ({ invoice }) => {
         <View style={styles.totalsSection}>
           <Text>Sous-total : {invoiceInfo.currency} {subtotal.toFixed(2)}</Text>
           <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmount.toFixed(2)}</Text>
-          <Text className="total">Total : {invoiceInfo.currency} {total.toFixed(2)}</Text>
+          <Text>Total : {invoiceInfo.currency} {total.toFixed(2)}</Text>
         </View>
         <View style={styles.paymentInfoSection}>
-          <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
-          <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
+          <Text>{paymentInfo}</Text>
         </View>
         <View style={styles.footer}>
-          <Text>Date d'échéance : {invoiceInfo.dueDate}</Text> {/* Date d'échéance déplacée sous le total */}
-        </View>
-        <View style={styles.footer}>
-          <Text></Text>   {/* Ajout de la devise de l'entreprise */}
+          <Text>{additionalNotes}</Text>
         </View>
       </Page>
     </Document>

@@ -7,7 +7,7 @@ import { Alert } from '@mui/lab';
 import styled from 'styled-components';
 import DevisPDF from './DevisPDF';
 import { db } from '../../firebaseConfig';
-import { collection, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, setDoc, doc, query, orderBy, limit } from "firebase/firestore";
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
@@ -25,13 +25,13 @@ const CreateDevis = () => {
     taxNumber: 'Numéro impot :0801888M',
     logo: logo
   });
+
   const [invoiceInfo, setInvoiceInfo] = useState({
     number: '',
     date: '',
     vatPercent: 16,
     currency: 'USD'
   });
-
   const [billTo, setBillTo] = useState({
     company: '',
     address: '',
@@ -61,7 +61,27 @@ const CreateDevis = () => {
       }
     };
 
+    const fetchNextInvoiceNumber = async () => {
+      try {
+        const devisCollection = collection(db, "devis");
+        const devisQuery = query(devisCollection, orderBy("number", "desc"), limit(1));
+        const devisSnapshot = await getDocs(devisQuery);
+
+        let nextInvoiceNumber = 1;
+        if (!devisSnapshot.empty) {
+          const lastDevis = devisSnapshot.docs[0].data();
+          nextInvoiceNumber = parseInt(lastDevis.number, 10) + 1;
+        }
+
+        const formattedNumber = String(nextInvoiceNumber).padStart(4, '0');
+        setInvoiceInfo((prevInfo) => ({ ...prevInfo, number: formattedNumber }));
+      } catch (error) {
+        console.error("Erreur lors de la récupération du numéro de devis :", error);
+      }
+    };
+
     fetchClients();
+    fetchNextInvoiceNumber();
   }, []);
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];

@@ -11,10 +11,13 @@ import {
   Snackbar,
   Alert,
   CardActions,
-  Box
+  Box,
+  Button
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import AvisDePassagePDF from './AvisDePassagePDF';
 import FiltersAvisDePassage from './FiltersAvisDePassage';
 
 const SearchAvisDePassage = () => {
@@ -42,6 +45,8 @@ const SearchAvisDePassage = () => {
   const handleDeleteAvis = async (id) => {
     await deleteDoc(doc(db, "avisDePassage", id));
     setAvis(avis.filter(avis => avis.id !== id));
+    setSnackbarMessage('Avis de passage supprimé avec succès');
+    setSnackbarOpen(true);
   };
 
   const handleSnackbarClose = () => {
@@ -117,6 +122,13 @@ const SearchAvisDePassage = () => {
                 <IconButton aria-label="delete" onClick={() => handleDeleteAvis(avis.id)}>
                   <DeleteIcon />
                 </IconButton>
+                <PDFDownloadLink document={<AvisDePassagePDF avis={avis} />} fileName={`avis_de_passage_${avis.avisInfo?.number}.pdf`}>
+                  {({ loading }) => (
+                    <Button variant="contained" color="primary" disabled={loading}>
+                      {loading ? 'Chargement...' : 'Télécharger PDF'}
+                    </Button>
+                  )}
+                </PDFDownloadLink>
               </CardActions>
             </Card>
           </Grid>

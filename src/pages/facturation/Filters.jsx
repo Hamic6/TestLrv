@@ -1,17 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { db } from '../../firebaseConfig';
+import { collection, getDocs } from "firebase/firestore";
 import { TextField, MenuItem, Button, Grid } from '@mui/material';
 
 const Filters = ({ onApplyFilters }) => {
+  const [clients, setClients] = useState([]);
   const [client, setClient] = useState('');
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [year, setYear] = useState('');
+  const [month, setMonth] = useState('');
   const [status, setStatus] = useState('');
   const [amountRange, setAmountRange] = useState({ min: '', max: '' });
   const [currency, setCurrency] = useState('');
+  const [currencies, setCurrencies] = useState(['USD', 'EUR', 'CDF']);
   const [service, setService] = useState('');
   const [archived, setArchived] = useState('non'); // Nouveau filtre pour les factures archivées
 
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "clients"));
+        const clientsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setClients(clientsList);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des clients :", error);
+      }
+    };
+
+    fetchClients();
+  }, []);
+
   const handleApplyFilters = () => {
-    onApplyFilters({ client, dateRange, status, amountRange, currency, service, archived });
+    onApplyFilters({ client, year, month, status, amountRange, currency, service, archived });
   };
 
   return (
@@ -19,31 +38,50 @@ const Filters = ({ onApplyFilters }) => {
       <Grid item xs={12} sm={6} md={4}>
         <TextField
           label="Client"
+          select
           variant="outlined"
           fullWidth
           value={client}
           onChange={(e) => setClient(e.target.value)}
+        >
+          {clients.map((client) => (
+            <MenuItem key={client.id} value={client.name}>
+              {client.name}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+      <Grid item xs={12} sm={6} md={4}>
+        <TextField
+          label="Année"
+          type="number"
+          InputLabelProps={{ shrink: true }}
+          fullWidth
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
         />
       </Grid>
       <Grid item xs={12} sm={6} md={4}>
         <TextField
-          label="Date Début"
-          type="date"
-          InputLabelProps={{ shrink: true }}
+          label="Mois"
+          select
           fullWidth
-          value={dateRange.start}
-          onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          label="Date Fin"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          fullWidth
-          value={dateRange.end}
-          onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-        />
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+        >
+          <MenuItem value="1">Janvier</MenuItem>
+          <MenuItem value="2">Février</MenuItem>
+          <MenuItem value="3">Mars</MenuItem>
+          <MenuItem value="4">Avril</MenuItem>
+          <MenuItem value="5">Mai</MenuItem>
+          <MenuItem value="6">Juin</MenuItem>
+          <MenuItem value="7">Juillet</MenuItem>
+          <MenuItem value="8">Août</MenuItem>
+          <MenuItem value="9">Septembre</MenuItem>
+          <MenuItem value="10">Octobre</MenuItem>
+          <MenuItem value="11">Novembre</MenuItem>
+          <MenuItem value="12">Décembre</MenuItem>
+        </TextField>
       </Grid>
       <Grid item xs={12} sm={6} md={4}>
         <TextField
@@ -79,11 +117,18 @@ const Filters = ({ onApplyFilters }) => {
       <Grid item xs={12} sm={6} md={4}>
         <TextField
           label="Devise"
+          select
           variant="outlined"
           fullWidth
           value={currency}
           onChange={(e) => setCurrency(e.target.value)}
-        />
+        >
+          {currencies.map((currency) => (
+            <MenuItem key={currency} value={currency}>
+              {currency}
+            </MenuItem>
+          ))}
+        </TextField>
       </Grid>
       <Grid item xs={12} sm={6} md={4}>
         <TextField
