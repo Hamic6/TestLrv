@@ -83,8 +83,8 @@ function Adduser() {
       initialValues={{
         name: "",
         email: "",
-        password: "",
-        confirmPassword: "",
+        password: "rayonvert202020",
+        confirmPassword: "rayonvert202020",
         submit: false,
       }}
       validationSchema={Yup.object().shape({

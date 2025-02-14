@@ -120,9 +120,9 @@ const generatePagesSection = (roles = []) => {
           visible: isAdmin || roles.includes('devis'),
         },
         {
-          href: "/devis/envoyer-devis",
-          icon: SendIcon,
-          title: "Envoyer un Devis",
+          href: "/devis/chercher-devis",
+          icon: SearchIcon,
+          title: "Rechercher un Devis",
           visible: isAdmin || roles.includes('devis'),
         },
       ],

@@ -37,7 +37,7 @@ const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
 
 // Devis components
 const CreateDevis = async(() => import("@/pages/facturation/CreateDevis"));
-const SendDevis = async(() => import("@/pages/facturation/SendDevis"));
+const SearchDevis = async(() => import("@/pages/facturation/SearchDevis"));
 const DevisPDF = async(() => import("@/pages/facturation/DevisPDF"));
 
 // AvisDePassage components
@@ -193,8 +193,8 @@ const routes = [
         element: <CreateDevis />,
       },
       {
-        path: "envoyer-devis",
-        element: <SendDevis />,
+        path: "chercher-devis",
+        element: <SearchDevis />,
       },
       {
         path: "devis-pdf",
