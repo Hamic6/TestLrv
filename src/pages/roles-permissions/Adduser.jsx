@@ -129,7 +129,7 @@ function Adduser() {
             <TextField
               type="text"
               name="name"
-              label="Nom"
+              label="Noms et Prénoms"
               value={values.name}
               error={Boolean(touched.name && errors.name)}
               fullWidth
@@ -210,12 +210,6 @@ function Adduser() {
             >
               Inscrire
             </Button>
-            <Centered>
-              Vous avez déjà un compte ?{" "}
-              <Link to="../sign-in" component={RouterLink}>
-                Se connecter
-              </Link>
-            </Centered>
           </form>
         </FormContainer>
       )}

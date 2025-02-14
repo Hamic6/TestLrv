@@ -149,7 +149,7 @@ function SignIn() {
           />
           <Typography as="div" mb={2} variant="caption">
             <Link to="../reset-password" component={RouterLink}>
-              Mot de passe oublié ?
+              Modifier le mot de passe
             </Link>
           </Typography>
           <FormControlLabel
