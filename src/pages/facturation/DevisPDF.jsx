@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   devisDetailsSection: {
     flex: 1,
     paddingLeft: 20,
-    textAlign: 'center',  // Centrer le contenu horizontalement
+    textAlign: 'center',
     color: 'black',
   },
   billingSection: {
@@ -84,13 +84,13 @@ const styles = StyleSheet.create({
   notesSection: {
     marginTop: 20,
     textAlign: 'left',
-    color: 'black',
+    color: 'green', // Correction de la couleur à vert
   },
   footer: {
     marginTop: 20,
     textAlign: 'center',
     fontSize: 8,
-    color: 'green',
+    color: 'green', // Mise à jour de la couleur à vert
   },
   logo: {
     width: 60,
@@ -118,14 +118,16 @@ const DevisPDF = ({ devis }) => {
       }
     });
   }, []);
+
   const {
     companyInfo = {},
-    invoiceInfo = {}, // Utilisation cohérente de invoiceInfo
+    invoiceInfo = {},
     billTo = {},
     services = [],
     subtotal = 0,
     vatAmount = 0,
-    total = 0
+    total = 0,
+    userName = ''  // Ajout du champ utilisateur
   } = devis || {};
 
   return (
@@ -142,7 +144,7 @@ const DevisPDF = ({ devis }) => {
           </View>
           <View style={styles.devisDetailsSection}>
             <Text>Numéro : {invoiceInfo.number}</Text>
-            <Text>Date : {invoiceInfo.date}</Text> {/* Correction pour utiliser invoiceInfo.date */}
+            <Text>Date : {invoiceInfo.date}</Text>
             {qrCodeUrl && (
               <View style={styles.qrCode}>
                 <Image src={qrCodeUrl} />
@@ -203,9 +205,13 @@ const DevisPDF = ({ devis }) => {
           <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmount.toFixed(2)}</Text>
           <Text className="total">Total : {invoiceInfo.currency} {total.toFixed(2)}</Text>
         </View>
+       
         <View style={styles.paymentInfoSection}>
           <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
+        </View>
+        <View style={styles.footer}>
           <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
+          <Text>Devis proposé par : {userName}</Text> {/* Ajout du champ utilisateur */}
         </View>
       </Page>
     </Document>
@@ -213,4 +219,3 @@ const DevisPDF = ({ devis }) => {
 }
 
 export default DevisPDF;
-

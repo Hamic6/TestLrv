@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { AiFillFilePdf } from 'react-icons/ai';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel, Snackbar } from '@mui/material';
 import { Alert } from '@mui/lab';
@@ -8,6 +7,7 @@ import styled from 'styled-components';
 import DevisPDF from './DevisPDF';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, setDoc, doc, query, orderBy, limit } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
@@ -49,7 +49,7 @@ const CreateDevis = () => {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
-
+  const [userName, setUserName] = useState("");
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -61,27 +61,43 @@ const CreateDevis = () => {
       }
     };
 
+    fetchClients();
+  }, []);
+
+  useEffect(() => {
     const fetchNextInvoiceNumber = async () => {
       try {
         const devisCollection = collection(db, "devis");
-        const devisQuery = query(devisCollection, orderBy("number", "desc"), limit(1));
+        const devisQuery = query(devisCollection, orderBy("invoiceInfo.number", "desc"), limit(1));
         const devisSnapshot = await getDocs(devisQuery);
 
         let nextInvoiceNumber = 1;
         if (!devisSnapshot.empty) {
           const lastDevis = devisSnapshot.docs[0].data();
-          nextInvoiceNumber = parseInt(lastDevis.number, 10) + 1;
+          console.log("Last Devis: ", lastDevis);  // Ajout de logs pour vérifier le contenu
+          nextInvoiceNumber = parseInt(lastDevis.invoiceInfo.number, 10) + 1;
         }
 
         const formattedNumber = String(nextInvoiceNumber).padStart(4, '0');
+        console.log("Formatted Number: ", formattedNumber);  // Ajout de logs pour vérifier le contenu
         setInvoiceInfo((prevInfo) => ({ ...prevInfo, number: formattedNumber }));
       } catch (error) {
         console.error("Erreur lors de la récupération du numéro de devis :", error);
       }
     };
 
-    fetchClients();
     fetchNextInvoiceNumber();
+  }, []);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserName(user.displayName || "Utilisateur");
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
@@ -120,6 +136,7 @@ const CreateDevis = () => {
       email: client.email
     });
   };
+
   const handleServiceChange = (index, e) => {
     const { name, value } = e.target;
     const newServices = [...services];
@@ -134,6 +151,7 @@ const CreateDevis = () => {
   const addService = () => {
     setServices([...services, { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }]);
   };
+
   const calculateSubtotal = () => {
     return services.reduce((sum, service) => {
       const amount = parseFloat(service.unitPrice || 0) * parseFloat(service.quantity || 0);
@@ -148,18 +166,21 @@ const CreateDevis = () => {
   const calculateTotal = (subtotal, vatAmount) => {
     return subtotal + vatAmount;
   };
-
   const invoiceData = {
     companyInfo,
-    invoiceInfo,
+    invoiceInfo: {
+      ...invoiceInfo
+    },
     billTo,
     services,
     subtotal: calculateSubtotal(),
     vatAmount: calculateVat(calculateSubtotal(), invoiceInfo.vatPercent),
     total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), invoiceInfo.vatPercent)),
     paymentInfo: 'Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)',
-    additionalNotes
+    additionalNotes,
+    userName  // Ajout du nom de l'utilisateur ici
   };
+  
   const saveInvoice = async () => {
     try {
       const newDocRef = doc(collection(db, "devis"));
@@ -418,66 +439,78 @@ const CreateDevis = () => {
           Ajouter un service
         </Button>
         <h3>Informations de paiement</h3>
-        <TextField
-          required
-          id="paymentInfo"
-          name="paymentInfo"
-          label="Informations de paiement"
-          fullWidth
-          multiline
-          rows={4}
-          value="Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)"
-          disabled
-          style={{ marginTop: '20px' }}
-        />
-        <h3>Notes supplémentaires</h3>
-        <TextField
-          required
-          id="additionalNotes"
-          name="additionalNotes"
-          label="Notes supplémentaires"
-          fullWidth
-          multiline
-          rows={4}
-          value={additionalNotes}
-          onChange={handleAdditionalNotesChange}
-          style={{ marginTop: '20px' }}
-        />
-      </form>
-      {invoiceReady && (
-        <PDFDownloadLink
-          document={<DevisPDF devis={invoiceData} />}
-          fileName="devis.pdf"
-        >
-          {({ loading }) => (
-            <Button
-              type="button"
-              variant="contained"
-              color="primary"
-              style={{ marginTop: '20px' }}
-            >
-              {loading ? 'Chargement du document...' : 'Télécharger le devis'}
-            </Button>
-          )}
-        </PDFDownloadLink>
-      )}
-      <Button
-        type="button"
-        variant="contained"
-        color="primary"
-        onClick={saveInvoice}
+      <TextField
+        required
+        id="paymentInfo"
+        name="paymentInfo"
+        label="Informations de paiement"
+        fullWidth
+        multiline
+        rows={4}
+        value="Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)"
+        disabled
         style={{ marginTop: '20px' }}
+      />
+      <h3>Notes supplémentaires</h3>
+      <TextField
+        required
+        id="additionalNotes"
+        name="additionalNotes"
+        label="Notes supplémentaires"
+        fullWidth
+        multiline
+        rows={4}
+        value={additionalNotes}
+        onChange={handleAdditionalNotesChange}
+        style={{ marginTop: '20px' }}
+      />
+      <h3>Utilisateur</h3>
+      <TextField
+        required
+        id="userName"
+        name="userName"
+        label="Utilisateur"
+        fullWidth
+        value={userName}
+        disabled
+        style={{ marginTop: '20px' }}
+      />
+    </form>
+    {invoiceReady && (
+      <PDFDownloadLink
+        document={<DevisPDF devis={invoiceData} />}
+        fileName="devis.pdf"
       >
-        Sauvegarder le devis
-      </Button>
+        {({ loading }) => (
+          <Button
+            type="button"
+            variant="contained"
+            color="primary"
+            style={{ marginTop: '20px' }}
+          >
+            {loading ? 'Chargement du document...' : 'Télécharger le devis'}
+          </Button>
+        )}
+      </PDFDownloadLink>
+    )}
+    <Button
+      type="button"
+      variant="contained"
+      color="primary"
+      onClick={saveInvoice}
+      style={{ marginTop: '20px' }}
+    >
+      Sauvegarder le devis
+    </Button>
 
-      <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
-        <Alert onClose={() => setAlertOpen(false)} severity={alertSeverity}>
-          {alertMessage}
-        </Alert>
-      </Snackbar>
-    </>
-  );
+    <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
+      <Alert onClose={() => setAlertOpen(false)} severity={alertSeverity}>
+        {alertMessage}
+      </Alert>
+    </Snackbar>
+  </>
+);
 };
 
 export default CreateDevis;
+    
