@@ -120,6 +120,7 @@ const Invoice1PDF = ({ invoice }) => {
       }
     });
   }, []);
+
   const {
     companyInfo,
     invoiceInfo,
@@ -131,6 +132,10 @@ const Invoice1PDF = ({ invoice }) => {
     paymentInfo,
     additionalNotes,
   } = invoice;
+
+  const subtotalFormatted = parseFloat(subtotal || 0).toFixed(2);
+  const vatAmountFormatted = parseFloat(vatAmount || 0).toFixed(2);
+  const totalFormatted = parseFloat(total || 0).toFixed(2);
 
   return (
     <Document>
@@ -204,9 +209,9 @@ const Invoice1PDF = ({ invoice }) => {
           ))}
         </View>
         <View style={styles.totalsSection}>
-          <Text>Sous-total : {invoiceInfo.currency} {subtotal.toFixed(2)}</Text>
-          <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmount.toFixed(2)}</Text>
-          <Text>Total : {invoiceInfo.currency} {total.toFixed(2)}</Text>
+          <Text>Sous-total : {invoiceInfo.currency} {subtotalFormatted}</Text>
+          <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmountFormatted}</Text>
+          <Text>Total : {invoiceInfo.currency} {totalFormatted}</Text>
         </View>
         <View style={styles.paymentInfoSection}>
           <Text>{paymentInfo}</Text>

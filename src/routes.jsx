@@ -24,7 +24,7 @@ const GraphComponent = async(() => import("@/pages/tableau_de_bord/GraphComponen
 const ClientStatistics = async(() => import("@/pages/tableau_de_bord/ClientStatistics"));
 const PerformanceIndicators = async(() => import("@/pages/tableau_de_bord/PerformanceIndicators"));
 const AlertsAndNotifications = async(() => import("@/pages/tableau_de_bord/AlertsAndNotifications"));
-const Acceuil = async(() => import("@/pages/Acceuil/Acceuil")); // Importation correcte de Acceuil
+const Acceuil = async(() => import("@/pages/Acceuil/Acceuil"));
 
 // Facturation components
 const ListeDesFactures = async(() => import("@/pages/facturation/InvoiceList"));
@@ -34,6 +34,7 @@ const ModifierFacture = async(() => import("@/pages/facturation/InvoiceDetails")
 const GestionDesClients = async(() => import("@/pages/facturation/ClientList"));
 const ClientDetails = async(() => import("@/pages/facturation/ClientDetails"));
 const Rapports = async(() => import("@/pages/facturation/InvoiceDetails"));
+const ImportInvoices = async(() => import("@/pages/facturation/ImportInvoices")); // Ajout de la page ImportInvoices
 
 // Devis components
 const CreateDevis = async(() => import("@/pages/facturation/CreateDevis"));
@@ -47,8 +48,8 @@ const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvis
 // Profile component
 const Profile = async(() => import("@/pages/pages/Profile"));
 const AttribuerRoles = async(() => import("@/pages/roles-permissions/AttribuerRoles"));
-const Listes = async(() => import("@/pages/roles-permissions/Listes"));  // Ajouté pour Listes.jsx
-const Adduser = async(() => import("@/pages/roles-permissions/Adduser"));  // Ajouté pour Adduser.jsx
+const Listes = async(() => import("@/pages/roles-permissions/Listes"));  
+const Adduser = async(() => import("@/pages/roles-permissions/Adduser")); 
 
 const routes = [
   {
@@ -145,11 +146,11 @@ const routes = [
       },
       {
         path: "permissions",
-        element: <Listes />,  // Ajout de la route pour Listes.jsx
+        element: <Listes />,
       },
       {
         path: "add-user",
-        element: <Adduser />,  // Ajout de la route pour Adduser.jsx
+        element: <Adduser />,
       },
     ],
   },
@@ -181,6 +182,10 @@ const routes = [
         path: "clients/:clientId",
         element: <ClientDetails />,
       },
+      {
+        path: "import-invoices",
+        element: <ImportInvoices />, // Ajout de la route pour ImportInvoices
+      },
     ],
   },
   {
@@ -209,7 +214,6 @@ const routes = [
         path: "creer-avis-passage",
         element: <CreateAvisDePassage />,
       },
-      
       {
         path: "rechercher-avis-passage",
         element: <SearchAvisDePassage />,

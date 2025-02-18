@@ -27,6 +27,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import { CSVLink } from 'react-csv'; // Importation de CSVLink
 import Invoice1PDF from './Invoice1PDF';
 import Filters from './Filters';
+import { useNavigate } from "react-router-dom"; // Importation de useNavigate
 
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState([]);
@@ -37,6 +38,7 @@ const InvoiceList = () => {
   const [selected, setSelected] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentInvoiceId, setCurrentInvoiceId] = useState(null);
+  const navigate = useNavigate(); // Utilisation de useNavigate
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -232,7 +234,6 @@ const InvoiceList = () => {
               .map((invoice, index) => {
                 const isItemSelected = isSelected(invoice.id);
                 const labelId = `enhanced-table-checkbox-${index}`;
-
                 return (
                   <TableRow
                     hover
@@ -266,17 +267,11 @@ const InvoiceList = () => {
                     <TableCell>
                       <Chip
                         label={invoice.status}
-                        color={invoice.status === 'Payé' ? 'success' :
-                              invoice.status === 'Envoyé' ? 'warning' :
-                              invoice.status === 'Non payé' ? 'error' : 'default'}
+                        color={invoice.status === 'Payé' ? 'success' : invoice.status === 'Envoyé' ? 'warning' : invoice.status === 'Non payé' ? 'error' : 'default'}
                         onClick={(event) => handleClickChip(event, invoice.id)}
                         clickable
                       />
-                      <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleCloseMenu}
-                      >
+                      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
                         <MenuItem onClick={() => handleMenuItemClick('Payé')}>Payé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Envoyé')}>Envoyé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Non payé')}>Non payé</MenuItem>
@@ -286,9 +281,7 @@ const InvoiceList = () => {
                     <TableCell align="right">
                       <IconButton
                         aria-label="archive"
-                        onClick={() => {
-                          invoice.archived ? handleUnarchive(invoice.id) : handleArchive(invoice.id)
-                        }}
+                        onClick={() => { invoice.archived ? handleUnarchive(invoice.id) : handleArchive(invoice.id) }}
                         size="large"
                         style={{ color: invoice.archived ? 'green' : 'gray' }} // Changement de couleur basé sur l'état
                       >
@@ -296,7 +289,11 @@ const InvoiceList = () => {
                       </IconButton>
                       <PDFDownloadLink document={<Invoice1PDF invoice={invoice} />} fileName={`invoice_${invoice.invoiceInfo?.number}.pdf`}>
                         {({ loading }) => (
-                          <Button variant="contained" color="primary" startIcon={<PdfIcon />}>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<PdfIcon />}
+                          >
                             {loading ? 'Chargement...' : 'Télécharger PDF'}
                           </Button>
                         )}
@@ -326,6 +323,14 @@ const InvoiceList = () => {
         style={{ marginTop: '20px' }}
       >
         Exporter en CSV
+      </Button>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={() => navigate('/facturation/import-invoices')}
+        style={{ marginTop: '20px', marginLeft: '10px' }}
+      >
+        Importer des factures
       </Button>
     </div>
   );
