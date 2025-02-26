@@ -1,21 +1,52 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { AiFillFilePdf } from 'react-icons/ai';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel, Snackbar } from '@mui/material';
-import { Alert } from '@mui/lab';
+import {
+  TextField,
+  Grid,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Snackbar,
+  Alert
+} from '@mui/material';
 import styled from 'styled-components';
-import DevisPDF from './DevisPDF';
+import Invoice1PDF from './Invoice1PDF';
+import {
+  InvoiceContainer,
+  HeaderSection,
+  CompanyDetails,
+  InvoiceDetailsSection,
+  BillingSection,
+  TableContainer,
+  TotalsSection,
+  PaymentInfoSection,
+  NotesSection
+} from './InvoiceDetailsStyles';
+import { saveInvoiceToFirebase } from '../../utils/firebaseFunctions';
 import { db } from '../../firebaseConfig';
-import { collection, getDocs, setDoc, doc, query, orderBy, limit } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  query,
+  orderBy,
+  limit,
+  doc,
+  getDoc,
+  setDoc
+} from 'firebase/firestore';
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
 `;
 
-const CreateDevis = () => {
-  const [logo, setLogo] = useState('/static/img/avatars/logo.png');
-  const [invoiceReady, setInvoiceReady] = useState(true);
+const InvoiceDetails = () => {
+  const [logo, setLogo] = useState('/static/img/avatars/logo.png'); // Utiliser le logo par défaut à partir du chemin spécifié
+  const [invoiceReady, setInvoiceReady] = useState(false); // Désactiver le bouton de téléchargement par défaut
 
   const [companyInfo, setCompanyInfo] = useState({
     name: 'Le Rayon Vert',
@@ -29,7 +60,8 @@ const CreateDevis = () => {
   const [invoiceInfo, setInvoiceInfo] = useState({
     number: '',
     date: '',
-    vatPercent: 16,
+    dueDate: '',
+    vatPercent: 16, // TVA par défaut
     currency: 'USD'
   });
   const [billTo, setBillTo] = useState({
@@ -43,62 +75,65 @@ const CreateDevis = () => {
     { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }
   ]);
 
-  const [additionalNotes, setAdditionalNotes] = useState('Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G');
+  const [paymentInfo, setPaymentInfo] = useState(
+    'Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)'
+  );
+  const [additionalNotes, setAdditionalNotes] = useState(
+    'Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G'
+  );
+
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
+
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const [alertSeverity, setAlertSeverity] = useState('success');
-  const [userName, setUserName] = useState("");
 
+  const getLastInvoiceNumber = async () => {
+    const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastInvoiceNumber'));
+    if (lastNumberDoc.exists()) {
+      return lastNumberDoc.data().number;
+    } else {
+      await setDoc(doc(db, 'metadata', 'lastInvoiceNumber'), { number: 0 });
+      return 0;
+    }
+  };
+
+  const updateLastInvoiceNumber = async (number) => {
+    await setDoc(doc(db, 'metadata', 'lastInvoiceNumber'), { number });
+  };
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "clients"));
-        const clientsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const querySnapshot = await getDocs(collection(db, 'clients'));
+        const clientsList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
         setClients(clientsList);
       } catch (error) {
-        console.error("Erreur lors de la récupération des clients :", error);
+        console.error('Erreur lors de la récupération des clients :', error);
       }
     };
 
     fetchClients();
   }, []);
 
+  const generateInvoiceNumber = async () => {
+    const lastInvoiceNumber = await getLastInvoiceNumber();
+    const newInvoiceNumber = (lastInvoiceNumber + 1)
+      .toString()
+      .padStart(4, '0');
+    return newInvoiceNumber;
+  };
+
   useEffect(() => {
-    const fetchNextInvoiceNumber = async () => {
-      try {
-        const devisCollection = collection(db, "devis");
-        const devisQuery = query(devisCollection, orderBy("invoiceInfo.number", "desc"), limit(1));
-        const devisSnapshot = await getDocs(devisQuery);
-
-        let nextInvoiceNumber = 1;
-        if (!devisSnapshot.empty) {
-          const lastDevis = devisSnapshot.docs[0].data();
-          nextInvoiceNumber = parseInt(lastDevis.invoiceInfo.number, 10) + 1;
-        }
-
-        const formattedNumber = String(nextInvoiceNumber).padStart(4, '0');
-        setInvoiceInfo((prevInfo) => ({ ...prevInfo, number: formattedNumber }));
-      } catch (error) {
-        console.error("Erreur lors de la récupération du numéro de devis :", error);
-      }
+    const setInvoiceNumber = async () => {
+      const number = await generateInvoiceNumber();
+      setInvoiceInfo((prevInfo) => ({ ...prevInfo, number }));
     };
 
-    fetchNextInvoiceNumber();
+    setInvoiceNumber();
   }, []);
-
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserName(user.displayName || "Utilisateur");
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     const reader = new FileReader();
@@ -127,7 +162,7 @@ const CreateDevis = () => {
 
   const handleClientChange = (e) => {
     const clientId = e.target.value;
-    const client = clients.find(client => client.id === clientId);
+    const client = clients.find((client) => client.id === clientId);
     setSelectedClient(clientId);
     setBillTo({
       company: client.name,
@@ -142,6 +177,10 @@ const CreateDevis = () => {
     const newServices = [...services];
     newServices[index][name] = value;
     setServices(newServices);
+  };
+
+  const handlePaymentInfoChange = (e) => {
+    setPaymentInfo(e.target.value);
   };
 
   const handleAdditionalNotesChange = (e) => {
@@ -166,7 +205,6 @@ const CreateDevis = () => {
   const calculateTotal = (subtotal, vatAmount) => {
     return subtotal + vatAmount;
   };
-
   const invoiceData = {
     companyInfo,
     invoiceInfo,
@@ -175,24 +213,42 @@ const CreateDevis = () => {
     subtotal: calculateSubtotal(),
     vatAmount: calculateVat(calculateSubtotal(), invoiceInfo.vatPercent),
     total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), invoiceInfo.vatPercent)),
-    paymentInfo: 'Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)',
-    additionalNotes,
-    userName  // Ajout du nom de l'utilisateur ici
+    paymentInfo,
+    additionalNotes
   };
 
-  const saveInvoice = async () => {
+  const handleSaveInvoice = async () => {
+    const newInvoiceNumber = await generateInvoiceNumber();
+    setInvoiceInfo((prevInfo) => ({ ...prevInfo, number: newInvoiceNumber }));
+
+    const invoiceData = {
+      companyInfo,
+      invoiceInfo: { ...invoiceInfo, number: newInvoiceNumber },
+      billTo,
+      services,
+      subtotal: calculateSubtotal(),
+      vatAmount: calculateVat(calculateSubtotal(), invoiceInfo.vatPercent),
+      total: calculateTotal(calculateSubtotal(), calculateVat(calculateSubtotal(), invoiceInfo.vatPercent)),
+      paymentInfo,
+      additionalNotes
+    };
+
     try {
-      const newDocRef = doc(collection(db, "devis"));
-      await setDoc(newDocRef, invoiceData);
-      setAlertMessage('Le devis a été enregistré avec succès!');
-      setAlertSeverity('success');
+      await saveInvoiceToFirebase(invoiceData);
+      await updateLastInvoiceNumber(parseInt(newInvoiceNumber, 10));
+      setInvoiceReady(true);
+      setAlertMessage('Facture enregistrée avec succès dans Firebase');
+      setAlertOpen(true);
     } catch (error) {
-      setAlertMessage(`Erreur lors de l'enregistrement du devis : ${error.message}`);
-      setAlertSeverity('error');
+      setAlertMessage('Erreur lors de l\'enregistrement de la facture');
+      setAlertOpen(true);
+      console.error('Erreur lors de l\'enregistrement de la facture :', error);
     }
-    setAlertOpen(true);
   };
 
+  const handleAlertClose = () => {
+    setAlertOpen(false);
+  };
   return (
     <>
       <form>
@@ -253,7 +309,7 @@ const CreateDevis = () => {
               onChange={handleCompanyInfoChange}
             />
           </Grid>
-          </Grid>
+        </Grid>
         <h3>Informations de la facture</h3>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
@@ -265,7 +321,7 @@ const CreateDevis = () => {
               fullWidth
               value={invoiceInfo.number}
               onChange={handleInvoiceInfoChange}
-              disabled
+              disabled // Désactiver la modification du numéro de facture
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -280,6 +336,21 @@ const CreateDevis = () => {
               }}
               fullWidth
               value={invoiceInfo.date}
+              onChange={handleInvoiceInfoChange}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              id="dueDate"
+              name="dueDate"
+              label="Date d'échéance"
+              type="date"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              fullWidth
+              value={invoiceInfo.dueDate}
               onChange={handleInvoiceInfoChange}
             />
           </Grid>
@@ -447,10 +518,11 @@ const CreateDevis = () => {
           fullWidth
           multiline
           rows={4}
-          value="Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)"
-          disabled
+          value={paymentInfo}
+          disabled // Désactiver la modification du champ Informations de paiement
           style={{ marginTop: '20px' }}
         />
+
         <h3>Notes supplémentaires</h3>
         <TextField
           required
@@ -464,22 +536,11 @@ const CreateDevis = () => {
           onChange={handleAdditionalNotesChange}
           style={{ marginTop: '20px' }}
         />
-        <h3>Utilisateur</h3>
-        <TextField
-          required
-          id="userName"
-          name="userName"
-          label="Utilisateur"
-          fullWidth
-          value={userName}
-          disabled
-          style={{ marginTop: '20px' }}
-        />
       </form>
       {invoiceReady && (
         <PDFDownloadLink
-          document={<DevisPDF devis={invoiceData} />}
-          fileName="devis.pdf"
+          document={<Invoice1PDF invoice={invoiceData} />}
+          fileName="facture.pdf"
         >
           {({ loading }) => (
             <Button
@@ -487,24 +548,86 @@ const CreateDevis = () => {
               variant="contained"
               color="primary"
               style={{ marginTop: '20px' }}
+              disabled={!invoiceReady} // Désactiver le téléchargement tant que la facture n'est pas sauvegardée
             >
-              {loading ? 'Chargement du document...' : 'Télécharger le devis'}
+              {loading ? 'Chargement du document...' : 'Télécharger la facture'}
             </Button>
           )}
         </PDFDownloadLink>
       )}
+
       <Button
         type="button"
         variant="contained"
-        color="primary"
-        onClick={saveInvoice}
-        style={{ marginTop: '20px' }}
+        color="secondary"
+        style={{ marginTop: '20px', marginLeft: '10px' }}
+        onClick={handleSaveInvoice}
       >
-        Sauvegarder le devis
+        Sauvegarder la facture
       </Button>
-
-      <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
-        <Alert onClose={() => setAlertOpen(false)} severity={alertSeverity}>
+      <InvoiceContainer>
+        <HeaderSection>
+          <CompanyDetails>
+            <img src={logo} alt='Logo' />
+            <h2>{companyInfo.name}</h2>
+            <p>{companyInfo.address}</p>
+            <p>{companyInfo.phone}</p>
+            <p>{companyInfo.email}</p>
+            <p>{companyInfo.taxNumber}</p>
+          </CompanyDetails>
+          <InvoiceDetailsSection>
+            <h3>FACTURE <AiFillFilePdf /></h3>
+            <p>LRV{invoiceInfo.number}</p>
+            <p>Date : {invoiceInfo.date}</p>
+            <p>Date d'échéance : {invoiceInfo.dueDate}</p>
+          </InvoiceDetailsSection>
+        </HeaderSection>
+        <BillingSection>
+          <h4>Facturé à :</h4>
+          <p>{billTo.company}</p>
+          <p>{billTo.address}</p>
+          <p>{billTo.phone}</p>
+          <p>{billTo.email}</p>
+        </BillingSection>
+        <TableContainer>
+          <table>
+            <thead>
+              <tr>
+                <th>Description du service</th>
+                <th>Libellé</th>
+                <th>Quantité</th>
+                <th>Prix Unitaire ({invoiceInfo.currency})</th>
+                <th>Montant ({invoiceInfo.currency})</th>
+              </tr>
+            </thead>
+            <tbody>
+              {services.map((service, index) => (
+                <tr key={index}>
+                  <td>{service.description}</td>
+                  <td>{service.libelle}</td>
+                  <td>{service.quantity}</td>
+                  <td>{parseFloat(service.unitPrice).toFixed(2)}</td>
+                  <td>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TableContainer>
+        <TotalsSection>
+          <p>Sous-total : {invoiceInfo.currency} {invoiceData.subtotal.toFixed(2)}</p>
+          <p>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {invoiceData.vatAmount.toFixed(2)}</p>
+          <p className="total">Total : {invoiceInfo.currency} {invoiceData.total.toFixed(2)}</p>
+        </TotalsSection>
+        <PaymentInfoSection>
+          <p>Informations de paiement :</p>
+          <p>{invoiceData.paymentInfo}</p>
+        </PaymentInfoSection>
+        <NotesSection>
+          <p>{invoiceData.additionalNotes}</p>
+        </NotesSection>
+      </InvoiceContainer>
+      <Snackbar open={alertOpen} autoHideDuration={6000} onClose={handleAlertClose}>
+        <Alert onClose={handleAlertClose} severity="success" sx={{ width: '100%' }}>
           {alertMessage}
         </Alert>
       </Snackbar>
@@ -512,4 +635,4 @@ const CreateDevis = () => {
   );
 };
 
-export default CreateDevis;
+export default InvoiceDetails;

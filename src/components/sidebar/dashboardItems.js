@@ -63,12 +63,6 @@ const generatePagesSection = (roles = []) => {
           visible: isAdmin || roles.includes('manager'),
         },
         {
-          href: "/tableau-de-bord/client-stats",
-          icon: PeopleIcon,
-          title: "Statistiques des clients",
-          visible: isAdmin || roles.includes('manager'),
-        },
-        {
           href: "/tableau-de-bord/performance",
           icon: AssessmentIcon,
           title: "Indicateurs de performance",

@@ -96,9 +96,9 @@ const ImportInvoices = () => {
         companyInfo_phone: "0998006500",
         companyInfo_taxNumber: "Numéro impot :0801888M",
         invoiceInfo_currency: "USD",
-        invoiceInfo_date: "2024-12-09",
-        invoiceInfo_dueDate: "2024-12-13",
-        invoiceInfo_number: "0004",
+        invoiceInfo_date: "2025-02-28",
+        invoiceInfo_dueDate: "2025-02-18",
+        invoiceInfo_number: "0020",
         invoiceInfo_vatPercent: 16,
         paymentInfo: "Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)",
         services: JSON.stringify([
@@ -107,7 +107,7 @@ const ImportInvoices = () => {
         ]),
         status: "Payé",
         subtotal: 350,
-        total: 406,
+        total: 600,
         vatAmount: 56,
       }
     ];

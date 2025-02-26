@@ -21,7 +21,6 @@ const SaaS = async(() => import("@/pages/dashboards/SaaS"));
 const DashboardOverview = async(() => import("@/pages/tableau_de_bord/DashboardOverview"));
 const Stats = async(() => import("@/pages/tableau_de_bord/Stats"));
 const GraphComponent = async(() => import("@/pages/tableau_de_bord/GraphComponent"));
-const ClientStatistics = async(() => import("@/pages/tableau_de_bord/ClientStatistics"));
 const PerformanceIndicators = async(() => import("@/pages/tableau_de_bord/PerformanceIndicators"));
 const AlertsAndNotifications = async(() => import("@/pages/tableau_de_bord/AlertsAndNotifications"));
 const Acceuil = async(() => import("@/pages/Acceuil/Acceuil"));
@@ -122,10 +121,7 @@ const routes = [
         path: "graphs",
         element: <GraphComponent />,
       },
-      {
-        path: "client-stats",
-        element: <ClientStatistics />,
-      },
+   
       {
         path: "performance",
         element: <PerformanceIndicators />,

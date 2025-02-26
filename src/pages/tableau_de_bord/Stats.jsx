@@ -1,129 +1,89 @@
-import React from "react";
-import styled from "@emotion/styled";
-import { css } from "@emotion/react";
-import { rgba } from "polished";
+import React, { useEffect, useState } from 'react';
+import { db } from '../../firebaseConfig'; // Chemin mis à jour pour firebaseConfig
+import { collection, getDocs } from 'firebase/firestore';
+import { Container, Typography, Grid } from '@mui/material';
 
-import {
-  Box,
-  Card as MuiCard,
-  CardContent as MuiCardContent,
-  Chip as MuiChip,
-  Typography as MuiTypography,
-} from "@mui/material";
-import { spacing } from "@mui/system";
+const Stats = () => {
+  const [stats, setStats] = useState({
+    totalInvoices: 0,
+    totalAmountBilled: 0,
+    paidInvoices: 0,
+    pendingInvoices: 0,
+    totalPaymentsReceived: 0,
+  });
 
-const illustrationCardStyle = (props) => css`
-  ${props.illustration &&
-  props.theme.palette.mode !== "dark" &&
-  `
-    background: ${rgba(props.theme.palette.primary.main, 0.125)};
-    color: ${props.theme.palette.primary.main};
-  `}
-`;
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const invoicesCollection = collection(db, 'invoices');
+        const invoiceSnapshot = await getDocs(invoicesCollection);
+        const invoices = invoiceSnapshot.docs.map(doc => doc.data());
 
-const Card = styled(MuiCard)`
-  position: relative;
-  margin-bottom: ${(props) => props.theme.spacing(6)};
+        let totalInvoices = invoices.length;
+        let totalAmountBilled = 0;
+        let paidInvoices = 0;
+        let pendingInvoices = 0;
+        let totalPaymentsReceived = 0;
 
-  ${illustrationCardStyle}
-`;
+        invoices.forEach(invoice => {
+          totalAmountBilled += parseFloat(invoice.total || 0);
+          totalPaymentsReceived += invoice.status === 'Payé' ? parseFloat(invoice.total || 0) : 0;
+          paidInvoices += invoice.status === 'Payé' ? 1 : 0;
+          pendingInvoices += invoice.status === 'Non payé' ? 1 : 0;
+        });
 
-const Typography = styled(MuiTypography)(spacing);
+        setStats({
+          totalInvoices,
+          totalAmountBilled,
+          paidInvoices,
+          pendingInvoices,
+          totalPaymentsReceived,
+        });
+      } catch (error) {
+        console.error('Erreur lors de la récupération des statistiques :', error);
+      }
+    };
 
-const CardContent = styled(MuiCardContent)`
-  position: relative;
+    fetchStats();
+  }, []);
 
-  &:last-child {
-    padding-bottom: ${(props) => props.theme.spacing(4)};
-  }
-`;
-
-const Chip = styled(MuiChip)`
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  height: 20px;
-  padding: 4px 0;
-  font-size: 85%;
-  background-color: ${(props) => props.theme.palette.secondary.main};
-  color: ${(props) => props.theme.palette.common.white};
-  margin-bottom: ${(props) => props.theme.spacing(4)};
-
-  span {
-    padding-left: ${(props) => props.theme.spacing(2)};
-    padding-right: ${(props) => props.theme.spacing(2)};
-  }
-`;
-
-const illustrationPercentageStyle = (props) => css`
-  ${props.illustration &&
-  props.theme.palette.mode !== "dark" &&
-  `
-    color: ${rgba(props.theme.palette.primary.main, 0.85)};
-  `}
-`;
-
-const Percentage = styled(MuiTypography)`
-  span {
-    color: ${(props) => props.percentagecolor};
-    background: ${(props) => rgba(props.percentagecolor || "#000000", 0.1)}; // Ajout d'une valeur par défaut pour éviter les erreurs
-    padding: 2px;
-    border-radius: 3px;
-    margin-right: ${(props) => props.theme.spacing(2)};
-  }
-
-  ${illustrationPercentageStyle}
-`;
-
-const IllustrationImage = styled.img`
-  height: 100px;
-  position: absolute;
-  right: ${(props) => props.theme.spacing(1)};
-  bottom: ${(props) => props.theme.spacing(1)};
-  display: none;
-
-  ${(props) => props.theme.breakpoints.between("xs", "lg")} {
-    display: block;
-  }
-
-  @media (min-width: 1600px) {
-    display: block;
-  }
-`;
-
-const Stats = ({
-  title,
-  amount,
-  chip,
-  percentagetext,
-  percentagecolor,
-  illustration,
-}) => {
   return (
-    <Card illustration={illustration}>
-      <CardContent>
-        <Typography variant="h6" mb={4}>
-          {title}
-        </Typography>
-        <Typography variant="h3" mb={3}>
-          <Box fontWeight="fontWeightRegular">{amount}</Box>
-        </Typography>
-        <Percentage
-          variant="subtitle2"
-          color="textSecondary"
-          percentagecolor={percentagecolor}
-          illustration={illustration}
-        >
-          <span>{percentagetext}</span> Depuis le mois dernier
-        </Percentage>
-        {!illustration && <Chip label={chip} />}
-      </CardContent>
+    <Container>
+      <Typography variant="h4" component="h2" gutterBottom>
+        Statistiques de facturation
+      </Typography>
 
-      {!!illustration && (
-        <IllustrationImage src={illustration} alt="Illustration" />
-      )}
-    </Card>
+      <Grid container spacing={3}>
+        {/* Total des factures émises */}
+        <Grid item xs={12} sm={6}>
+          <Typography variant="h6">Total des factures émises :</Typography>
+          <Typography>{stats.totalInvoices}</Typography>
+        </Grid>
+
+        {/* Montant total facturé */}
+        <Grid item xs={12} sm={6}>
+          <Typography variant="h6">Montant total facturé :</Typography>
+          <Typography>{stats.totalAmountBilled.toFixed(2)} USD</Typography>
+        </Grid>
+
+        {/* Factures payées vs en attente */}
+        <Grid item xs={12} sm={6}>
+          <Typography variant="h6">Factures payées :</Typography>
+          <Typography>{stats.paidInvoices}</Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="h6">Factures en attente :</Typography>
+          <Typography>{stats.pendingInvoices}</Typography>
+        </Grid>
+
+        {/* Montant total des paiements reçus */}
+        <Grid item xs={12} sm={6}>
+          <Typography variant="h6">Montant total des paiements reçus :</Typography>
+          <Typography>{stats.totalPaymentsReceived.toFixed(2)} USD</Typography>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 
-export default Stats; // Assurez-vous d'exporter par défaut
+export default Stats;
