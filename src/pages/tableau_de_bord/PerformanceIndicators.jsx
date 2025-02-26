@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../../firebaseConfig'; // Chemin mis à jour pour firebaseConfig
+import { db } from '../../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
-import { Container, Typography, Grid } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, Avatar } from '@mui/material';
+import { blue, green, purple } from '@mui/material/colors';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 
 const PerformanceIndicators = () => {
   const [indicators, setIndicators] = useState({
@@ -54,24 +58,57 @@ const PerformanceIndicators = () => {
       <Typography variant="h4" component="h2" gutterBottom>
         Indicateurs de performance
       </Typography>
-
       <Grid container spacing={3}>
-        {/* Taux de recouvrement */}
         <Grid item xs={12} sm={4}>
-          <Typography variant="h6">Taux de recouvrement :</Typography>
-          <Typography>{indicators.recoveryRate} %</Typography>
+          <Card>
+            <CardContent>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item>
+                  <Avatar sx={{ bgcolor: blue[500] }}>
+                    <TrendingUpIcon />
+                  </Avatar>
+                </Grid>
+                <Grid item xs>
+                  <Typography variant="h6">Taux de recouvrement</Typography>
+                  <Typography>{indicators.recoveryRate} %</Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
         </Grid>
-
-        {/* Délais de paiement moyen */}
         <Grid item xs={12} sm={4}>
-          <Typography variant="h6">Délais de paiement moyen :</Typography>
-          <Typography>{indicators.averagePaymentDelay} jours</Typography>
+          <Card>
+            <CardContent>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item>
+                  <Avatar sx={{ bgcolor: green[500] }}>
+                    <AccessTimeIcon />
+                  </Avatar>
+                </Grid>
+                <Grid item xs>
+                  <Typography variant="h6">Délais de paiement moyen</Typography>
+                  <Typography>{indicators.averagePaymentDelay} jours</Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
         </Grid>
-
-        {/* Montant moyen par facture */}
         <Grid item xs={12} sm={4}>
-          <Typography variant="h6">Montant moyen par facture :</Typography>
-          <Typography>{indicators.averageInvoiceAmount} USD</Typography>
+          <Card>
+            <CardContent>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item>
+                  <Avatar sx={{ bgcolor: purple[500] }}>
+                    <AttachMoneyIcon />
+                  </Avatar>
+                </Grid>
+                <Grid item xs>
+                  <Typography variant="h6">Montant moyen par facture</Typography>
+                  <Typography>{indicators.averageInvoiceAmount} USD</Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
     </Container>

@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../../firebaseConfig'; // Chemin mis à jour pour firebaseConfig
+import { db } from '../../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
-import { Container, Typography, Grid } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, Avatar } from '@mui/material';
+import { blue } from '@mui/material/colors';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import PaymentIcon from '@mui/icons-material/Payment';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 const Stats = () => {
   const [stats, setStats] = useState({
@@ -47,40 +52,64 @@ const Stats = () => {
     fetchStats();
   }, []);
 
+  const statCards = [
+    {
+      title: "Total des factures émises",
+      value: stats.totalInvoices,
+      icon: <AssignmentIcon />,
+      color: blue[500],
+    },
+    {
+      title: "Montant total facturé",
+      value: `${stats.totalAmountBilled.toFixed(2)} USD`,
+      icon: <PaymentIcon />,
+      color: blue[500],
+    },
+    {
+      title: "Factures payées",
+      value: stats.paidInvoices,
+      icon: <AccountBalanceWalletIcon />,
+      color: blue[500],
+    },
+    {
+      title: "Factures en attente",
+      value: stats.pendingInvoices,
+      icon: <PendingActionsIcon />,
+      color: blue[500],
+    },
+    {
+      title: "Montant total des paiements reçus",
+      value: `${stats.totalPaymentsReceived.toFixed(2)} USD`,
+      icon: <AccountBalanceWalletIcon />,
+      color: blue[500],
+    },
+  ];
+
   return (
     <Container>
       <Typography variant="h4" component="h2" gutterBottom>
         Statistiques de facturation
       </Typography>
-
       <Grid container spacing={3}>
-        {/* Total des factures émises */}
-        <Grid item xs={12} sm={6}>
-          <Typography variant="h6">Total des factures émises :</Typography>
-          <Typography>{stats.totalInvoices}</Typography>
-        </Grid>
-
-        {/* Montant total facturé */}
-        <Grid item xs={12} sm={6}>
-          <Typography variant="h6">Montant total facturé :</Typography>
-          <Typography>{stats.totalAmountBilled.toFixed(2)} USD</Typography>
-        </Grid>
-
-        {/* Factures payées vs en attente */}
-        <Grid item xs={12} sm={6}>
-          <Typography variant="h6">Factures payées :</Typography>
-          <Typography>{stats.paidInvoices}</Typography>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <Typography variant="h6">Factures en attente :</Typography>
-          <Typography>{stats.pendingInvoices}</Typography>
-        </Grid>
-
-        {/* Montant total des paiements reçus */}
-        <Grid item xs={12} sm={6}>
-          <Typography variant="h6">Montant total des paiements reçus :</Typography>
-          <Typography>{stats.totalPaymentsReceived.toFixed(2)} USD</Typography>
-        </Grid>
+        {statCards.map((card, index) => (
+          <Grid item xs={12} sm={6} md={4} key={index}>
+            <Card>
+              <CardContent>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item>
+                    <Avatar sx={{ bgcolor: card.color }}>
+                      {card.icon}
+                    </Avatar>
+                  </Grid>
+                  <Grid item>
+                    <Typography variant="h6">{card.title}</Typography>
+                    <Typography>{card.value}</Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
     </Container>
   );
