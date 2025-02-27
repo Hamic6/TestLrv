@@ -9,9 +9,6 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Actions from './Actions';
 import BarChart from './BarChart';
 import DoughnutChart from './DoughnutChart';
-// Supprimer l'importation de USAMap car le fichier n'existe plus
-// import USAMap from './USAMap';
-import Stats from './Stats';
 import Table from './Table';
 
 const Divider = styled(MuiDivider)(spacing);
@@ -49,45 +46,7 @@ const DashboardOverview = () => {
         </Grid>
       </Grid>
       <Divider my={6} />
-      <Grid container spacing={6}>
-        <Grid item xs={12} md={6} lg={3}>
-          <Stats
-            title="Revenu"
-            amount="$37.500"
-            chip="Mensuelles"
-            percentagetext="+14%"
-            percentagecolor={green[500]}
-          />
-        </Grid>
-        <Grid item xs={12} md={6} lg={3}>
-          <Stats
-            title="Factures émises"
-            amount="150.121"
-            chip="Annual"
-            percentagetext="-12%"
-            percentagecolor={red[500]}
-          />
-        </Grid>
-        <Grid item xs={12} md={6} lg={3}>
-          <Stats
-            title="Factures Payés"
-            amount="12.432"
-            chip="Hebdomadaire"
-            percentagetext="+24%"
-            percentagecolor={green[500]}
-          />
-        </Grid>
-        <Grid item xs={12} md={6} lg={3}>
-          <Stats
-            title="Factures Impayés"
-            amount="22"
-            chip="Hebdomadaire"
-            percentagetext="-6%"
-            percentagecolor={red[500]}
-            illustration="/static/img/illustrations/waiting.png"
-          />
-        </Grid>
-      </Grid>
+      
       <Grid container spacing={6}>
         {/* Supprimer l'utilisation de USAMap car le fichier n'existe plus */}
         {/* <Grid item xs={12} lg={5}>

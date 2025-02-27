@@ -16,7 +16,7 @@ import {
 import { Menu as MenuIcon } from "@mui/icons-material";
 import logo from "../../vendor/logo.svg"; // Chemin corrigé pour accéder au logo
 
-import NavbarNotificationsDropdown from "./NavbarNotificationsDropdown";
+
 import NavbarUserDropdown from "./NavbarUserDropdown";
 
 const AppBar = styled(MuiAppBar)`
@@ -105,7 +105,7 @@ const Navbar = ({ onDrawerToggle }) => {
             <Grid size="grow" />
             <Grid>
               
-              <NavbarNotificationsDropdown />
+              
               <NavbarUserDropdown />
             </Grid>
           </Grid>
