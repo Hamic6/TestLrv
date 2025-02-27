@@ -47,7 +47,7 @@ const generatePagesSection = (roles = []) => {
         {
           href: "/tableau-de-bord",
           icon: DashboardIcon,
-          title: "Aperçu Général",
+          title: "Aperçu Général (maquette)",
           visible: isAdmin || roles.includes('manager'),
         },
         {

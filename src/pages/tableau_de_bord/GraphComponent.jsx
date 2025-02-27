@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Bar, Line, Pie } from 'react-chartjs-2';
 import { Container, Typography, Grid, IconButton } from '@mui/material';
-import BarChartIcon from '@mui/icons-material/BarChart';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import PieChartIcon from '@mui/icons-material/PieChart';
 import { db } from '../../firebaseConfig'; // Chemin mis à jour pour firebaseConfig
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import Actions from './Actions'; // Import du composant Actions
+import BarChart from './BarChart'; // Import du composant BarChart
+import LineChart from './LineChart'; // Import du composant LineChart
+import PieChart from './PieChart'; // Import du composant PieChart
 
 // Configuration des options par défaut de Chart.js
 const defaultOptions = {
@@ -24,7 +25,7 @@ const defaultOptions = {
 };
 
 const GraphComponent = () => {
-  const [salesData, setSalesData] = useState([]);
+  const [filters, setFilters] = useState({ year: '2025', month: '', currency: 'USD' });
   const [billingTrends, setBillingTrends] = useState([]);
   const [serviceDistribution, setServiceDistribution] = useState({});
 
@@ -58,10 +59,8 @@ const GraphComponent = () => {
     const invoiceSnapshot = await getDocs(invoicesQuery);
     const invoices = invoiceSnapshot.docs.map(doc => doc.data());
 
-    // Traitement des données pour chaque type de graphique
-    const salesData = invoices.map(invoice => ({ date: invoice.invoiceInfo.date, amount: parseFloat(invoice.total) }));
+    // Traitement des données pour les graphiques
     const billingTrends = invoices.map(invoice => ({ date: invoice.invoiceInfo.date, total: parseFloat(invoice.total) }));
-
     const serviceDistribution = invoices.reduce((acc, invoice) => {
       invoice.services.forEach(service => {
         acc[service.description] = (acc[service.description] || 0) + parseInt(service.quantity, 10);
@@ -69,26 +68,13 @@ const GraphComponent = () => {
       return acc;
     }, {});
 
-    setSalesData(salesData);
     setBillingTrends(billingTrends);
     setServiceDistribution(serviceDistribution);
   };
 
   useEffect(() => {
-    fetchData({ year: '2025', month: '', currency: 'USD' });
-  }, []);
-
-  const barChartData = {
-    labels: salesData.map(data => data.date),
-    datasets: [{
-      label: 'Ventes mensuelles/annuelles',
-      data: salesData.map(data => data.amount),
-      backgroundColor: 'rgba(75, 192, 192, 0.2)',
-      borderColor: 'rgba(75, 192, 192, 1)',
-      borderWidth: 1,
-    }],
-  };
-
+    fetchData(filters);
+  }, [filters]);
   const lineChartData = {
     labels: billingTrends.map(data => data.date),
     datasets: [{
@@ -131,16 +117,10 @@ const GraphComponent = () => {
       <Typography variant="h4" component="h2" gutterBottom>
         Graphiques et visualisations
       </Typography>
-      <Actions onFilterChange={fetchData} /> {/* Ajout du composant Actions */}
+      <Actions onFilterChange={setFilters} /> {/* Ajout du composant Actions */}
       <Grid container spacing={3}>
-      <Grid item xs={12}>
-          <IconButton>
-            <BarChartIcon />
-          </IconButton>
-          <Typography variant="h6">Graphiques à barres ou à secteurs pour les ventes mensuelles/annuelles</Typography>
-          <div style={{ height: '400px' }}>
-            <Bar data={barChartData} options={{ ...defaultOptions, title: { text: 'Ventes mensuelles/annuelles' } }} />
-          </div>
+        <Grid item xs={12}>
+          <BarChart filters={filters} /> {/* Utilisation du composant BarChart */}
         </Grid>
         <Grid item xs={12}>
           <IconButton>
@@ -148,7 +128,7 @@ const GraphComponent = () => {
           </IconButton>
           <Typography variant="h6">Graphiques linéaires pour suivre les tendances de facturation</Typography>
           <div style={{ height: '400px' }}>
-            <Line data={lineChartData} options={{ ...defaultOptions, title: { text: 'Tendances de facturation' } }} />
+            <LineChart filters={filters} /> {/* Utilisation du composant LineChart */}
           </div>
         </Grid>
         <Grid item xs={12}>
@@ -157,7 +137,7 @@ const GraphComponent = () => {
           </IconButton>
           <Typography variant="h6">Diagrammes de répartition des types de services facturés</Typography>
           <div style={{ height: '400px' }}>
-            <Pie data={pieChartData} options={{ ...defaultOptions, title: { text: 'Types de services facturés' } }} />
+            <PieChart filters={filters} /> {/* Utilisation du composant PieChart */}
           </div>
         </Grid>
       </Grid>

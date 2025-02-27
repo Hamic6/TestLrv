@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { withTheme } from "@emotion/react";
-import { Bar } from "react-chartjs-2";
-import { MoreVertical } from "lucide-react";
-import { rgba } from "polished";
+import { Pie } from "react-chartjs-2";
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebaseConfig'; // Chemin mis à jour pour firebaseConfig
-import { Card as MuiCard, CardContent, CardHeader, IconButton } from "@mui/material";
+
+import { CardContent, Card as MuiCard, Typography } from "@mui/material";
 import { spacing } from "@mui/system";
+import { orange, red } from "@mui/material/colors";
 
 const Card = styled(MuiCard)(spacing);
 
+const Spacer = styled.div(spacing);
+
 const ChartWrapper = styled.div`
-  height: 320px;
-  width: 100%;
+  height: 300px;
 `;
 
-const BarChart = ({ theme, filters }) => {
-  const [salesData, setSalesData] = useState([]);
-  
+const PieChart = ({ theme, filters }) => {
+  const [serviceDistribution, setServiceDistribution] = useState({});
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -51,9 +52,15 @@ const BarChart = ({ theme, filters }) => {
         const invoiceSnapshot = await getDocs(invoicesQuery);
         const invoices = invoiceSnapshot.docs.map(doc => doc.data());
 
-        // Traitement des données pour le graphique à barres
-        const salesData = invoices.map(invoice => ({ date: invoice.invoiceInfo.date, amount: parseFloat(invoice.total) }));
-        setSalesData(salesData);
+        // Traitement des données pour le graphique à secteurs
+        const serviceDistribution = invoices.reduce((acc, invoice) => {
+          invoice.services.forEach(service => {
+            acc[service.description] = (acc[service.description] || 0) + parseInt(service.quantity, 10);
+          });
+          return acc;
+        }, {});
+
+        setServiceDistribution(serviceDistribution);
       } catch (error) {
         console.error('Erreur lors de la récupération des données :', error);
       }
@@ -63,17 +70,17 @@ const BarChart = ({ theme, filters }) => {
   }, [filters]);
 
   const data = {
-    labels: salesData.map(data => data.date),
+    labels: Object.keys(serviceDistribution),
     datasets: [
       {
-        label: "Ventes",
-        backgroundColor: theme?.palette?.secondary?.main || '#42A5F5',
-        borderColor: theme?.palette?.secondary?.main || '#42A5F5',
-        hoverBackgroundColor: theme?.palette?.secondary?.main || '#42A5F5',
-        hoverBorderColor: theme?.palette?.secondary?.main || '#42A5F5',
-        data: salesData.map(data => data.amount),
-        barPercentage: 0.4,
-        categoryPercentage: 0.5,
+        data: Object.values(serviceDistribution),
+        backgroundColor: [
+          theme.palette.secondary.main,
+          orange[500],
+          red[500],
+          theme.palette.grey[300],
+        ],
+        borderColor: "transparent",
       },
     ],
   };
@@ -85,39 +92,19 @@ const BarChart = ({ theme, filters }) => {
         display: false,
       },
     },
-    scales: {
-      y: {
-        grid: {
-          display: false,
-        },
-        stacked: true,
-      },
-      x: {
-        stacked: true,
-        grid: {
-          color: "transparent",
-        },
-      },
-    },
   };
 
   return (
-    <Card mb={6}>
-      <CardHeader
-        action={
-          <IconButton aria-label="settings" size="large">
-            <MoreVertical />
-          </IconButton>
-        }
-        title="Ventes / Revenue"
-      />
+    <Card mb={1}>
       <CardContent>
+        
+        <Spacer mb={6} />
         <ChartWrapper>
-          <Bar data={data} options={options} />
+          <Pie data={data} options={options} />
         </ChartWrapper>
       </CardContent>
     </Card>
   );
 };
 
-export default withTheme(BarChart);
+export default withTheme(PieChart);
