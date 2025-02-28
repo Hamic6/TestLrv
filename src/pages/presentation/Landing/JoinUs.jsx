@@ -4,7 +4,7 @@ import styled from "@emotion/styled";
 import {
   Button,
   Container,
-  Grid2 as Grid,
+  Grid as Grid,
   Typography as MuiTypography,
 } from "@mui/material";
 import { spacing } from "@mui/system";

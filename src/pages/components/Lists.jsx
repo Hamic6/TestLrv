@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 
 import {
   Collapse,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   List,
   ListItemIcon,

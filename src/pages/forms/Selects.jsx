@@ -13,7 +13,7 @@ import {
   DialogContent,
   DialogTitle,
   FormHelperText,
-  Grid2 as Grid,
+  Grid as Grid,
   Input,
   InputLabel,
   Link,

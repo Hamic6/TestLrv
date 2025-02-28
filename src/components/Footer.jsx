@@ -2,7 +2,7 @@ import React from "react";
 import styled from "@emotion/styled";
 
 import {
-  Grid2 as Grid,
+  Grid, // Remplacement de Grid par Grid
   List,
   ListItemText as MuiListItemText,
   ListItemButton as MuiListItemButton,
@@ -39,12 +39,11 @@ function Footer() {
     <Wrapper>
       <Grid container spacing={0}>
         <Grid
+          item
           sx={{ display: { xs: "none", md: "block" } }}
           container
-          size={{
-            xs: 12,
-            md: 6,
-          }}
+          xs={12}
+          md={6}
         >
           <List>
             <ListItemButton component="a" href="#">
@@ -62,12 +61,11 @@ function Footer() {
           </List>
         </Grid>
         <Grid
+          item
           container
           justifyContent="flex-end"
-          size={{
-            xs: 12,
-            md: 6,
-          }}
+          xs={12}
+          md={6}
         >
           <List>
             <ListItemButton>

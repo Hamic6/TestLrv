@@ -6,7 +6,7 @@ import { Helmet } from "react-helmet-async";
 import {
   Button,
   CardContent,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   Breadcrumbs as MuiBreadcrumbs,
   Card as MuiCard,

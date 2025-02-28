@@ -6,7 +6,7 @@ import {
   AccordionDetails as MuiAccordionDetails,
   AccordionSummary as MuiAccordionSummary,
   Container,
-  Grid2 as Grid,
+  Grid as Grid,
   Typography,
   Link,
 } from "@mui/material";

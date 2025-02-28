@@ -15,7 +15,7 @@ import {
   DialogTitle,
   FormControl,
   FormControlLabel,
-  Grid2 as Grid,
+  Grid as Grid,
   InputLabel,
   Link,
   List,

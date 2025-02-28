@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import styled from "@emotion/styled";
 import {
   CssBaseline,
-  Grid2 as Grid,
+  Grid as Grid,
   useMediaQuery,
   useTheme,
 } from "@mui/material";

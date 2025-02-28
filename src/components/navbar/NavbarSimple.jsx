@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { withTheme } from "@emotion/react";
 
 import {
-  Grid2 as Grid,
+  Grid as Grid,
   AppBar as MuiAppBar,
   IconButton as MuiIconButton,
   Toolbar,

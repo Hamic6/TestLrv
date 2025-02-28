@@ -7,7 +7,7 @@ import {
   Button,
   Box,
   Container,
-  Grid2 as Grid,
+  Grid as Grid,
   Typography,
 } from "@mui/material";
 import { spacing } from "@mui/system";

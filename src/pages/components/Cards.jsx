@@ -7,7 +7,7 @@ import {
   CardActionArea,
   CardActions,
   CardContent,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   Breadcrumbs as MuiBreadcrumbs,
   Button as MuiButton,

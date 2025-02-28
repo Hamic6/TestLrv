@@ -2,7 +2,7 @@ import React from "react";
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 
-import { Box, Chip, Container, Grid2 as Grid, Typography } from "@mui/material";
+import { Box, Chip, Container, Grid as Grid, Typography } from "@mui/material";
 import { spacing } from "@mui/system";
 
 import { THEMES } from "@/constants";

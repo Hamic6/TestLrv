@@ -9,7 +9,7 @@ import {
   Button,
   Checkbox,
   Divider as MuiDivider,
-  Grid2 as Grid,
+  Grid as Grid,
   IconButton,
   Link,
   Paper as MuiPaper,

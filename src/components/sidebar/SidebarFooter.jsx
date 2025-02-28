@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 
-import { Badge, Grid2 as Grid, Avatar, Typography } from "@mui/material";
+import { Badge, Grid, Avatar, Typography } from "@mui/material"; // Remplacement de Grid par Grid
 import { green } from "@mui/material/colors";
 
 import useAuth from "@/hooks/useAuth";
@@ -42,7 +42,18 @@ const SidebarFooter = ({ ...rest }) => {
   return (
     <Footer {...rest}>
       <Grid container spacing={2}>
-        <Grid>
+        <Grid item>
+          <FooterBadge
+            overlap="circular"
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            badgeContent={<Avatar sx={{ width: 10, height: 10, bgcolor: green[500] }} />}
+          >
+            <Avatar alt="User" src="/path/to/avatar.jpg" />
+          </FooterBadge>
+        </Grid>
+        <Grid item xs>
+          <FooterText variant="h6">{user?.name}</FooterText>
+          <FooterSubText variant="body2">{user?.role}</FooterSubText>
         </Grid>
       </Grid>
     </Footer>

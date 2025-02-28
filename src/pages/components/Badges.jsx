@@ -8,7 +8,7 @@ import {
   CardContent,
   FormControlLabel,
   FormGroup,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   Badge as MuiBadge,
   Breadcrumbs as MuiBreadcrumbs,

@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
 import {
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   Breadcrumbs as MuiBreadcrumbs,
   Divider as MuiDivider,

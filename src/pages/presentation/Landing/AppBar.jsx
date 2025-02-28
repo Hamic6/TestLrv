@@ -7,7 +7,7 @@ import {
   AppBar,
   Button as MuiButton,
   Container,
-  Grid2 as Grid,
+  Grid as Grid,
   Box,
   Toolbar,
 } from "@mui/material";

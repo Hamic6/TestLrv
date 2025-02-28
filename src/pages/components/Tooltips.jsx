@@ -8,7 +8,7 @@ import {
   ClickAwayListener,
   Fab,
   Fade,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   Breadcrumbs as MuiBreadcrumbs,
   Button as MuiButton,

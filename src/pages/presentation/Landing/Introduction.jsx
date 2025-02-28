@@ -7,7 +7,7 @@ import {
   Box,
   Button,
   Container,
-  Grid2 as Grid,
+  Grid as Grid,
   Tooltip,
   Typography as MuiTypography,
 } from "@mui/material";

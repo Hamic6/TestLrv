@@ -14,7 +14,7 @@ import {
   CardContent,
   CircularProgress,
   Divider as MuiDivider,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   TextField as MuiTextField,
   Typography,

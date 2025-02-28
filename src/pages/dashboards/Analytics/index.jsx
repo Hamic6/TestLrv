@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 
 import {
-  Grid2 as Grid,
+  Grid as Grid,
   Divider as MuiDivider,
   Typography as MuiTypography,
 } from "@mui/material";

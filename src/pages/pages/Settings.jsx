@@ -11,7 +11,7 @@ import {
   CardContent,
   Divider as MuiDivider,
   FormControl as MuiFormControl,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   TextField as MuiTextField,
   Typography,

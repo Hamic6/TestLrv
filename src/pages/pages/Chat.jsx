@@ -7,7 +7,7 @@ import { green } from "@mui/material/colors";
 import {
   Badge,
   Box,
-  Grid2 as Grid,
+  Grid as Grid,
   Card,
   TextField as MuiTextField,
   Typography,

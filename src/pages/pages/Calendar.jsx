@@ -11,7 +11,7 @@ import {
   Card as MuiCard,
   CardContent as MuiCardContent,
   Divider as MuiDivider,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   Typography,
 } from "@mui/material";

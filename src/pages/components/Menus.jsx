@@ -7,7 +7,7 @@ import {
   Button,
   CardContent,
   Fade,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   List,
   ListItemButton,

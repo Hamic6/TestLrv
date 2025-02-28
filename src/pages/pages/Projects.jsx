@@ -13,7 +13,7 @@ import {
   CardMedia as MuiCardMedia,
   Chip as MuiChip,
   Divider as MuiDivider,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   Typography as MuiTypography,
 } from "@mui/material";

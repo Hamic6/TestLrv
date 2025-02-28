@@ -5,7 +5,7 @@ import { spacing } from "@mui/system";
 import {
   Avatar as MuiAvatar,
   Container as MuiContainer,
-  Grid2 as Grid,
+  Grid as Grid,
   Typography,
 } from "@mui/material";
 

@@ -9,7 +9,7 @@ import {
   Button,
   CardContent,
   Collapse,
-  Grid2 as Grid,
+  Grid as Grid,
   IconButton,
   Link,
   Breadcrumbs as MuiBreadcrumbs,

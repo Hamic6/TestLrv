@@ -6,7 +6,7 @@ import { darken } from "polished";
 import { useTranslation } from "react-i18next";
 
 import {
-  Grid2 as Grid,
+  Grid, // Remplacement de Grid par Grid
   InputBase,
   AppBar as MuiAppBar,
   IconButton as MuiIconButton,
@@ -15,7 +15,6 @@ import {
 
 import { Menu as MenuIcon } from "@mui/icons-material";
 import logo from "../../vendor/logo.svg"; // Chemin corrigé pour accéder au logo
-
 
 import NavbarUserDropdown from "./NavbarUserDropdown";
 
@@ -88,7 +87,7 @@ const Navbar = ({ onDrawerToggle }) => {
       <AppBar position="sticky" elevation={1}>
         <Toolbar>
           <Grid container alignItems="center" style={{ width: "100%" }}>
-            <Grid sx={{ display: { xs: "block", md: "none" } }}>
+            <Grid item sx={{ display: { xs: "block", md: "none" } }}>
               <IconButton
                 color="inherit"
                 aria-label="Open drawer"
@@ -101,11 +100,8 @@ const Navbar = ({ onDrawerToggle }) => {
             <Grid item>
               <Logo src={logo} alt="Logo de Le Rayon Vert" />
             </Grid>
-           
-            <Grid size="grow" />
-            <Grid>
-              
-              
+            <Grid item xs />
+            <Grid item>
               <NavbarUserDropdown />
             </Grid>
           </Grid>

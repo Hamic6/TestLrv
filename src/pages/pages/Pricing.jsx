@@ -7,7 +7,7 @@ import {
   Button,
   CardActions,
   CardContent,
-  Grid2 as Grid,
+  Grid as Grid,
   Link,
   Breadcrumbs as MuiBreadcrumbs,
   Card as MuiCard,

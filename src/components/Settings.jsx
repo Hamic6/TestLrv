@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Typography, Paper } from '@mui/material'; // Remplace Grid2 par Grid
+import { Grid, Typography, Paper } from '@mui/material'; // Remplace Grid par Grid
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -19,7 +19,7 @@ const Settings = () => {
 
   return (
     <div className={classes.root}>
-      <Grid container spacing={3}> {/* Utilise Grid au lieu de Grid2 */}
+      <Grid container spacing={3}> {/* Utilise Grid au lieu de Grid */}
         <Grid item xs={12}>
           <Paper className={classes.paper}>
             <Typography variant="h6">
