@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { Container, Typography, Grid, Card, CardContent, Avatar } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, Avatar, Box, Button } from '@mui/material';
 import { blue } from '@mui/material/colors';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PaymentIcon from '@mui/icons-material/Payment';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import styled from '@emotion/styled';
 import Actions from './Actions'; // Import du composant Actions
+
+// Image à afficher
+import stats3 from './img/stats3.png';
 
 const Stats = () => {
   const [stats, setStats] = useState({
@@ -78,7 +82,6 @@ const Stats = () => {
   useEffect(() => {
     fetchStats({ year: '2025', month: '', currency: 'USD' });
   }, []);
-
   const statCards = [
     {
       title: "Total des factures émises",
@@ -120,25 +123,34 @@ const Stats = () => {
       </Typography>
       <Actions onFilterChange={fetchStats} /> {/* Ajout du composant Actions */}
       <Grid container spacing={3}>
-      {statCards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card>
-              <CardContent>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item>
-                    <Avatar sx={{ bgcolor: card.color }}>
-                      {card.icon}
-                    </Avatar>
-                  </Grid>
-                  <Grid item>
-                    <Typography variant="h6">{card.title}</Typography>
-                    <Typography>{card.value}</Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
+        <Grid item xs={12} sm={6} md={8}>
+          <Grid container spacing={3}>
+            {statCards.map((card, index) => (
+              <Grid item xs={12} sm={6} key={index}>
+                <Card>
+                  <CardContent>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item>
+                        <Avatar sx={{ bgcolor: card.color }}>
+                          {card.icon}
+                        </Avatar>
+                      </Grid>
+                      <Grid item>
+                        <Typography variant="h6">{card.title}</Typography>
+                        <Typography>{card.value}</Typography>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
-        ))}
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Box sx={{ width: '100%', mt: 4 }}>
+            <img src={stats3} alt="Statistique 3" style={{ width: '100%' }} />
+          </Box>
+        </Grid>
       </Grid>
     </Container>
   );
