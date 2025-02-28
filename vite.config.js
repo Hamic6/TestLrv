@@ -26,6 +26,9 @@ export default defineConfig({
         if (warning.code === "EVAL") return;
         warn(warning);
       },
+      external: [
+        '@mui/styles', // Ajout de @mui/styles à la configuration external
+      ],
     },
   },
 });

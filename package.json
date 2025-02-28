@@ -52,6 +52,7 @@
     "@sendgrid/mail": "^8.1.4",
     "@svgr/rollup": "8.1.0",
     "@vitejs/plugin-react-swc": "3.7.0",
+    "@mui/styles": "^5.11.0",
     "amazon-cognito-identity-js": "5.2.14",
     "animate.css": "4.1.1",
     "apexcharts": "3.53.0",
