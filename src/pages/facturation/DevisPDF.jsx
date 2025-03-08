@@ -8,6 +8,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Helvetica',
     lineHeight: 1.5,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
   headerSection: {
     display: 'flex',
@@ -102,7 +105,15 @@ const styles = StyleSheet.create({
     height: 100,
     marginTop: 10, // Ajustement pour l'espacement
     alignSelf: 'center', // Centrer horizontalement
-  }
+  },
+  footerContainer: {
+    marginTop: 'auto',
+  },
+  footerLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#bfbfbf',
+    marginBottom: 5,
+  },
 });
 
 const DevisPDF = ({ devis }) => {
@@ -205,13 +216,13 @@ const DevisPDF = ({ devis }) => {
           <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmount.toFixed(2)}</Text>
           <Text className="total">Total : {invoiceInfo.currency} {total.toFixed(2)}</Text>
         </View>
-       
-        <View style={styles.paymentInfoSection}>
-          <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
-        </View>
-        <View style={styles.footer}>
-          <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
-          <Text>Devis proposé par : {userName}</Text> {/* Ajout du champ utilisateur */}
+        <View style={styles.footerContainer}>
+          <View style={styles.footerLine} />
+          <View style={styles.footer}>
+            <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
+            <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
+            <Text>Devis proposé par : {userName}</Text> {/* Ajout du champ utilisateur */}
+          </View>
         </View>
       </Page>
     </Document>

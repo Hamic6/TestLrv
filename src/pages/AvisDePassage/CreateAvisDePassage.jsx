@@ -2,18 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { TextField, Grid, Button, Select, MenuItem, FormControl, InputLabel, Alert } from '@mui/material';
-import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 import AvisDePassagePDF from './AvisDePassagePDF';
+import ADPmanuel from './ADPmanuel';
 import { saveAvisToDatabase } from '../../utils/api';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 import SignaturePadComponent from '@/pages/AvisDePassage/SignaturePadComponent';
 import PhotoCapture from '@/pages/AvisDePassage/PhotoCapture';
 import './SignaturePadComponent.css';
-
-const StyledButton = styled(Button)`
-  margin-top: 20px;
-`;
 
 const CreateAvisDePassage = () => {
   const [logo, setLogo] = useState('/static/img/avatars/logo.png'); // Utiliser le logo par défaut à partir du chemin spécifié
@@ -48,9 +45,11 @@ const CreateAvisDePassage = () => {
   const [photos, setPhotos] = useState([]);
   const [verifiedBy, setVerifiedBy] = useState(''); // Ajouté
   const [verifiedDate, setVerifiedDate] = useState(''); // Ajouté
+  const [comments, setComments] = useState(''); // Ajouté
   const [signatureSaved, setSignatureSaved] = useState(false); // Ajouté
   const [photosSaved, setPhotosSaved] = useState(false); // Ajouté
   const [avisSaved, setAvisSaved] = useState(false); // Ajouté
+
   const getLastAvisNumber = async () => {
     const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastAvisNumber'));
     if (lastNumberDoc.exists()) {
@@ -154,7 +153,8 @@ const CreateAvisDePassage = () => {
     signature,
     photos,
     verifiedBy,
-    verifiedDate
+    verifiedDate,
+    comments // Ajouté
   };
 
   const handleSaveAvis = async () => {
@@ -169,7 +169,8 @@ const CreateAvisDePassage = () => {
       signature,
       photos,
       verifiedBy,
-      verifiedDate
+      verifiedDate,
+      comments // Ajouté
     };
 
     await saveAvisToDatabase(avisData);
@@ -429,25 +430,51 @@ const CreateAvisDePassage = () => {
             />
           </Grid>
         </Grid>
+        <h3>Commentaire</h3>
+        <TextField
+          id="comments"
+          name="comments"
+          label="Commentaire"
+          fullWidth
+          multiline
+          rows={4}
+          value={comments}
+          onChange={(e) => setComments(e.target.value)}
+        />
         <h3>Signature</h3>
         <SignaturePadComponent setSignature={value => {setSignature(value); setSignatureSaved(true);}} />
         <h3>Photo</h3>
         <PhotoCapture onPhotosCaptured={handlePhotosCaptured} />
       </form>
       {avisReady && (
-        <PDFDownloadLink
-          document={<AvisDePassagePDF avis={avisData} />}
-          fileName="avis_de_passage.pdf"
-        >
-          <Button
-            type="button"
-            variant="contained"
-            color="primary"
-            style={{ marginTop: '20px' }}
+        <>
+          <PDFDownloadLink
+            document={<AvisDePassagePDF avis={avisData} />}
+            fileName="avis_de_passage.pdf"
           >
-            Télécharger
-          </Button>
-        </PDFDownloadLink>
+            <Button
+              type="button"
+              variant="contained"
+              color="primary"
+              style={{ marginTop: '20px' }}
+            >
+              Télécharger
+            </Button>
+          </PDFDownloadLink>
+          <PDFDownloadLink
+            document={<ADPmanuel avis={avisData} />}
+            fileName="avis_de_passage_modele.pdf"
+          >
+            <Button
+              type="button"
+              variant="contained"
+              color="primary"
+              style={{ marginTop: '20px', marginLeft: '10px' }}
+            >
+              Imprimer le modèle
+            </Button>
+          </PDFDownloadLink>
+        </>
       )}
       {signatureSaved && <Alert severity="success">Signature sauvegardée avec succès !</Alert>}
       {photosSaved && <Alert severity="success">Photos sauvegardées avec succès !</Alert>}

@@ -4,6 +4,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Container, Typography, Grid, List, ListItem, ListItemText, ListItemIcon } from '@mui/material';
 import { Notifications, Error as AlertIcon, Payment as PaymentIcon, Repeat as RepeatIcon } from '@mui/icons-material';
 import Actions from './Actions'; // Import du composant Actions
+import notifsImage from './img/notifs.jpg'; // Import de l'image notifs
 
 const AlertsAndNotifications = () => {
   const [alerts, setAlerts] = useState({
@@ -78,6 +79,7 @@ const AlertsAndNotifications = () => {
   useEffect(() => {
     fetchAlerts({ year: '2025', month: '', currency: 'USD' });
   }, []);
+
   return (
     <Container>
       <Typography variant="h4" component="h2" gutterBottom>
@@ -86,8 +88,8 @@ const AlertsAndNotifications = () => {
       </Typography>
       <Actions onFilterChange={fetchAlerts} /> {/* Ajout du composant Actions */}
       <Grid container spacing={3}>
-        {/* Factures en retard de paiement */}
-        <Grid item xs={12}>
+        <Grid item xs={12} md={8}>
+          {/* Factures en retard de paiement */}
           <Typography variant="h6">Factures en retard de paiement :</Typography>
           <List>
             {alerts.overdueInvoices.map((invoice, index) => (
@@ -102,10 +104,8 @@ const AlertsAndNotifications = () => {
               </ListItem>
             ))}
           </List>
-        </Grid>
 
-        {/* Prochains paiements dus */}
-        <Grid item xs={12}>
+          {/* Prochains paiements dus */}
           <Typography variant="h6">Prochains paiements dus :</Typography>
           <List>
             {alerts.upcomingPayments.map((invoice, index) => (
@@ -120,10 +120,8 @@ const AlertsAndNotifications = () => {
               </ListItem>
             ))}
           </List>
-        </Grid>
 
-        {/* Rappels pour envoyer des factures récurrentes */}
-        <Grid item xs={12}>
+          {/* Rappels pour envoyer des factures récurrentes */}
           <Typography variant="h6">Rappels pour envoyer des factures récurrentes :</Typography>
           <List>
             {alerts.recurringInvoices.map((invoice, index) => (
@@ -138,6 +136,9 @@ const AlertsAndNotifications = () => {
               </ListItem>
             ))}
           </List>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <img src={notifsImage} alt="Notifications" style={{ width: '100%' }} />
         </Grid>
       </Grid>
     </Container>

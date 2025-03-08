@@ -8,6 +8,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Helvetica',
     lineHeight: 1.5,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
   headerSection: {
     flexDirection: 'row',
@@ -105,7 +108,15 @@ const styles = StyleSheet.create({
     height: 100,
     marginTop: 10, // Ajustement pour l'espacement
     alignSelf: 'center', // Centrer horizontalement
-  }
+  },
+  footerContainer: {
+    marginTop: 'auto',
+  },
+  footerLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#bfbfbf',
+    marginBottom: 5,
+  },
 });
 
 const AvisDePassagePDF = ({ avis }) => {
@@ -129,7 +140,8 @@ const AvisDePassagePDF = ({ avis }) => {
     photos,
     signature,
     verifiedBy,
-    verifiedDate
+    verifiedDate,
+    comments // Ajouté
   } = avis;
 
   return (
@@ -197,6 +209,12 @@ const AvisDePassagePDF = ({ avis }) => {
             </View>
           </View>
         )}
+        {comments && (
+          <View style={styles.section}>
+            <Text>Commentaire :</Text>
+            <Text>{comments}</Text>
+          </View>
+        )}
         {signature && (
           <View style={styles.section}>
             <Text>Signature :</Text>
@@ -205,8 +223,11 @@ const AvisDePassagePDF = ({ avis }) => {
             <Text>{verifiedDate}</Text>
           </View>
         )}
-        <View style={styles.footer}>
-          <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
+        <View style={styles.footerContainer}>
+          <View style={styles.footerLine} />
+          <View style={styles.footer}>
+            <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
+          </View>
         </View>
       </Page>
     </Document>

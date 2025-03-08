@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 
-// Créez des styles pour votre document PDF
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -14,7 +13,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerSection: {
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
@@ -26,16 +24,16 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: 'black',
   },
-  invoiceTitleSection: {
+  avisTitleSection: {
     textAlign: 'center',
     fontSize: 20,
     marginBottom: 20,
     color: 'green',
   },
-  invoiceDetailsSection: {
+  avisDetailsSection: {
     flex: 1,
     paddingLeft: 20,
-    textAlign: 'center',
+    textAlign: 'center', // Centrer le contenu horizontalement
     color: 'black',
   },
   billingSection: {
@@ -43,7 +41,7 @@ const styles = StyleSheet.create({
   },
   table: {
     display: 'table',
-    width: 'auto',
+    width: '100%',
     marginTop: 20,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -53,42 +51,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   tableColHeader: {
-    width: '20%',
+    flex: 1,
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#bfbfbf',
     backgroundColor: '#f3f3f3',
-    padding: 5,
+    padding: 10,
   },
   tableCol: {
-    width: '20%',
+    flex: 1,
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#bfbfbf',
-    padding: 5,
+    padding: 10,
+    height: 250, // Augmenter la hauteur des cellules pour plus d'espace d'écriture
   },
   tableCellHeader: {
     textAlign: 'center',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   tableCell: {
-    fontSize: 10,
-  },
-  totalsSection: {
-    marginTop: 20,
-    textAlign: 'right',
-  },
-  paymentInfoSection: {
-    marginTop: 20,
-    textAlign: 'center',
-    color: 'green',
-    fontSize: 8,
-  },
-  notesSection: {
-    marginTop: 20,
-    textAlign: 'left',
-    color: 'black',
+    fontSize: 12,
   },
   footer: {
     marginTop: 20,
@@ -101,11 +85,30 @@ const styles = StyleSheet.create({
     height: 60,
     marginBottom: 10,
   },
+  image: {
+    width: 40,
+    height: 40,
+    marginBottom: 10,
+    marginRight: 5,
+  },
+  signature: {
+    width: 150,
+    height: 50,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  photoGrid: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+  },
   qrCode: {
     width: 100,
     height: 100,
-    marginTop: 10,
-    alignSelf: 'center',
+    marginTop: 10, // Ajustement pour l'espacement
+    alignSelf: 'center', // Centrer horizontalement
   },
   footerContainer: {
     marginTop: 'auto',
@@ -115,10 +118,15 @@ const styles = StyleSheet.create({
     borderBottomColor: '#bfbfbf',
     marginBottom: 5,
   },
+  emptyField: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    width: '100%',
+    marginBottom: 5,
+  },
 });
 
-// Créez un composant Document pour le PDF
-const Invoice1PDF = ({ invoice }) => {
+const ADPmanuel = ({ avis }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
@@ -131,22 +139,16 @@ const Invoice1PDF = ({ invoice }) => {
       }
     });
   }, []);
-
   const {
     companyInfo,
-    invoiceInfo,
+    avisInfo,
     billTo,
     services,
-    subtotal,
-    vatAmount,
-    total,
-    paymentInfo,
-    additionalNotes,
-  } = invoice;
-
-  const subtotalFormatted = parseFloat(subtotal || 0).toFixed(2);
-  const vatAmountFormatted = parseFloat(vatAmount || 0).toFixed(2);
-  const totalFormatted = parseFloat(total || 0).toFixed(2);
+    photos,
+    signature,
+    verifiedBy,
+    verifiedDate
+  } = avis;
 
   return (
     <Document>
@@ -160,9 +162,11 @@ const Invoice1PDF = ({ invoice }) => {
             <Text>{companyInfo.email}</Text>
             <Text>{companyInfo.taxNumber}</Text>
           </View>
-          <View style={styles.invoiceDetailsSection}>
-            <Text>LRV{invoiceInfo.number}</Text>
-            <Text>Date : {invoiceInfo.date}</Text>
+          <View style={styles.avisDetailsSection}>
+            <Text>Num Avis : __________________________</Text>
+            <Text>Date : __________________________</Text>
+            <Text>Heure de début : __________________________</Text>
+            <Text>Heure de fin : __________________________</Text>
             {qrCodeUrl && (
               <View style={styles.qrCode}>
                 <Image src={qrCodeUrl} />
@@ -170,72 +174,64 @@ const Invoice1PDF = ({ invoice }) => {
             )}
           </View>
         </View>
-        <View style={styles.invoiceTitleSection}>
-          <Text>FACTURE</Text>
+        <View style={styles.avisTitleSection}>
+          <Text>AVIS DE PASSAGE</Text>
         </View>
         <View style={styles.billingSection}>
-          <Text style={styles.label}>Facturé à :</Text>
-          <Text>{billTo.name}</Text>
-          <Text>{billTo.company}</Text>
-          <Text>{billTo.address}</Text>
-          <Text>{billTo.phone}</Text>
-          <Text>{billTo.email}</Text>
+          <Text>Client :</Text>
+          <Text>Nom : __________________________</Text>
+          <Text>Entreprise : __________________________</Text>
+          <Text>Adresse : __________________________</Text>
+          <Text>Téléphone : __________________________</Text>
+          <Text>Email : __________________________</Text>
         </View>
         <View style={styles.table}>
           <View style={styles.tableRow}>
             <View style={styles.tableColHeader}>
               <Text style={styles.tableCellHeader}>Description du service</Text>
             </View>
-            <View style={styles.tableColHeader}>
+            <View style={[styles.tableColHeader, { flex: 2 }]}>
               <Text style={styles.tableCellHeader}>Libellé</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Quantité</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Prix Unitaire ({invoiceInfo.currency})</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Montant ({invoiceInfo.currency})</Text>
             </View>
           </View>
           {services.map((service, index) => (
             <View style={styles.tableRow} key={index}>
               <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.description}</Text>
+                <Text style={styles.tableCell}>__________________________</Text>
               </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.libelle}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.quantity}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{parseFloat(service.unitPrice).toFixed(2)}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</Text>
+              <View style={[styles.tableCol, { flex: 2 }]}>
+                <Text style={styles.tableCell}>__________________________</Text>
               </View>
             </View>
           ))}
         </View>
-        <View style={styles.totalsSection}>
-          <Text>Sous-total : {invoiceInfo.currency} {subtotalFormatted}</Text>
-          <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmountFormatted}</Text>
-          <Text>Total : {invoiceInfo.currency} {totalFormatted}</Text>
-        </View>
-        
+        {photos && photos.length > 0 && (
+          <View style={styles.section}>
+            <Text>Photos :</Text>
+            <View style={styles.photoGrid}>
+              {photos.map((photo, index) => (
+                <Image key={index} style={styles.image} src={photo} />
+              ))}
+            </View>
+          </View>
+        )}
+        {signature && (
+          <View style={styles.section}>
+            <Text>Signature :</Text>
+            <Image style={styles.signature} src={signature} />
+            <Text>Travail vu et controlé par : {verifiedBy}</Text>
+            <Text>{verifiedDate}</Text>
+          </View>
+        )}
         <View style={styles.footerContainer}>
           <View style={styles.footerLine} />
           <View style={styles.footer}>
             <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
-            <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
-            
           </View>
         </View>
       </Page>
     </Document>
   );
-}
+};
 
-export default Invoice1PDF;
+export default ADPmanuel;

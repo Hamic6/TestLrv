@@ -8,6 +8,8 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import AssessmentIcon from '@mui/icons-material/Assessment'; // Ajout de l'icône Assessment
 import Actions from './Actions'; // Import du composant Actions
+import kpiImage from './img/kpi.jpg'; // Import de l'image kpi
+import kpi2Image from './img/kpi2.jpg'; // Import de l'image kpi2
 
 const PerformanceIndicators = () => {
   const [indicators, setIndicators] = useState({
@@ -79,6 +81,7 @@ const PerformanceIndicators = () => {
   useEffect(() => {
     fetchIndicators({ year: '2025', month: '', currency: 'USD' });
   }, []);
+
   return (
     <Container>
       <Typography variant="h4" component="h2" gutterBottom>
@@ -100,6 +103,9 @@ const PerformanceIndicators = () => {
                   <Typography variant="h6">Taux de recouvrement</Typography>
                   <Typography>{indicators.recoveryRate} %</Typography>
                 </Grid>
+                <Grid item xs={12}>
+                  <img src={kpiImage} alt="KPI" style={{ width: '100%' }} />
+                </Grid>
               </Grid>
             </CardContent>
           </Card>
@@ -116,6 +122,9 @@ const PerformanceIndicators = () => {
                 <Grid item xs>
                   <Typography variant="h6">Délais de paiement moyen</Typography>
                   <Typography>{indicators.averagePaymentDelay} jours</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <img src={kpi2Image} alt="KPI2" style={{ width: '100%' }} />
                 </Grid>
               </Grid>
             </CardContent>
