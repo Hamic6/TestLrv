@@ -44,12 +44,7 @@ const generatePagesSection = (roles = []) => {
       title: "Tableau de Bord",
       visible: isAdmin || roles.includes('manager'),
       children: [
-        {
-          href: "/tableau-de-bord",
-          icon: DashboardIcon,
-          title: "Aperçu Général (maquette)",
-          visible: isAdmin || roles.includes('manager'),
-        },
+        // Suppression de l'élément "Aperçu Général (maquette)"
         {
           href: "/tableau-de-bord/stats",
           icon: AssessmentIcon,
