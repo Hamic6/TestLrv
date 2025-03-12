@@ -12,7 +12,8 @@ import {
   Alert,
   CardActions,
   Box,
-  Button
+  Button,
+  TablePagination
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -26,6 +27,8 @@ const SearchAvisDePassage = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({});
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     const fetchAvis = async () => {
@@ -57,14 +60,24 @@ const SearchAvisDePassage = () => {
     setFilters(filters);
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   const filteredAvis = avis.filter(avis =>
     (!search || avis.billTo?.company?.toLowerCase().includes(search.toLowerCase())) &&
     (!filters.currency || avis.avisInfo?.currency.toLowerCase().includes(filters.currency.toLowerCase())) &&
-    (!filters.date || avis.avisInfo?.date === filters.date) &&
-    (!filters.startTime || avis.avisInfo?.startTime === filters.startTime) &&
-    (!filters.endTime || avis.avisInfo?.endTime === filters.endTime) &&
+    (!filters.month || avis.avisInfo?.date?.split('-')[1] === filters.month) &&
+    (!filters.year || avis.avisInfo?.date?.split('-')[0] === filters.year) &&
     (!filters.number || avis.avisInfo?.number.includes(filters.number))
   );
+
+  const paginatedAvis = filteredAvis.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <div>
@@ -81,7 +94,7 @@ const SearchAvisDePassage = () => {
       />
       <FiltersAvisDePassage onApplyFilters={handleApplyFilters} />
       <Grid container spacing={3}>
-        {filteredAvis.map((avis) => (
+        {paginatedAvis.map((avis) => (
           <Grid item xs={12} sm={6} md={4} key={avis.id}>
             <Card>
               <CardContent>
@@ -134,6 +147,17 @@ const SearchAvisDePassage = () => {
           </Grid>
         ))}
       </Grid>
+
+      <TablePagination
+        component="div"
+        count={filteredAvis.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        labelRowsPerPage="Lignes par page"
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+      />
 
       <Snackbar
         open={snackbarOpen}

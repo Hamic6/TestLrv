@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { TextField, Button, Grid } from '@mui/material';
+import { TextField, Button, Grid, MenuItem } from '@mui/material';
 
 const FiltersAvisDePassage = ({ onApplyFilters }) => {
   const [currency, setCurrency] = useState('');
-  const [date, setDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [month, setMonth] = useState('');
+  const [year, setYear] = useState('');
   const [number, setNumber] = useState('');
 
   const handleApplyFilters = () => {
-    onApplyFilters({ currency, date, startTime, endTime, number });
+    onApplyFilters({ currency, month, year, number });
   };
 
   return (
@@ -25,32 +24,35 @@ const FiltersAvisDePassage = ({ onApplyFilters }) => {
       </Grid>
       <Grid item xs={12} sm={6} md={4}>
         <TextField
-          label="Date"
-          type="date"
-          InputLabelProps={{ shrink: true }}
+          select
+          label="Mois"
+          variant="outlined"
           fullWidth
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+        >
+          <MenuItem value="01">Janvier</MenuItem>
+          <MenuItem value="02">Février</MenuItem>
+          <MenuItem value="03">Mars</MenuItem>
+          <MenuItem value="04">Avril</MenuItem>
+          <MenuItem value="05">Mai</MenuItem>
+          <MenuItem value="06">Juin</MenuItem>
+          <MenuItem value="07">Juillet</MenuItem>
+          <MenuItem value="08">Août</MenuItem>
+          <MenuItem value="09">Septembre</MenuItem>
+          <MenuItem value="10">Octobre</MenuItem>
+          <MenuItem value="11">Novembre</MenuItem>
+          <MenuItem value="12">Décembre</MenuItem>
+        </TextField>
       </Grid>
       <Grid item xs={12} sm={6} md={4}>
         <TextField
-          label="Heure de Début"
-          type="time"
-          InputLabelProps={{ shrink: true }}
+          label="Année"
+          type="number"
+          variant="outlined"
           fullWidth
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          label="Heure de Fin"
-          type="time"
-          InputLabelProps={{ shrink: true }}
-          fullWidth
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
         />
       </Grid>
       <Grid item xs={12} sm={6} md={4}>

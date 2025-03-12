@@ -16,11 +16,53 @@ const ImportInvoices = () => {
   const [file, setFile] = useState(null);
   const [alertMessage, setAlertMessage] = useState(null);
   const [alertSeverity, setAlertSeverity] = useState('success');
+  const [previewData, setPreviewData] = useState([]);
 
+  // Fonction pour gérer la sélection de fichier
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
+    Papa.parse(event.target.files[0], {
+      header: true,
+      complete: function(results) {
+        setPreviewData(results.data);
+      }
+    });
   };
 
+  // Fonction pour nettoyer les données de la facture
+  const cleanInvoiceData = (invoiceData) => {
+    return {
+      additionalNotes: invoiceData.additionalNotes || '',
+      billTo: {
+        address: invoiceData.billTo_address || '',
+        company: invoiceData.billTo_company || '',
+        email: invoiceData.billTo_email || '',
+        phone: invoiceData.billTo_phone || '',
+      },
+      companyInfo: {
+        address: invoiceData.companyInfo_address || '',
+        email: invoiceData.companyInfo_email || '',
+        logo: invoiceData.companyInfo_logo || '',
+        name: invoiceData.companyInfo_name || '',
+        phone: invoiceData.companyInfo_phone || '',
+        taxNumber: invoiceData.companyInfo_taxNumber || '',
+      },
+      invoiceInfo: {
+        currency: invoiceData.invoiceInfo_currency || '',
+        date: invoiceData.invoiceInfo_date || '',
+        dueDate: invoiceData.invoiceInfo_dueDate || '',
+        number: invoiceData.invoiceInfo_number || '',
+        vatPercent: parseFloat(invoiceData.invoiceInfo_vatPercent) || 0,
+      },
+      services: invoiceData.services && isValidJSON(invoiceData.services) ? JSON.parse(invoiceData.services) : [],
+      status: invoiceData.status || '',
+      subtotal: parseFloat(invoiceData.subtotal) || 0,
+      total: parseFloat(invoiceData.total) || 0,
+      vatAmount: parseFloat(invoiceData.vatAmount) || 0,
+    };
+  };
+
+  // Fonction pour soumettre le formulaire et importer les factures
   const handleSubmit = (event) => {
     event.preventDefault();
     Papa.parse(file, {
@@ -28,37 +70,15 @@ const ImportInvoices = () => {
       complete: async function(results) {
         try {
           for (const invoiceData of results.data) {
-            const invoice = {
-              additionalNotes: invoiceData.additionalNotes || '',
-              billTo: {
-                address: invoiceData.billTo_address || '',
-                company: invoiceData.billTo_company || '',
-                email: invoiceData.billTo_email || '',
-                phone: invoiceData.billTo_phone || '',
-              },
-              companyInfo: {
-                address: invoiceData.companyInfo_address || '',
-                email: invoiceData.companyInfo_email || '',
-                logo: invoiceData.companyInfo_logo || '',
-                name: invoiceData.companyInfo_name || '',
-                phone: invoiceData.companyInfo_phone || '',
-                taxNumber: invoiceData.companyInfo_taxNumber || '',
-              },
-              invoiceInfo: {
-                currency: invoiceData.invoiceInfo_currency || '',
-                date: invoiceData.invoiceInfo_date || '',
-                dueDate: invoiceData.invoiceInfo_dueDate || '',
-                number: invoiceData.invoiceInfo_number || '',
-                vatPercent: invoiceData.invoiceInfo_vatPercent || 0,
-              },
-              paymentInfo: invoiceData.paymentInfo || '',
-              services: invoiceData.services && isValidJSON(invoiceData.services) ? JSON.parse(invoiceData.services) : [], // Permettre les services vides
-              status: invoiceData.status || '',
-              subtotal: invoiceData.subtotal || 0,
-              total: invoiceData.total || 0,
-              vatAmount: invoiceData.vatAmount || 0,
-            };
-            await addDoc(collection(db, 'invoices'), invoice);
+            const errorMessage = validateInvoiceData(invoiceData);
+            if (errorMessage) {
+              setAlertMessage(`Erreur de validation : ${errorMessage}`);
+              setAlertSeverity('error');
+              return;
+            }
+
+            const cleanedInvoiceData = cleanInvoiceData(invoiceData);
+            await addDoc(collection(db, 'invoices'), cleanedInvoiceData);
           }
           setAlertMessage('Factures importées avec succès !');
           setAlertSeverity('success');
@@ -80,6 +100,29 @@ const ImportInvoices = () => {
       return false;
     }
   };
+
+  // Fonction pour valider les données de la facture
+  const validateInvoiceData = (invoiceData) => {
+    const requiredFields = [
+      'additionalNotes', 'billTo_address', 'billTo_company', 'billTo_email', 'billTo_phone',
+      'companyInfo_address', 'companyInfo_email', 'companyInfo_logo', 'companyInfo_name', 'companyInfo_phone', 'companyInfo_taxNumber',
+      'invoiceInfo_currency', 'invoiceInfo_date', 'invoiceInfo_dueDate', 'invoiceInfo_number', 'invoiceInfo_vatPercent',
+      'services', 'status', 'subtotal', 'total', 'vatAmount'
+    ];
+
+    for (const field of requiredFields) {
+      if (!invoiceData[field]) {
+        return `Le champ ${field} est requis.`;
+      }
+    }
+
+    if (!isValidJSON(invoiceData.services)) {
+      return 'Le champ services doit être un JSON valide.';
+    }
+
+    return null;
+  };
+
   // Fonction pour télécharger le modèle CSV
   const handleDownloadTemplate = () => {
     const sampleData = [
@@ -93,21 +136,20 @@ const ImportInvoices = () => {
         companyInfo_email: "direction@rayonverts.com",
         companyInfo_logo: "/static/img/avatars/logo.png",
         companyInfo_name: "Le Rayon Vert",
-        companyInfo_phone: "0998006500",
+        companyInfo_phone: "+243808317816",
         companyInfo_taxNumber: "Numéro impot :0801888M",
         invoiceInfo_currency: "USD",
         invoiceInfo_date: "2025-02-28",
         invoiceInfo_dueDate: "2025-02-18",
-        invoiceInfo_number: "0020",
+        invoiceInfo_number: "0000001",
         invoiceInfo_vatPercent: 16,
-        paymentInfo: "Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)",
         services: JSON.stringify([
           { amount: "0", description: "Jardinage", libelle: "Numéro avis de passage 2250", quantity: "1", unitPrice: "100" },
           { amount: "0", description: "Traitement intérieur", libelle: "Numéro avis de passage 2350", quantity: "1", unitPrice: "250" }
         ]),
-        status: "Payé",
+        status: "Vide",
         subtotal: 350,
-        total: 600,
+        total: 700,
         vatAmount: 56,
       }
     ];
@@ -148,6 +190,12 @@ const ImportInvoices = () => {
           Importer
         </IconButton>
       </form>
+      {previewData.length > 0 && (
+        <div>
+          <h3>Prévisualisation des données</h3>
+          <pre>{JSON.stringify(previewData, null, 2)}</pre>
+        </div>
+      )}
       <Button
         onClick={handleDownloadTemplate}
         variant="contained"
