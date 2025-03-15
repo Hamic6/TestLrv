@@ -230,7 +230,7 @@ const Invoice1PDF = ({ invoice }) => {
           <View style={styles.footer}>
             <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
             <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
-            
+            <Text>Date d'échéance : {invoiceInfo.dueDate || 'Non spécifiée'}</Text>
           </View>
         </View>
       </Page>
