@@ -46,7 +46,14 @@ const InvoiceList = () => {
         const querySnapshot = await getDocs(collection(db, "invoices"));
         const invoicesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         console.log("Factures récupérées:", invoicesList); // Journalisation des factures récupérées
-        const sortedInvoices = invoicesList.sort((a, b) => new Date(b.invoiceInfo.date) - new Date(a.invoiceInfo.date));
+
+        // Tri des factures par numéro de facture en ordre décroissant
+        const sortedInvoices = invoicesList.sort((a, b) => {
+          const numA = parseInt(a.invoiceInfo?.number || 0, 10);
+          const numB = parseInt(b.invoiceInfo?.number || 0, 10);
+          return numB - numA; // Tri décroissant
+        });
+
         setInvoices(sortedInvoices);
         setFilteredInvoices(sortedInvoices.filter(invoice => !invoice.archived));
       } catch (error) {
