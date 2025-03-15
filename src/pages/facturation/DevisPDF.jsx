@@ -11,6 +11,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
+    position: 'relative', // Nécessaire pour le filigrane
   },
   headerSection: {
     display: 'flex',
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 20,
     marginBottom: 20,
-    color: 'green',
+    color: 'green', // Couleur verte pour le titre
   },
   devisDetailsSection: {
     flex: 1,
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#bfbfbf',
-    backgroundColor: '#f3f3f3',
+    backgroundColor: '#e8f5e9', // Fond vert clair pour les en-têtes
     padding: 5,
   },
   tableCol: {
@@ -77,6 +78,9 @@ const styles = StyleSheet.create({
   totalsSection: {
     marginTop: 20,
     textAlign: 'right',
+    backgroundColor: '#f3f3f3', // Fond gris clair pour les totaux
+    padding: 10,
+    borderRadius: 5, // Coins arrondis
   },
   paymentInfoSection: {
     marginTop: 20,
@@ -93,7 +97,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
     fontSize: 8,
-    color: 'green', // Mise à jour de la couleur à vert
+    color: 'green', // Texte en vert pour le pied de page
   },
   logo: {
     width: 60,
@@ -103,8 +107,8 @@ const styles = StyleSheet.create({
   qrCode: {
     width: 100,
     height: 100,
-    marginTop: 10, // Ajustement pour l'espacement
-    alignSelf: 'center', // Centrer horizontalement
+    marginTop: 10,
+    alignSelf: 'center',
   },
   footerContainer: {
     marginTop: 'auto',
@@ -112,7 +116,17 @@ const styles = StyleSheet.create({
   footerLine: {
     borderBottomWidth: 1,
     borderBottomColor: '#bfbfbf',
-    marginBottom: 5,
+    marginBottom: 5, // Ligne de séparation dans le pied de page
+  },
+  watermark: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    fontSize: 50,
+    color: 'rgba(0, 0, 0, 0.1)', // Transparence pour le filigrane
+    textAlign: 'center',
+    zIndex: -1, // Derrière le contenu
   },
 });
 
@@ -144,6 +158,23 @@ const DevisPDF = ({ devis }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Filigrane avec le logo */}
+        {companyInfo.logo && (
+          <Image
+            src={companyInfo.logo}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              opacity: 0.1, // Transparence pour le filigrane
+              width: 300,
+              height: 300,
+              zIndex: -1, // Derrière le contenu
+            }}
+          />
+        )}
+
         <View style={styles.headerSection}>
           <View style={styles.companyDetails}>
             {companyInfo.logo && <Image src={companyInfo.logo} style={styles.logo} />}

@@ -12,12 +12,12 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
+    position: 'relative', // Nécessaire pour le filigrane
   },
   headerSection: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
     color: 'black',
   },
   companyDetails: {
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#bfbfbf',
-    backgroundColor: '#f3f3f3',
+    backgroundColor: '#e8f5e9', // Vert clair
     padding: 5,
   },
   tableCol: {
@@ -78,6 +78,9 @@ const styles = StyleSheet.create({
   totalsSection: {
     marginTop: 20,
     textAlign: 'right',
+    backgroundColor: '#f3f3f3', // Gris clair
+    padding: 10,
+    borderRadius: 5, // Coins arrondis
   },
   paymentInfoSection: {
     marginTop: 20,
@@ -224,6 +227,19 @@ const Invoice1PDF = ({ invoice }) => {
           <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmountFormatted}</Text>
           <Text>Total : {invoiceInfo.currency} {totalFormatted}</Text>
         </View>
+        
+        <Image
+          src={companyInfo.logo}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            opacity: 0.1, // Transparence
+            width: 300,
+            height: 300,
+          }}
+        />
         
         <View style={styles.footerContainer}>
           <View style={styles.footerLine} />

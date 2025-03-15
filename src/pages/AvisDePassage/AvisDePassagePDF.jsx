@@ -132,6 +132,7 @@ const AvisDePassagePDF = ({ avis }) => {
       }
     });
   }, []);
+
   const {
     companyInfo,
     avisInfo,
@@ -141,12 +142,29 @@ const AvisDePassagePDF = ({ avis }) => {
     signature,
     verifiedBy,
     verifiedDate,
-    comments // Ajouté
+    comments,
   } = avis;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Filigrane avec le logo */}
+        {companyInfo.logo && (
+          <Image
+            src={companyInfo.logo}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              opacity: 0.1, // Transparence pour le filigrane
+              width: 300,
+              height: 300,
+              zIndex: -1, // Derrière le contenu
+            }}
+          />
+        )}
+
         <View style={styles.headerSection}>
           <View style={styles.companyDetails}>
             {companyInfo.logo && <Image src={companyInfo.logo} style={styles.logo} />}
