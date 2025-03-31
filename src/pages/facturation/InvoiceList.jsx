@@ -274,7 +274,14 @@ const InvoiceList = () => {
                     <TableCell>
                       <Chip
                         label={invoice.status}
-                        color={invoice.status === 'Payé' ? 'success' : invoice.status === 'Envoyé' ? 'warning' : invoice.status === 'Non payé' ? 'error' : 'default'}
+                        color={
+                          invoice.status === 'Payé' ? 'success' :
+                          invoice.status === 'Envoyé' ? 'warning' :
+                          invoice.status === 'Non payé' ? 'error' :
+                          invoice.status === 'Vide' ? 'default' : // Conserve "Vide"
+                          invoice.status === 'Erreur' ? 'secondary' : // Ajoute "Erreur"
+                          'default'
+                        }
                         onClick={(event) => handleClickChip(event, invoice.id)}
                         clickable
                       />
@@ -283,6 +290,7 @@ const InvoiceList = () => {
                         <MenuItem onClick={() => handleMenuItemClick('Envoyé')}>Envoyé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Non payé')}>Non payé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Vide')}>Vide</MenuItem>
+                        <MenuItem onClick={() => handleMenuItemClick('Erreur')}>Erreur</MenuItem> {/* Ajout de l'état "Erreur" */}
                       </Menu>
                     </TableCell>
                     <TableCell align="right">

@@ -95,6 +95,7 @@ const generatePagesSection = (roles = []) => {
           title: "Gestion des Clients",
           visible: isAdmin || roles.includes('gestion-des-clients'),
         },
+        
       ],
     },
     {
