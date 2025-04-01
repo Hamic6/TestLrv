@@ -94,6 +94,8 @@ const Filters = ({ onApplyFilters }) => {
           <MenuItem value="Payé">Payé</MenuItem>
           <MenuItem value="Non payé">Non Payé</MenuItem>
           <MenuItem value="Envoyé">Envoyé</MenuItem>
+          <MenuItem value="Vide">Vide</MenuItem> {/* Ajout de l'état "Vide" */}
+          <MenuItem value="Erreur">Erreur</MenuItem> {/* Ajout de l'état "Erreur" */}
         </TextField>
       </Grid>
       <Grid item xs={12} sm={6} md={4}>
