@@ -19,6 +19,7 @@ import {
   Search as SearchIcon,
   Group as UsersIcon,  // Ajouté pour les utilisateurs
   PersonAdd as PersonAddIcon, // Icone pour Ajouter un Utilisateur
+  Drafts as DraftsIcon, // Nouvelle icône pour "Créer un Proforma"
 } from '@mui/icons-material';
 import React, { useContext } from 'react';
 import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
@@ -44,7 +45,6 @@ const generatePagesSection = (roles = []) => {
       title: "Tableau de Bord",
       visible: isAdmin || roles.includes('manager'),
       children: [
-        // Suppression de l'élément "Aperçu Général (maquette)"
         {
           href: "/tableau-de-bord/stats",
           icon: AssessmentIcon,
@@ -95,28 +95,19 @@ const generatePagesSection = (roles = []) => {
           title: "Gestion des Clients",
           visible: isAdmin || roles.includes('gestion-des-clients'),
         },
-        
-      ],
-    },
-    {
-      href: "/devis",
-      icon: FileText,
-      title: "Devis",
-      children: [
         {
-          href: "/devis/creer-devis",
-          icon: CreateIcon,
-          title: "Créer un Devis",
-          visible: isAdmin || roles.includes('devis'),
+          href: "/facturation/creer-proforma",
+          icon: DraftsIcon, // Nouvelle icône pour "Créer un Proforma"
+          title: "Créer une Proforma",
+          visible: isAdmin || roles.includes('proforma'),
         },
         {
-          href: "/devis/chercher-devis",
-          icon: SearchIcon,
-          title: "Rechercher un Devis",
-          visible: isAdmin || roles.includes('devis'),
+          href: "/facturation/chercher-proforma",
+          icon: SearchIcon, // Nouvelle icône pour "Rechercher un Proforma"
+          title: "Rechercher une Proforma",
+          visible: isAdmin || roles.includes('proforma'),
         },
       ],
-      visible: isAdmin || roles.includes('devis'),
     },
     {
       href: "/avis-de-passage",
@@ -129,7 +120,6 @@ const generatePagesSection = (roles = []) => {
           title: "Créer un Avis de Passage",
           visible: isAdmin || roles.includes('avis-de-passage'),
         },
-        
         {
           href: "/avis-de-passage/rechercher-avis-passage",
           icon: SearchIcon,
@@ -225,16 +215,11 @@ const generatePagesSection = (roles = []) => {
           title: "Ajouter un Utilisateur",
           visible: isAdmin,
         },
-        {
-          href: "/roles-permissions/permissions",
-          icon: UsersIcon,  // Icon mise à jour
-          title: "Utilisateurs",
-          visible: isAdmin,
-        },
+        
         {
           href: "/roles-permissions/assign",
           icon: Key,
-          title: "Attribuer des Rôles",
+          title: "Assigner des Rôles",
           visible: isAdmin,
         },
       ],

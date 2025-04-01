@@ -182,6 +182,14 @@ const routes = [
         path: "import-invoices",
         element: <ImportInvoices />, // Ajout de la route pour ImportInvoices
       },
+      {
+        path: "creer-proforma", // Route pour "Créer un Proforma"
+        element: <CreateDevis />, // Réutilisation du composant CreateDevis
+      },
+      {
+        path: "chercher-proforma", // Route pour "Rechercher un Proforma"
+        element: <SearchDevis />, // Réutilisation du composant SearchDevis
+      },
     ],
   },
   {

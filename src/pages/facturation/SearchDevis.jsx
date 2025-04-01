@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../../firebaseConfig'; 
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore"; // Ajout de updateDoc
 import {
   Grid,
   Card,
@@ -14,7 +14,8 @@ import {
   Box,
   Button,
   TablePagination,
-  MenuItem
+  MenuItem,
+  Chip, // Import du Chip
 } from '@mui/material';
 import { Delete as DeleteIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -52,6 +53,14 @@ const SearchDevis = () => {
     setSnackbarOpen(true);
   };
 
+  const handleConfirmDevis = async (id, currentStatus) => {
+    const newStatus = currentStatus === "Confirmée" ? "En attente" : "Confirmée";
+    await updateDoc(doc(db, "devis", id), { status: newStatus });
+    setDevis(devis.map(devis => devis.id === id ? { ...devis, status: newStatus } : devis));
+    setSnackbarMessage(`Le statut de la facture Proforma a été mis à jour : ${newStatus}`);
+    setSnackbarOpen(true);
+  };
+
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
@@ -82,7 +91,7 @@ const SearchDevis = () => {
   return (
     <div>
       <Typography variant="h4" gutterBottom>
-        Recherche des Devis
+        Recherche des factures Proforma
       </Typography>
       <TextField
         label="Rechercher un client"
@@ -137,7 +146,7 @@ const SearchDevis = () => {
         </Grid>
         <Grid item xs={12} sm={6} md={4}>
           <TextField
-            label="Numéro de Devis"
+            label="Numéro du Proforma"
             variant="outlined"
             fullWidth
             value={filters.number}
@@ -171,7 +180,7 @@ const SearchDevis = () => {
                     Adresse : {devis.billTo?.address}
                   </Typography>
                   <Typography variant="body2">
-                    Numéro de Devis : {devis.invoiceInfo?.number}
+                    Numéro du Proforma : {devis.invoiceInfo?.number}
                   </Typography>
                   <Box mt={2}>
                     <Typography variant="h6">Services</Typography>
@@ -185,6 +194,14 @@ const SearchDevis = () => {
                         </Typography>
                       </Box>
                     ))}
+                  </Box>
+                  <Box mt={2}>
+                    <Chip
+                      label={devis.status || "En attente"}
+                      color={devis.status === "Confirmée" ? "success" : "default"}
+                      onClick={() => handleConfirmDevis(devis.id, devis.status)}
+                      style={{ cursor: "pointer" }}
+                    />
                   </Box>
                 </Box>
               </CardContent>

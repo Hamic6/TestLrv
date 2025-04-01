@@ -195,7 +195,7 @@ const DevisPDF = ({ devis }) => {
           </View>
         </View>
         <View style={styles.devisTitleSection}>
-          <Text>DEVIS</Text>
+          <Text>PROFORMA</Text>
         </View>
         <View style={styles.billingSection}>
           <Text style={styles.label}>Client :</Text>
@@ -252,7 +252,7 @@ const DevisPDF = ({ devis }) => {
           <View style={styles.footer}>
             <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
             <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
-            <Text>Devis proposé par : {userName}</Text> {/* Ajout du champ utilisateur */}
+            <Text>Proforma proposé par : {userName}</Text> {/* Ajout du champ utilisateur */}
           </View>
         </View>
       </Page>

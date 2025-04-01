@@ -185,10 +185,10 @@ const CreateDevis = () => {
     try {
       const newDocRef = doc(collection(db, "devis"));
       await setDoc(newDocRef, invoiceData);
-      setAlertMessage('Le devis a été enregistré avec succès!');
+      setAlertMessage('Facture proforma enregistré avec succès!');
       setAlertSeverity('success');
     } catch (error) {
-      setAlertMessage(`Erreur lors de l'enregistrement du devis : ${error.message}`);
+      setAlertMessage(`Erreur lors de l'enregistrement de la facture proforma : ${error.message}`);
       setAlertSeverity('error');
     }
     setAlertOpen(true);
@@ -488,7 +488,7 @@ const CreateDevis = () => {
             color="primary"
             style={{ marginTop: '20px' }}
           >
-            {loading ? 'Chargement du document...' : 'Télécharger le devis'}
+            {loading ? 'Chargement du document...' : 'Télécharger la Proforma'}
           </Button>
         )}
       </PDFDownloadLink>
@@ -500,7 +500,7 @@ const CreateDevis = () => {
       onClick={saveInvoice}
       style={{ marginTop: '20px' }}
     >
-      Sauvegarder le devis
+      Sauvegarder la Proforma
     </Button>
 
     <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
