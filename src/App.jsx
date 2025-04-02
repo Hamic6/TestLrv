@@ -30,8 +30,8 @@ function App({ emotionCache = clientSideEmotionCache }) {
     <CacheProvider value={emotionCache}>
       <HelmetProvider>
         <Helmet
-          titleTemplate="%s | Le Rayon vert"
-          defaultTitle="Le rayon-vert online"
+          titleTemplate="%s | Rayon vert"
+          defaultTitle="rayonvert online"
         />
         <Provider store={store}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>

@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   avisDetailsSection: {
     flex: 1,
     paddingLeft: 20,
-    textAlign: 'center', // Centrer le contenu horizontalement
+    textAlign: 'center',
     color: 'black',
   },
   billingSection: {
@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
   qrCode: {
     width: 100,
     height: 100,
-    marginTop: 10, // Ajustement pour l'espacement
-    alignSelf: 'center', // Centrer horizontalement
+    marginTop: 10,
+    alignSelf: 'center',
   },
   footerContainer: {
     marginTop: 'auto',
@@ -134,15 +134,15 @@ const AvisDePassagePDF = ({ avis }) => {
   }, []);
 
   const {
-    companyInfo,
-    avisInfo,
-    billTo,
-    services,
-    photos,
-    signature,
-    verifiedBy,
-    verifiedDate,
-    comments,
+    companyInfo = {},
+    avisInfo = {},
+    billTo = {},
+    services = [],
+    photos = [],
+    signature = '',
+    verifiedBy = '',
+    verifiedDate = '',
+    comments = '',
   } = avis;
 
   return (
@@ -157,10 +157,10 @@ const AvisDePassagePDF = ({ avis }) => {
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              opacity: 0.1, // Transparence pour le filigrane
+              opacity: 0.1,
               width: 300,
               height: 300,
-              zIndex: -1, // Derrière le contenu
+              zIndex: -1,
             }}
           />
         )}
@@ -168,17 +168,17 @@ const AvisDePassagePDF = ({ avis }) => {
         <View style={styles.headerSection}>
           <View style={styles.companyDetails}>
             {companyInfo.logo && <Image src={companyInfo.logo} style={styles.logo} />}
-            <Text>{companyInfo.name}</Text>
-            <Text>{companyInfo.address}</Text>
-            <Text>{companyInfo.phone}</Text>
-            <Text>{companyInfo.email}</Text>
-            <Text>{companyInfo.taxNumber}</Text>
+            <Text>{companyInfo.name || 'Nom de l\'entreprise non spécifié'}</Text>
+            <Text>{companyInfo.address || 'Adresse non spécifiée'}</Text>
+            <Text>{companyInfo.phone || 'Téléphone non spécifié'}</Text>
+            <Text>{companyInfo.email || 'Email non spécifié'}</Text>
+            <Text>{companyInfo.taxNumber || 'Numéro d\'impôt non spécifié'}</Text>
           </View>
           <View style={styles.avisDetailsSection}>
-            <Text>Num Avis : {avisInfo.number}</Text>
-            <Text>Date : {avisInfo.date}</Text>
-            <Text>Heure de début : {avisInfo.startTime}</Text>
-            <Text>Heure de fin : {avisInfo.endTime}</Text>
+            <Text>Num Avis : {avisInfo.number || 'Non spécifié'}</Text>
+            <Text>Date : {avisInfo.date || 'Non spécifiée'}</Text>
+            <Text>Heure de début : {avisInfo.startTime || 'Non spécifiée'}</Text>
+            <Text>Heure de fin : {avisInfo.endTime || 'Non spécifiée'}</Text>
             {qrCodeUrl && (
               <View style={styles.qrCode}>
                 <Image src={qrCodeUrl} />
@@ -191,11 +191,11 @@ const AvisDePassagePDF = ({ avis }) => {
         </View>
         <View style={styles.billingSection}>
           <Text>Client :</Text>
-          <Text>{billTo.name}</Text>
-          <Text>{billTo.company}</Text>
-          <Text>{billTo.address}</Text>
-          <Text>{billTo.phone}</Text>
-          <Text>{billTo.email}</Text>
+          <Text>{billTo.name || 'Nom non spécifié'}</Text>
+          <Text>{billTo.company || 'Entreprise non spécifiée'}</Text>
+          <Text>{billTo.address || 'Adresse non spécifiée'}</Text>
+          <Text>{billTo.phone || 'Téléphone non spécifié'}</Text>
+          <Text>{billTo.email || 'Email non spécifié'}</Text>
         </View>
         <View style={styles.table}>
           <View style={styles.tableRow}>
@@ -209,15 +209,15 @@ const AvisDePassagePDF = ({ avis }) => {
           {services.map((service, index) => (
             <View style={styles.tableRow} key={index}>
               <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.description}</Text>
+                <Text style={styles.tableCell}>{service.description || 'Non spécifié'}</Text>
               </View>
               <View style={[styles.tableCol, { flex: 2 }]}>
-                <Text style={styles.tableCell}>{service.libelle}</Text>
+                <Text style={styles.tableCell}>{service.libelle || 'Non spécifié'}</Text>
               </View>
             </View>
           ))}
         </View>
-        {photos && photos.length > 0 && (
+        {photos.length > 0 && (
           <View style={styles.section}>
             <Text>Photos :</Text>
             <View style={styles.photoGrid}>
@@ -237,8 +237,8 @@ const AvisDePassagePDF = ({ avis }) => {
           <View style={styles.section}>
             <Text>Signature :</Text>
             <Image style={styles.signature} src={signature} />
-            <Text>Travail vu et controlé par : {verifiedBy}</Text>
-            <Text>{verifiedDate}</Text>
+            <Text>Travail vu et contrôlé par : {verifiedBy || 'Non spécifié'}</Text>
+            <Text>{verifiedDate || 'Non spécifiée'}</Text>
           </View>
         )}
         <View style={styles.footerContainer}>

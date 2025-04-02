@@ -92,7 +92,9 @@ const SearchAvisDePassage = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      <FiltersAvisDePassage onApplyFilters={handleApplyFilters} />
+      <Box display="flex" alignItems="center" mb={2}>
+        <FiltersAvisDePassage onApplyFilters={handleApplyFilters} />
+      </Box>
       <Grid container spacing={3}>
         {paginatedAvis.map((avis) => (
           <Grid item xs={12} sm={6} md={4} key={avis.id}>
