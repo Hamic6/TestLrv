@@ -162,6 +162,18 @@ const generatePagesSection = (roles = []) => {
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
+          href: "/stock/edit/:id",
+          icon: Archive,
+          title: "Gestion des bons de commande",
+          visible: isAdmin || roles.includes('gestion-de-stock'),
+        },
+        {
+          href: "/stock/edit/:id",
+          icon: Archive,
+          title: "Créer un bon de livraison", 
+          visible: isAdmin || roles.includes('gestion-de-stock'),
+        },
+        {
           href: "/stock/reports",
           icon: Archive,
           title: "Rapports de Stock",
@@ -170,7 +182,7 @@ const generatePagesSection = (roles = []) => {
         {
           href: "/stock/validation",
           icon: CheckCircle,
-          title: "Validation de Stock",
+          title: "Validation des bons de livraison",
           visible: isAdmin || roles.includes('gestion-de-stock'),
           children: [
             {
