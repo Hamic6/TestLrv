@@ -20,6 +20,9 @@ import {
   Group as UsersIcon,  // Ajouté pour les utilisateurs
   PersonAdd as PersonAddIcon, // Icone pour Ajouter un Utilisateur
   Drafts as DraftsIcon, // Nouvelle icône pour "Créer un Proforma"
+  Print as PrintIcon, // Importer l'icône d'imprimante
+  Inventory2Outlined,
+  MoveToInbox, // Ajouté pour Formulaire d'entrée de stock (alternative)
 } from '@mui/icons-material';
 import React, { useContext } from 'react';
 import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
@@ -126,6 +129,12 @@ const generatePagesSection = (roles = []) => {
           title: "Rechercher un Avis de Passage",
           visible: isAdmin || roles.includes('avis-de-passage'),
         },
+        {
+          href: "/avis-de-passage/imprimer-avis-passage", // Route pour afficher le composant ADPmanuel
+          icon: PrintIcon, // Icône d'imprimante
+          title: "Imprimer Avis de Passage",
+          visible: isAdmin || roles.includes('avis-de-passage'),
+        },
       ],
       visible: isAdmin || roles.includes('avis-de-passage'),
     },
@@ -136,14 +145,8 @@ const generatePagesSection = (roles = []) => {
       children: [
         {
           href: "/stock/items",
-          icon: Archive,
-          title: "Liste des Articles",
-          visible: isAdmin || roles.includes('gestion-de-stock'),
-        },
-        {
-          href: "/stock/item/:id",
-          icon: Archive,
-          title: "Détails de l'Article",
+          icon: MoveToInbox, // Icône boîte avec flèche vers le bas
+          title: "Bon de commande ",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
@@ -155,7 +158,7 @@ const generatePagesSection = (roles = []) => {
         {
           href: "/stock/edit/:id",
           icon: Archive,
-          title: "Modifier un Article",
+          title: "Sites",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {

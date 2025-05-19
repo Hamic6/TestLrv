@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   avisDetailsSection: {
     flex: 1,
     paddingLeft: 20,
-    textAlign: 'center', // Centrer le contenu horizontalement
+    textAlign: 'center',
     color: 'black',
   },
   billingSection: {
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#bfbfbf',
     padding: 10,
-    height: 250, // Augmenter la hauteur des cellules pour plus d'espace d'écriture
+    height: 250,
   },
   tableCellHeader: {
     textAlign: 'center',
@@ -85,48 +85,26 @@ const styles = StyleSheet.create({
     height: 60,
     marginBottom: 10,
   },
-  image: {
-    width: 40,
-    height: 40,
-    marginBottom: 10,
-    marginRight: 5,
-  },
-  signature: {
-    width: 150,
-    height: 50,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  photoGrid: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-  },
   qrCode: {
     width: 100,
     height: 100,
-    marginTop: 10, // Ajustement pour l'espacement
-    alignSelf: 'center', // Centrer horizontalement
-  },
-  footerContainer: {
-    marginTop: 'auto',
-  },
-  footerLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#bfbfbf',
-    marginBottom: 5,
-  },
-  emptyField: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#000',
-    width: '100%',
-    marginBottom: 5,
+    marginTop: 10,
+    alignSelf: 'center',
   },
 });
 
-const ADPmanuel = ({ avis }) => {
+const ADPmanuel = ({ avis = {} }) => {
+  const {
+    companyInfo = {},
+    avisInfo = {},
+    billTo = {},
+    services = [],
+    photos = [],
+    signature = null,
+    verifiedBy = '',
+    verifiedDate = '',
+  } = avis;
+
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
@@ -140,45 +118,18 @@ const ADPmanuel = ({ avis }) => {
     });
   }, []);
 
-  const {
-    companyInfo,
-    avisInfo,
-    billTo,
-    services,
-    photos,
-    signature,
-    verifiedBy,
-    verifiedDate,
-  } = avis;
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Filigrane avec le logo */}
-        {companyInfo.logo && (
-          <Image
-            src={companyInfo.logo}
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              opacity: 0.1, // Transparence pour le filigrane
-              width: 300,
-              height: 300,
-              zIndex: -1, // Derrière le contenu
-            }}
-          />
-        )}
-
+        {/* En-tête */}
         <View style={styles.headerSection}>
           <View style={styles.companyDetails}>
             {companyInfo.logo && <Image src={companyInfo.logo} style={styles.logo} />}
-            <Text>{companyInfo.name}</Text>
-            <Text>{companyInfo.address}</Text>
-            <Text>{companyInfo.phone}</Text>
-            <Text>{companyInfo.email}</Text>
-            <Text>{companyInfo.taxNumber}</Text>
+            <Text>{companyInfo.name || 'Nom de l\'entreprise'}</Text>
+            <Text>{companyInfo.address || 'Adresse de l\'entreprise'}</Text>
+            <Text>{companyInfo.phone || 'Téléphone'}</Text>
+            <Text>{companyInfo.email || 'Email'}</Text>
+            <Text>{companyInfo.taxNumber || 'Numéro fiscal'}</Text>
           </View>
           <View style={styles.avisDetailsSection}>
             <Text>Num Avis : __________________________</Text>
@@ -186,15 +137,17 @@ const ADPmanuel = ({ avis }) => {
             <Text>Heure de début : __________________________</Text>
             <Text>Heure de fin : __________________________</Text>
             {qrCodeUrl && (
-              <View style={styles.qrCode}>
-                <Image src={qrCodeUrl} />
-              </View>
+              <Image src={qrCodeUrl} style={styles.qrCode} />
             )}
           </View>
         </View>
+
+        {/* Titre */}
         <View style={styles.avisTitleSection}>
           <Text>AVIS DE PASSAGE</Text>
         </View>
+
+        {/* Informations client */}
         <View style={styles.billingSection}>
           <Text>Client :</Text>
           <Text>Nom : __________________________</Text>
@@ -203,6 +156,8 @@ const ADPmanuel = ({ avis }) => {
           <Text>Téléphone : __________________________</Text>
           <Text>Email : __________________________</Text>
         </View>
+
+        {/* Tableau des services */}
         <View style={styles.table}>
           <View style={styles.tableRow}>
             <View style={styles.tableColHeader}>
@@ -212,7 +167,7 @@ const ADPmanuel = ({ avis }) => {
               <Text style={styles.tableCellHeader}>Libellé</Text>
             </View>
           </View>
-          {services.map((service, index) => (
+          {Array(5).fill(null).map((_, index) => (
             <View style={styles.tableRow} key={index}>
               <View style={styles.tableCol}>
                 <Text style={styles.tableCell}>__________________________</Text>
@@ -223,29 +178,10 @@ const ADPmanuel = ({ avis }) => {
             </View>
           ))}
         </View>
-        {photos && photos.length > 0 && (
-          <View style={styles.section}>
-            <Text>Photos :</Text>
-            <View style={styles.photoGrid}>
-              {photos.map((photo, index) => (
-                <Image key={index} style={styles.image} src={photo} />
-              ))}
-            </View>
-          </View>
-        )}
-        {signature && (
-          <View style={styles.section}>
-            <Text>Signature :</Text>
-            <Image style={styles.signature} src={signature} />
-            <Text>Travail vu et controlé par : {verifiedBy}</Text>
-            <Text>{verifiedDate}</Text>
-          </View>
-        )}
-        <View style={styles.footerContainer}>
-          <View style={styles.footerLine} />
-          <View style={styles.footer}>
-            <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
-          </View>
+
+        {/* Pied de page */}
+        <View style={styles.footer}>
+          <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
         </View>
       </Page>
     </Document>

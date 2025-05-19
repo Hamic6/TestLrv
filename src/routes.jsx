@@ -43,12 +43,14 @@ const DevisPDF = async(() => import("@/pages/facturation/DevisPDF"));
 // AvisDePassage components
 const CreateAvisDePassage = async(() => import("@/pages/AvisDePassage/CreateAvisDePassage"));
 const SearchAvisDePassage = async(() => import("@/pages/AvisDePassage/SearchAvisDePassage"));
+import ADPmanuel from './pages/AvisDePassage/ADPmanuel';
 
 // Profile component
 const Profile = async(() => import("@/pages/pages/Profile"));
 const AttribuerRoles = async(() => import("@/pages/roles-permissions/AttribuerRoles"));
 const Listes = async(() => import("@/pages/roles-permissions/Listes"));  
 const Adduser = async(() => import("@/pages/roles-permissions/Adduser")); 
+const StockEntryForm = async(() => import("@/pages/gestion-stock/StockEntryForm"));
 
 const routes = [
   {
@@ -222,6 +224,10 @@ const routes = [
         path: "rechercher-avis-passage",
         element: <SearchAvisDePassage />,
       },
+      {
+        path: "imprimer-avis-passage",
+        element: <ADPmanuel />,
+      },
     ],
   },
   {
@@ -242,6 +248,17 @@ const routes = [
         path: "500",
         element: <Page500 />,
       },
+    ],
+  },
+  {
+    path: "stock",
+    element: <DashboardLayout />,
+    children: [
+      {
+        path: "items",
+        element: <StockEntryForm />,
+      },
+      // Ajoutez ici d'autres routes liées au stock si besoin
     ],
   },
   {
