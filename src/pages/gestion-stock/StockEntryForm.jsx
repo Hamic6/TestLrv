@@ -28,25 +28,16 @@ const StockEntryForm = () => {
   // Numéro de bon de commande auto-incrémenté
   const [orderNumber, setOrderNumber] = useState("");
   useEffect(() => {
-    const getLastOrderNumber = async () => {
+    const fetchOrderNumber = async () => {
       const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastOrderNumber'));
+      let lastOrderNumber = 0;
       if (lastNumberDoc.exists()) {
-        return lastNumberDoc.data().number;
-      } else {
-        await setDoc(doc(db, 'metadata', 'lastOrderNumber'), { number: 0 });
-        return 0;
+        lastOrderNumber = lastNumberDoc.data().number;
       }
+      const displayOrderNumber = (lastOrderNumber + 1).toString().padStart(4, '0');
+      setOrderNumber(displayOrderNumber);
     };
-    const updateLastOrderNumber = async (number) => {
-      await setDoc(doc(db, 'metadata', 'lastOrderNumber'), { number });
-    };
-    const generateOrderNumber = async () => {
-      const lastOrderNumber = await getLastOrderNumber();
-      const newOrderNumber = (lastOrderNumber + 1).toString().padStart(4, '0');
-      setOrderNumber(newOrderNumber);
-      await updateLastOrderNumber(parseInt(newOrderNumber, 10));
-    };
-    generateOrderNumber();
+    fetchOrderNumber();
   }, []);
 
   // Clients
@@ -62,7 +53,7 @@ const StockEntryForm = () => {
 
   // Articles
   const [entries, setEntries] = useState([
-    { productId: "", quantity: "", unitPrice: "", total: "" , reference: "" }
+    { productId: "", quantity: "", unit: "", unitPrice: "", total: "" , reference: "" }
   ]);
   const [products, setProducts] = useState([]);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -74,7 +65,7 @@ const StockEntryForm = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "products"));
+        const querySnapshot = await getDocs(collection(db, "articles")); // <-- ici
         const productsList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data()
@@ -147,7 +138,7 @@ const StockEntryForm = () => {
   };
 
   const addEntry = () => {
-    setEntries([...entries, { productId: "", quantity: "", unitPrice: "", total: "", reference: "" }]);
+    setEntries([...entries, { productId: "", quantity: "", unit: "", unitPrice: "", total: "", reference: "" }]);
   };
 
   const handleAlertClose = () => {
@@ -184,9 +175,17 @@ const StockEntryForm = () => {
     }
     setLoading(true);
     try {
+      // Relire le dernier numéro AVANT d'enregistrer (pour éviter les conflits si plusieurs users)
+      const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastOrderNumber'));
+      let lastOrderNumber = 0;
+      if (lastNumberDoc.exists()) {
+        lastOrderNumber = lastNumberDoc.data().number;
+      }
+      const newOrderNumber = (lastOrderNumber + 1).toString().padStart(4, '0');
+
       // Enregistrement dans la collection "bon_de_commande"
       await addDoc(collection(db, "bon_de_commande"), {
-        orderNumber,
+        orderNumber: newOrderNumber,
         companyInfo,
         client: {
           name: clientInfo.name,
@@ -201,15 +200,18 @@ const StockEntryForm = () => {
         userId: auth?.currentUser?.uid || null,
         validated: true,
       });
+
+      // Incrémenter le numéro SEULEMENT après succès
+      await setDoc(doc(db, 'metadata', 'lastOrderNumber'), { number: lastOrderNumber + 1 });
+
+      // Mettre à jour le numéro affiché pour la prochaine saisie
+      setOrderNumber((lastOrderNumber + 2).toString().padStart(4, '0'));
       setAlertMessage("Bon de commande enregistré avec succès !");
       setAlertSeverity("success");
       setAlertOpen(true);
-      setEntries([{ productId: "", quantity: "", unitPrice: "", total: "", reference: "" }]);
+      setEntries([{ productId: "", quantity: "", unit: "", unitPrice: "", total: "", reference: "" }]);
       setSelectedClient("");
       setClientInfo({ name: "", address: "", phone: "", email: "", responsable: "" });
-      // Incrémente le numéro de bon de commande pour la prochaine saisie
-      setOrderNumber((prev) => (parseInt(prev, 10) + 1).toString().padStart(4, '0'));
-      await setDoc(doc(db, 'metadata', 'lastOrderNumber'), { number: parseInt(orderNumber, 10) });
     } catch (error) {
       setAlertMessage("Erreur lors de l'enregistrement du bon de commande.");
       setAlertSeverity("error");
@@ -334,35 +336,14 @@ const StockEntryForm = () => {
                   value={entry.productId}
                   label="Article"
                   onChange={(e) => handleEntryChange(index, e)}
-                  displayEmpty
-                  renderValue={(selected) => {
-                    if (!selected) return "Sélectionner ou saisir un article";
-                    const found = products.find((p) => p.id === selected);
-                    return found ? found.name : selected;
-                  }}
                 >
                   {products.map((product) => (
                     <MenuItem key={product.id} value={product.id}>
                       {product.name || product.id}
                     </MenuItem>
                   ))}
-                  <MenuItem value="">
-                    <em>Autre (saisie manuelle)</em>
-                  </MenuItem>
                 </Select>
               </FormControl>
-              {/* Champ pour saisir manuellement un article si aucun n'est sélectionné */}
-              {(!entry.productId || !products.find((p) => p.id === entry.productId)) && (
-                <TextField
-                  label="Nom de l'article"
-                  name="productId"
-                  value={entry.productId}
-                  onChange={(e) => handleEntryChange(index, e)}
-                  fullWidth
-                  sx={{ mt: 1 }}
-                  placeholder="Saisir un article"
-                />
-              )}
             </Grid>
             <Grid item xs={12} sm={2}>
               <TextField
@@ -370,11 +351,29 @@ const StockEntryForm = () => {
                 label="Quantité"
                 name="quantity"
                 type="number"
-                inputProps={{ min: 1 }}
+                inputProps={{ min: 0, step: 0.01 }}
                 value={entry.quantity}
                 onChange={(e) => handleEntryChange(index, e)}
                 fullWidth
               />
+            </Grid>
+            <Grid item xs={12} sm={2}>
+              <FormControl fullWidth required>
+                <InputLabel>Unité</InputLabel>
+                <Select
+                  name="unit"
+                  value={entry.unit}
+                  label="Unité"
+                  onChange={(e) => handleEntryChange(index, e)}
+                >
+                  <MenuItem value="pcs">Pièce</MenuItem>
+                  <MenuItem value="boite">Boîte</MenuItem>
+                  <MenuItem value="kg">Kg</MenuItem>
+                  <MenuItem value="g">g</MenuItem>
+                  <MenuItem value="L">Litre</MenuItem>
+                  <MenuItem value="ml">ml</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12} sm={2}>
               <TextField

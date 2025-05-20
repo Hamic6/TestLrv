@@ -23,6 +23,7 @@ import {
   Print as PrintIcon, // Importer l'icône d'imprimante
   Inventory2Outlined,
   MoveToInbox, // Ajouté pour Formulaire d'entrée de stock (alternative)
+  AddBox, // Nouvelle icône pour "Ajouter un Article"
 } from '@mui/icons-material';
 import React, { useContext } from 'react';
 import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
@@ -145,25 +146,25 @@ const generatePagesSection = (roles = []) => {
       children: [
         {
           href: "/stock/items",
-          icon: MoveToInbox, // Icône boîte avec flèche vers le bas
+          icon: MoveToInbox, 
           title: "Bon de commande ",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
           href: "/stock/add",
-          icon: Archive,
-          title: "Ajouter un Article",
+          icon: AddBox, 
+          title: "Créer un Article",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
-          href: "/stock/edit/:id",
-          icon: Archive,
-          title: "Sites",
+          href: "/stock/management",
+          icon: Inventory2Outlined, 
+          title: "Inventaire",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
-          href: "/stock/edit/:id",
-          icon: Archive,
+          href: "/stock/bon-de-commande",
+          icon: Archive, 
           title: "Gestion des bons de commande",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
