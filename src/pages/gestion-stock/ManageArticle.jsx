@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Ajout de l'import
 import { db } from "../../firebaseConfig";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import {
@@ -30,6 +31,7 @@ const ManageArticle = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [search, setSearch] = useState("");
+  const navigate = useNavigate(); // Hook pour la navigation
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -112,7 +114,12 @@ const ManageArticle = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      <Button variant="contained" color="primary" onClick={() => handleOpenModal(null)} style={{ marginBottom: 20 }}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => navigate("/stock/add")}
+        style={{ marginBottom: 20 }}
+      >
         Créer un Article
       </Button>
       <Grid container spacing={3}>
