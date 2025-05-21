@@ -24,6 +24,7 @@ import {
   Inventory2Outlined,
   MoveToInbox, // Ajouté pour Formulaire d'entrée de stock (alternative)
   AddBox, // Nouvelle icône pour "Ajouter un Article"
+  VerifiedUser as VerifiedUserIcon,
 } from '@mui/icons-material';
 import React, { useContext } from 'react';
 import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
@@ -168,9 +169,9 @@ const generatePagesSection = (roles = []) => {
           title: "Gestion des bons de commande",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
-        {
-          href: "/stock/edit/:id",
-          icon: Archive,
+       {
+          href: "/stock/delivery-note",
+          icon: DescriptionIcon, // Icône de formulaire (feuille/papier)
           title: "Créer un bon de livraison", 
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
@@ -183,13 +184,13 @@ const generatePagesSection = (roles = []) => {
         {
           href: "/stock/validation",
           icon: CheckCircle,
-          title: "Validation des bons de livraison",
+          title: "Validation",
           visible: isAdmin || roles.includes('gestion-de-stock'),
           children: [
             {
-              href: "/validation/pending",
-              icon: CheckCircle,
-              title: "En Attente",
+              href: "/stock/validation/management",
+              icon: VerifiedUserIcon, // Icône de validation/gestion (bouclier avec check)
+              title: "Gestion des validations",
               parentModule: "Gestion de Stock",
               visible: isAdmin || roles.includes('gestion-de-stock'),
             },

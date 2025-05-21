@@ -2,44 +2,26 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "../../firebaseConfig";
 import { addDoc, collection, getDocs, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
 import {
-  TextField,
-  Grid,
-  Button,
-  Snackbar,
-  Alert,
-  Paper,
-  Typography,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl
+  TextField, Grid, Button, Snackbar, Alert, Paper, Typography,
+  MenuItem, Select, InputLabel, FormControl
 } from "@mui/material";
 
-const StockEntryForm = () => {
-  // Infos entreprise (fixes)
-  const companyInfo = {
-    name: "Le Rayon Vert",
-    address: "01, Av. OUA (concession PROCOKI)",
-    phone: "+243808317816",
-    email: "direction@rayonverts.com",
-    taxNumber: "Numéro impot :0801888M"
-  };
-
-  // Numéro de bon de commande auto-incrémenté
+const StockOutForm = () => {
+  // Numéro de bon de livraison auto-incrémenté
   const [orderNumber, setOrderNumber] = useState("");
   useEffect(() => {
     const fetchOrderNumber = async () => {
-      const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastOrderNumber'));
-      let lastOrderNumber = 0;
+      const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastDeliveryNumber'));
+      let lastDeliveryNumber = 0;
       if (lastNumberDoc.exists()) {
-        lastOrderNumber = lastNumberDoc.data().number;
+        lastDeliveryNumber = lastNumberDoc.data().number;
       }
-      setOrderNumber((lastOrderNumber + 1).toString().padStart(4, '0'));
+      setOrderNumber((lastDeliveryNumber + 1).toString().padStart(4, '0'));
     };
     fetchOrderNumber();
   }, []);
 
-  // Liste des clients (à charger depuis Firestore)
+  // Clients
   const [clients, setClients] = useState([]);
   useEffect(() => {
     const fetchClients = async () => {
@@ -48,8 +30,6 @@ const StockEntryForm = () => {
     };
     fetchClients();
   }, []);
-
-  // Sélection du client
   const [selectedClient, setSelectedClient] = useState("");
   const [clientInfo, setClientInfo] = useState({ name: "", address: "", phone: "", email: "", responsable: "" });
   useEffect(() => {
@@ -59,7 +39,7 @@ const StockEntryForm = () => {
     }
   }, [selectedClient, clients]);
 
-  // Liste des articles (à charger depuis Firestore)
+  // Articles
   const [products, setProducts] = useState([]);
   useEffect(() => {
     const fetchProducts = async () => {
@@ -68,19 +48,14 @@ const StockEntryForm = () => {
     };
     fetchProducts();
   }, []);
-
-  // Entrées d’articles
   const [entries, setEntries] = useState([
-    { productId: "", reference: "", quantity: "", unit: "", unitPrice: "", total: "" }
+    { productId: "", reference: "", quantity: "", unit: "", unitPrice: "" }
   ]);
-
-  // Ajout/suppression d’articles
   const handleEntryChange = (index, e) => {
     const { name, value } = e.target;
     setEntries((prev) =>
       prev.map((entry, i) => {
         if (i === index) {
-          // Si on change l'article, on met à jour la référence et le prix automatiquement
           if (name === "productId") {
             const selectedProduct = products.find(p => p.id === value);
             return {
@@ -97,20 +72,18 @@ const StockEntryForm = () => {
       })
     );
   };
-  const addEntry = () => setEntries([...entries, { productId: "", reference: "", quantity: "", unit: "", unitPrice: "", total: "" }]);
+  const addEntry = () => setEntries([...entries, { productId: "", reference: "", quantity: "", unit: "", unitPrice: "" }]);
   const removeEntry = (index) => setEntries(entries.filter((_, i) => i !== index));
-
-  // Calcul du total
   const calculateGrandTotal = () =>
     entries.reduce((sum, entry) => sum + (Number(entry.quantity) * Number(entry.unitPrice) || 0), 0);
 
-  // Alertes et chargement
+  // Alertes
   const [loading, setLoading] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("success");
 
-  // Soumission du formulaire
+  // Soumission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedClient) {
@@ -129,27 +102,24 @@ const StockEntryForm = () => {
     }
     setLoading(true);
     try {
-      // Incrémente le numéro de bon
-      await setDoc(doc(db, 'metadata', 'lastOrderNumber'), { number: Number(orderNumber) });
-
-      await addDoc(collection(db, "bon_de_commande"), {
+      await setDoc(doc(db, 'metadata', 'lastDeliveryNumber'), { number: Number(orderNumber) });
+      await addDoc(collection(db, "bon_de_livraison"), {
         orderNumber,
-        companyInfo,
         client: clientInfo,
         entries,
         grandTotal: calculateGrandTotal(),
         date: serverTimestamp(),
         userId: auth?.currentUser?.uid || null,
+        validated: false, // Par défaut, à valider
       });
-
-      setAlertMessage("Entrée de stock enregistrée avec succès !");
+      setAlertMessage("Bon de livraison enregistré avec succès !");
       setAlertSeverity("success");
       setAlertOpen(true);
-      setEntries([{ productId: "", reference: "", quantity: "", unit: "", unitPrice: "", total: "" }]);
+      setEntries([{ productId: "", reference: "", quantity: "", unit: "", unitPrice: "" }]);
       setSelectedClient("");
       setClientInfo({ name: "", address: "", phone: "", email: "", responsable: "" });
     } catch (error) {
-      setAlertMessage("Erreur lors de l'enregistrement de l'entrée de stock.");
+      setAlertMessage("Erreur lors de l'enregistrement du bon de livraison.");
       setAlertSeverity("error");
       setAlertOpen(true);
       console.error("Erreur lors de l'enregistrement :", error);
@@ -160,10 +130,10 @@ const StockEntryForm = () => {
   return (
     <Paper sx={{ p: 4, maxWidth: 900, margin: "auto", mt: 4 }}>
       <Typography variant="h5" gutterBottom>
-        Bon de Commande (Entrée de Stock)
+        Bon de Livraison (Sortie de Stock)
       </Typography>
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
-        N° Bon de commande : <b>{orderNumber}</b>
+        N° Bon de livraison : <b>{orderNumber}</b>
       </Typography>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -183,7 +153,6 @@ const StockEntryForm = () => {
               </Select>
             </FormControl>
           </Grid>
-          {/* Affiche les infos du client sélectionné */}
           <Grid item xs={12} sm={6}>
             <TextField
               label="Responsable"
@@ -226,7 +195,6 @@ const StockEntryForm = () => {
                 value={entry.reference}
                 onChange={e => handleEntryChange(index, e)}
                 fullWidth
-                // required retiré pour rendre le champ optionnel
               />
             </Grid>
             <Grid item xs={12} sm={2}>
@@ -272,7 +240,7 @@ const StockEntryForm = () => {
             <Grid item xs={12} sm={1} sx={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 {Number(entry.quantity) > 0 && Number(entry.unitPrice) > 0
-                  ? ` ${(Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2)} $`
+                  ? `Sous-total: ${(Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2)} USD`
                   : ""}
               </Typography>
               <Button
@@ -300,7 +268,7 @@ const StockEntryForm = () => {
           size="small"
           sx={{ mt: 2, minWidth: 150 }}
         >
-          {loading ? "Enregistrement..." : "Enregistrer l'entrée"}
+          {loading ? "Enregistrement..." : "Enregistrer la sortie"}
         </Button>
       </form>
       <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
@@ -312,4 +280,4 @@ const StockEntryForm = () => {
   );
 };
 
-export default StockEntryForm;
+export default StockOutForm;

@@ -53,6 +53,8 @@ const Adduser = async(() => import("@/pages/roles-permissions/Adduser"));
 const StockEntryForm = async(() => import("@/pages/gestion-stock/StockEntryForm"));
 const AddProducts = async(() => import("@/pages/gestion-stock/AddProducts"));
 const ManageArticle = async(() => import("@/pages/gestion-stock/ManageArticle"));
+const StockOutForm = async(() => import("@/pages/gestion-stock/StockOutForm"));
+const ValidationBonLivraison = async(() => import("@/pages/gestion-stock/ValidationBonLivraison"));
 
 // Définition des routes
 const routes = [
@@ -268,6 +270,14 @@ const routes = [
       {
         path: "management",
         element: <ManageArticle />,
+      },
+      {
+        path: "delivery-note",
+        element: <StockOutForm />,
+      },
+      {
+        path: "validation/management",
+        element: <ValidationBonLivraison />,
       },
       // Ajoutez ici d'autres routes liées au stock si besoin
     ],
