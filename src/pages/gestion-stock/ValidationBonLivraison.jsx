@@ -66,7 +66,7 @@ const ValidationBonLivraison = () => {
 
   return (
     <Paper sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>Validation des Bons de Livraison</Typography>
+      <Typography variant="h5" gutterBottom>Gestion des Bons de Livraison</Typography>
       <FiltreValidation onApplyFilters={handleApplyFilters} />
       <TableContainer sx={{ maxWidth: "100vw", overflowX: "auto" }}>
         <Table size={isMobile ? "small" : "medium"}>
