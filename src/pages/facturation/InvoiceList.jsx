@@ -20,14 +20,17 @@ import {
   FormControl,
   InputLabel,
   Select,
-  TextField
+  TextField,
+  Box,
+  Stack,
+  useMediaQuery
 } from '@mui/material';
+import { useTheme } from "@mui/material/styles";
 import { Archive as ArchiveIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { CSVLink } from 'react-csv'; // Importation de CSVLink
 import Invoice1PDF from './Invoice1PDF';
 import Filters from './Filters';
-import { useNavigate } from "react-router-dom"; // Importation de useNavigate
+import { useNavigate } from "react-router-dom";
 
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState([]);
@@ -38,7 +41,9 @@ const InvoiceList = () => {
   const [selected, setSelected] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentInvoiceId, setCurrentInvoiceId] = useState(null);
-  const navigate = useNavigate(); // Utilisation de useNavigate
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -209,12 +214,12 @@ const InvoiceList = () => {
 
   return (
     <div>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant={isMobile ? "h6" : "h4"} gutterBottom>
         Liste des Factures
       </Typography>
       <Filters onApplyFilters={handleApplyFilters} />
-      <TableContainer component={Paper} style={{ marginTop: '20px' }}>
-        <Table>
+      <TableContainer component={Paper} style={{ marginTop: '20px', maxWidth: "100vw", overflowX: "auto" }}>
+        <Table size={isMobile ? "small" : "medium"}>
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -225,12 +230,12 @@ const InvoiceList = () => {
                   inputProps={{ 'aria-label': 'select all invoices' }}
                 />
               </TableCell>
-              <TableCell>Numéro de Facture</TableCell>
-              <TableCell>Date</TableCell>
+              <TableCell>Numéro</TableCell>
               <TableCell>Client</TableCell>
-              <TableCell>Total</TableCell>
-              <TableCell>Devise</TableCell>
-              <TableCell>Services</TableCell>
+              {!isMobile && <TableCell>Date</TableCell>}
+              {!isMobile && <TableCell>Total</TableCell>}
+              {!isMobile && <TableCell>Devise</TableCell>}
+              {!isMobile && <TableCell>Services</TableCell>}
               <TableCell>Statut</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -260,17 +265,41 @@ const InvoiceList = () => {
                     <TableCell component="th" id={labelId} scope="row">
                       {invoice.invoiceInfo?.number || ''}
                     </TableCell>
-                    <TableCell>{invoice.invoiceInfo?.date || ''}</TableCell>
-                    <TableCell>{invoice.billTo?.company || ''}</TableCell>
-                    <TableCell>{invoice.total}</TableCell>
-                    <TableCell>{invoice.invoiceInfo?.currency || ''}</TableCell>
+                    {/* Client + infos importantes sur mobile */}
                     <TableCell>
-                      {invoice.services && Array.isArray(invoice.services) ? invoice.services.map((service, index) => (
-                        <div key={index}>
-                          {service.description} - {service.libelle} - {service.quantity} - {service.unitPrice} - {service.amount}
-                        </div>
-                      )) : ''}
+                      <Stack direction="column" spacing={0.5}>
+                        <Typography variant="body2" fontWeight={500}>
+                          {invoice.billTo?.company || ''}
+                        </Typography>
+                        {isMobile && (
+                          <>
+                            <Typography variant="caption" color="text.secondary" noWrap>
+                              {invoice.invoiceInfo?.date || ''}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" noWrap>
+                              {invoice.invoiceInfo?.currency || ''}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" noWrap>
+                              Total : {invoice.total}
+                            </Typography>
+                          </>
+                        )}
+                      </Stack>
                     </TableCell>
+                    {/* Desktop only columns */}
+                    {!isMobile && <TableCell>{invoice.invoiceInfo?.date || ''}</TableCell>}
+                    {!isMobile && <TableCell>{invoice.total}</TableCell>}
+                    {!isMobile && <TableCell>{invoice.invoiceInfo?.currency || ''}</TableCell>}
+                    {!isMobile && (
+                      <TableCell>
+                        {invoice.services && Array.isArray(invoice.services) ? invoice.services.map((service, idx) => (
+                          <div key={idx}>
+                            {service.description} - {service.libelle} - {service.quantity} - {service.unitPrice} - {service.amount}
+                          </div>
+                        )) : ''}
+                      </TableCell>
+                    )}
+                    {/* Statut */}
                     <TableCell>
                       <Chip
                         label={invoice.status}
@@ -278,27 +307,35 @@ const InvoiceList = () => {
                           invoice.status === 'Payé' ? 'success' :
                           invoice.status === 'Envoyé' ? 'warning' :
                           invoice.status === 'Non payé' ? 'error' :
-                          invoice.status === 'Vide' ? 'default' : // Conserve "Vide"
-                          invoice.status === 'Erreur' ? 'secondary' : // Ajoute "Erreur"
+                          invoice.status === 'Vide' ? 'default' :
+                          invoice.status === 'Erreur' ? 'secondary' :
                           'default'
                         }
                         onClick={(event) => handleClickChip(event, invoice.id)}
                         clickable
+                        size={isMobile ? "small" : "medium"}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: isMobile ? 12 : 14,
+                          minWidth: isMobile ? 32 : 80,
+                          px: isMobile ? 0.5 : 2
+                        }}
                       />
                       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
                         <MenuItem onClick={() => handleMenuItemClick('Payé')}>Payé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Envoyé')}>Envoyé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Non payé')}>Non payé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Vide')}>Vide</MenuItem>
-                        <MenuItem onClick={() => handleMenuItemClick('Erreur')}>Erreur</MenuItem> {/* Ajout de l'état "Erreur" */}
+                        <MenuItem onClick={() => handleMenuItemClick('Erreur')}>Erreur</MenuItem>
                       </Menu>
                     </TableCell>
+                    {/* Actions */}
                     <TableCell align="right">
                       <IconButton
                         aria-label="archive"
                         onClick={() => { invoice.archived ? handleUnarchive(invoice.id) : handleArchive(invoice.id) }}
                         size="large"
-                        style={{ color: invoice.archived ? 'green' : 'gray' }} // Changement de couleur basé sur l'état
+                        style={{ color: invoice.archived ? 'green' : 'gray' }}
                       >
                         <ArchiveIcon />
                       </IconButton>
@@ -308,8 +345,10 @@ const InvoiceList = () => {
                             variant="contained"
                             color="primary"
                             startIcon={<PdfIcon />}
+                            size={isMobile ? "small" : "medium"}
+                            sx={{ ml: 1, mb: isMobile ? 0.5 : 0 }}
                           >
-                            {loading ? 'Chargement...' : 'Télécharger PDF'}
+                            {loading ? '...' : 'PDF'}
                           </Button>
                         )}
                       </PDFDownloadLink>
@@ -331,22 +370,22 @@ const InvoiceList = () => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </TableContainer>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={exportToCSV}
-        style={{ marginTop: '20px' }}
-      >
-        Exporter en CSV
-      </Button>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={() => navigate('/facturation/import-invoices')}
-        style={{ marginTop: '20px', marginLeft: '10px' }}
-      >
-        Importer des factures
-      </Button>
+      <Box display="flex" flexDirection={isMobile ? "column" : "row"} gap={2} mt={2}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={exportToCSV}
+        >
+          Exporter en CSV
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => navigate('/facturation/import-invoices')}
+        >
+          Importer des factures
+        </Button>
+      </Box>
     </div>
   );
 };

@@ -34,9 +34,12 @@ import {
   Chip,
   TextField,
   TablePagination,
+  Box, // <-- Ajouté ici
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { spacing } from '@mui/system';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const Card = styled(MuiCard)(spacing);
 const CardContent = styled(MuiCardContent)(spacing);
@@ -69,6 +72,8 @@ const AttribuerRoles = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const fetchUsers = async () => {
     try {
@@ -106,6 +111,7 @@ const AttribuerRoles = () => {
       setSnackbarMessage('Rôle mis à jour avec succès!');
       setSnackbarOpen(true);
       fetchUsers();
+      setDialogOpen(false);
     } catch (error) {
       console.error('Erreur lors de la mise à jour du rôle:', error);
     }
@@ -165,11 +171,11 @@ const AttribuerRoles = () => {
             </Typography>
             <Divider my={2} />
             <TableContainer component={Paper}>
-              <Table>
+              <Table size={isMobile ? 'small' : 'medium'}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Photo</TableCell>
-                    <TableCell>Email</TableCell>
+                    <TableCell>{isMobile ? 'Utilisateur' : 'Email'}</TableCell>
                     <TableCell>Rôles</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
@@ -180,33 +186,36 @@ const AttribuerRoles = () => {
                     .map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>
-                          {/* Avatar agrandi */}
                           <Avatar
                             src={user.photoURL}
                             alt={user.displayName}
-                            style={{ width: 60, height: 60 }} // Taille personnalisée
+                            sx={{
+                              width: isMobile ? 40 : 60,
+                              height: isMobile ? 40 : 60,
+                              mx: isMobile ? 'auto' : 0
+                            }}
                           />
                         </TableCell>
                         <TableCell>
-                          {/* Nom mis en avant */}
-                          <Typography variant="h6" style={{ fontWeight: 'bold' }}>
+                          <Typography variant={isMobile ? 'body1' : 'h6'} fontWeight="bold">
                             {user.displayName}
                           </Typography>
-                          {/* Email en second plan */}
-                          <Typography variant="body2" color="textSecondary">
+                          <Typography variant="body2" color="textSecondary" noWrap>
                             {user.email}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          {user.roles.map((role) => (
-                            <Chip
-                              key={role}
-                              label={role}
-                              color="primary"
-                              size="small"
-                              style={{ marginRight: 4, marginBottom: 4 }}
-                            />
-                          ))}
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {user.roles && user.roles.map((role) => (
+                              <Chip
+                                key={role}
+                                label={role}
+                                color="primary"
+                                size={isMobile ? 'small' : 'medium'}
+                                sx={{ mb: 0.5 }}
+                              />
+                            ))}
+                          </Box>
                         </TableCell>
                         <TableCell>
                           <IconButton
@@ -216,6 +225,7 @@ const AttribuerRoles = () => {
                               setNewRolesSelected(user.roles);
                               setDialogOpen(true);
                             }}
+                            size={isMobile ? 'small' : 'medium'}
                           >
                             <EditIcon />
                           </IconButton>
@@ -225,6 +235,7 @@ const AttribuerRoles = () => {
                               setUserToDelete(user.id);
                               setDeleteDialogOpen(true);
                             }}
+                            size={isMobile ? 'small' : 'medium'}
                           >
                             <DeleteIcon />
                           </IconButton>
