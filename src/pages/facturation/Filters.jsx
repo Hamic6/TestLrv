@@ -9,11 +9,11 @@ const Filters = ({ onApplyFilters }) => {
   const [year, setYear] = useState('');
   const [month, setMonth] = useState('');
   const [status, setStatus] = useState('');
-  const [amountRange, setAmountRange] = useState({ min: '', max: '' });
   const [currency, setCurrency] = useState('');
   const [currencies, setCurrencies] = useState(['USD', 'EUR', 'CDF']);
   const [service, setService] = useState('');
-  const [archived, setArchived] = useState('non'); // Nouveau filtre pour les factures archivées
+  const [archived, setArchived] = useState('non');
+  const [invoiceNumber, setInvoiceNumber] = useState(''); // Ajout du champ numéro de facture
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -30,7 +30,7 @@ const Filters = ({ onApplyFilters }) => {
   }, []);
 
   const handleApplyFilters = () => {
-    onApplyFilters({ client, year, month, status, amountRange, currency, service, archived });
+    onApplyFilters({ client, year, month, status, currency, service, archived, invoiceNumber });
   };
 
   return (
@@ -94,26 +94,17 @@ const Filters = ({ onApplyFilters }) => {
           <MenuItem value="Payé">Payé</MenuItem>
           <MenuItem value="Non payé">Non Payé</MenuItem>
           <MenuItem value="Envoyé">Envoyé</MenuItem>
-          <MenuItem value="Vide">Vide</MenuItem> {/* Ajout de l'état "Vide" */}
-          <MenuItem value="Erreur">Erreur</MenuItem> {/* Ajout de l'état "Erreur" */}
+          <MenuItem value="Vide">Vide</MenuItem>
+          <MenuItem value="Erreur">Erreur</MenuItem>
         </TextField>
       </Grid>
+      {/* Champ numéro de facture */}
       <Grid item xs={12} sm={6} md={4}>
         <TextField
-          label="Montant Min."
-          type="number"
+          label="Numéro de facture"
           fullWidth
-          value={amountRange.min}
-          onChange={(e) => setAmountRange({ ...amountRange, min: e.target.value })}
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          label="Montant Max."
-          type="number"
-          fullWidth
-          value={amountRange.max}
-          onChange={(e) => setAmountRange({ ...amountRange, max: e.target.value })}
+          value={invoiceNumber}
+          onChange={(e) => setInvoiceNumber(e.target.value)}
         />
       </Grid>
       <Grid item xs={12} sm={6} md={4}>

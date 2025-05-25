@@ -125,7 +125,7 @@ const InvoiceList = () => {
   const handleApplyFilters = (updatedFilters) => {
     setFilters(updatedFilters);
 
-    const { client, year, month, status, amountRange, currency, service, archived } = updatedFilters;
+    const { client, year, month, status, currency, service, archived, invoiceNumber } = updatedFilters;
 
     const filtered = invoices.filter(invoice => {
       const invoiceDate = new Date(invoice.invoiceInfo?.date);
@@ -133,13 +133,12 @@ const InvoiceList = () => {
       const matchesYear = year ? invoiceDate.getFullYear() === parseInt(year) : true;
       const matchesMonth = month ? invoiceDate.getMonth() + 1 === parseInt(month) : true;
       const matchesStatus = status ? invoice.status === status : true;
-      const matchesAmount = (amountRange.min ? invoice.total >= parseFloat(amountRange.min) : true) &&
-                            (amountRange.max ? invoice.total <= parseFloat(amountRange.max) : true);
+      const matchesNumber = invoiceNumber ? (invoice.invoiceInfo?.number || '').toLowerCase().includes(invoiceNumber.toLowerCase()) : true;
       const matchesCurrency = currency ? invoice.invoiceInfo?.currency?.toLowerCase() === currency.toLowerCase() : true;
       const matchesService = service ? invoice.services?.some(s => s.description?.toLowerCase().includes(service.toLowerCase())) : true;
       const matchesArchived = archived === 'toutes' ? true : archived === 'oui' ? invoice.archived : !invoice.archived;
 
-      return matchesClient && matchesYear && matchesMonth && matchesStatus && matchesAmount && matchesCurrency && matchesService && matchesArchived;
+      return matchesClient && matchesYear && matchesMonth && matchesStatus && matchesNumber && matchesCurrency && matchesService && matchesArchived;
     });
 
     setFilteredInvoices(filtered);
