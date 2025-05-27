@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../../firebaseConfig";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { db, auth } from "../../firebaseConfig";
+import { collection, getDocs, updateDoc, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Chip, Menu, MenuItem, TableContainer, useMediaQuery
 } from "@mui/material";
@@ -31,7 +31,7 @@ const ValidationBonLivraison = () => {
 
   useEffect(() => {
     const fetchBons = async () => {
-      const snap = await getDocs(collection(db, "bon_de_livraison"));
+      const snap = await getDocs(collection(db, "bon_de_commande"));
       const list = snap.docs.map(d => ({
         id: d.id,
         ...d.data(),
@@ -43,8 +43,42 @@ const ValidationBonLivraison = () => {
     fetchBons();
   }, []);
 
+  // Met à jour le statut et incrémente le stock si accepté
   const handleStatusChange = async (id, statut) => {
-    await updateDoc(doc(db, "bon_de_livraison", id), { statut });
+    // Trouver le bon concerné
+    const bon = bons.find(b => b.id === id);
+    await updateDoc(doc(db, "bon_de_commande", id), { statut });
+
+    // Si accepté, incrémente le stock et ajoute un mouvement d'entrée
+    if (statut === "accepté" && bon && bon.entries) {
+      for (const entry of bon.entries) {
+        // Ajout du mouvement de stock (entrée)
+        await addDoc(collection(db, "stockMovements"), {
+          productId: entry.productId,
+          name: entry.name || "",
+          reference: entry.reference,
+          unit: entry.unit,
+          quantity: entry.quantity,
+          unitPrice: entry.unitPrice,
+          total: entry.total || (Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2),
+          orderNumber: bon.orderNumber,
+          type: "entrée",
+          createdAt: serverTimestamp(),
+          userId: auth?.currentUser?.uid || null,
+        });
+
+        // Mise à jour du stock dans la fiche article
+        const articleRef = doc(db, "articles", entry.productId);
+        const articleSnap = await getDoc(articleRef);
+        let oldStock = 0;
+        if (articleSnap.exists() && articleSnap.data().stock) {
+          oldStock = Number(articleSnap.data().stock);
+        }
+        const newStock = oldStock + Number(entry.quantity);
+        await updateDoc(articleRef, { stock: newStock });
+      }
+    }
+
     setBons(prev => prev.map(b => b.id === id ? { ...b, statut } : b));
     setFilteredBons(prev => prev.map(b => b.id === id ? { ...b, statut } : b));
     handleCloseMenu();
@@ -66,14 +100,14 @@ const ValidationBonLivraison = () => {
 
   return (
     <Paper sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>Gestion des Bons de Livraison</Typography>
-      <FiltreValidation onApplyFilters={handleApplyFilters} />
+      <Typography variant="h5" gutterBottom>Validation des Bons de Commande</Typography>
+      <FiltreValidation onApplyFilters={handleApplyFilters} collectionName="bon_de_commande" />
       <TableContainer sx={{ maxWidth: "100vw", overflowX: "auto" }}>
         <Table size={isMobile ? "small" : "medium"}>
           <TableHead>
             <TableRow>
               <TableCell>Numéro</TableCell>
-              {!isMobile && <TableCell>Client</TableCell>}
+              {!isMobile && <TableCell>Fournisseur</TableCell>}
               <TableCell>Date</TableCell>
               <TableCell>Statut</TableCell>
               {!isMobile && <TableCell>Actions</TableCell>}
@@ -142,7 +176,7 @@ const ValidationBonLivraison = () => {
       </TableContainer>
       {filteredBons.length === 0 && (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Aucun bon de livraison à afficher.
+          Aucun bon de commande à afficher.
         </Typography>
       )}
     </Paper>

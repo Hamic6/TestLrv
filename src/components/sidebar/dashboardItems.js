@@ -97,7 +97,7 @@ const generatePagesSection = (roles = []) => {
         {
           href: "/facturation/gestion-des-clients",
           icon: PeopleIcon,
-          title: "Gestion des Clients",
+          title: "Gestion des partenaires",
           visible: isAdmin || roles.includes('gestion-des-clients'),
         },
         {

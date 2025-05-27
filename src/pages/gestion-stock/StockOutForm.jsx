@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../../firebaseConfig";
-import { addDoc, collection, getDocs, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
+import { addDoc, collection, getDocs, serverTimestamp, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import {
   TextField, Grid, Button, Snackbar, Alert, Paper, Typography,
   MenuItem, Select, InputLabel, FormControl
@@ -112,6 +112,35 @@ const StockOutForm = () => {
         userId: auth?.currentUser?.uid || null,
         validated: false, // Par défaut, à valider
       });
+
+      // Décrémente le stock et ajoute un mouvement de sortie pour chaque article
+      for (const entry of entries) {
+        // Ajout du mouvement de stock (sortie)
+        await addDoc(collection(db, "stockMovements"), {
+          productId: entry.productId,
+          name: products.find(p => p.id === entry.productId)?.name || "",
+          reference: entry.reference,
+          unit: entry.unit,
+          quantity: entry.quantity,
+          unitPrice: entry.unitPrice,
+          total: entry.total || (Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2),
+          orderNumber,
+          type: "sortie",
+          createdAt: serverTimestamp(),
+          userId: auth?.currentUser?.uid || null,
+        });
+
+        // Mise à jour du stock dans la fiche article
+        const articleRef = doc(db, "articles", entry.productId);
+        const articleSnap = await getDoc(articleRef);
+        let oldStock = 0;
+        if (articleSnap.exists() && articleSnap.data().stock) {
+          oldStock = Number(articleSnap.data().stock);
+        }
+        const newStock = oldStock - Number(entry.quantity);
+        await updateDoc(articleRef, { stock: newStock });
+      }
+
       setAlertMessage("Bon de livraison enregistré avec succès !");
       setAlertSeverity("success");
       setAlertOpen(true);

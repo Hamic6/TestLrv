@@ -74,10 +74,10 @@ const ClientList = () => {
       const clientsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setClients(clientsList);
 
-      setSnackbarMessage('Le client a été enregistré avec succès.');
+      setSnackbarMessage('Le Partenaire a été enregistré avec succès.');
       setSnackbarOpen(true);
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement du client :", error);
+      console.error("Erreur lors de l'enregistrement du Partenaire :", error);
     }
   };
 
@@ -97,10 +97,10 @@ const ClientList = () => {
   return (
     <div>
       <Typography variant="h4" gutterBottom>
-        Gestion des Clients
+        Gestion des Partenaires 
       </Typography>
       <TextField
-        label="Rechercher un client"
+        label="Rechercher un Partenaire"
         variant="outlined"
         fullWidth
         margin="normal"
@@ -108,7 +108,7 @@ const ClientList = () => {
         onChange={(e) => setSearch(e.target.value)}
       />
       <Button variant="contained" color="primary" onClick={() => handleOpenModal(null)} style={{ marginBottom: 20 }}>
-        Ajouter un Client
+        Ajouter un Partenaire
       </Button>
       <Grid container spacing={3}>
         {filteredClients.map((client) => (
@@ -163,7 +163,7 @@ const ClientList = () => {
         >
           <Card style={{ padding: 20 }}>
             <Typography id="modal-title" variant="h6" component="h2">
-              {currentClient ? 'Modifier le Client' : 'Ajouter un Client'}
+              {currentClient ? 'Modifier le Partenaire' : 'Ajouter un Partenaire'}
             </Typography>
             <form onSubmit={handleSaveClient}>
               <TextField

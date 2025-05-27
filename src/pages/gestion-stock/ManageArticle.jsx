@@ -19,25 +19,28 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
-  InputAdornment,
   Stack,
   useMediaQuery
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { useTheme } from "@mui/material/styles";
 
 const ManageArticle = () => {
   const [articles, setArticles] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [currentArticle, setCurrentArticle] = useState(null);
+  const [editArticle, setEditArticle] = useState({
+    name: "",
+    reference: "",
+    category: "",
+    unit: "",
+    description: "",
+    seuil: ""
+  });
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [search, setSearch] = useState("");
-  const [clientStocks, setClientStocks] = useState({});
-  const [loadingStock, setLoadingStock] = useState(true);
-  const [selectedClient, setSelectedClient] = useState("");
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -56,61 +59,28 @@ const ManageArticle = () => {
     fetchArticles();
   }, []);
 
-  // Calcul dynamique du stock par client
+  // Synchronise l'état du formulaire avec l'article sélectionné
   useEffect(() => {
-    const fetchStockByClient = async () => {
-      setLoadingStock(true);
-      try {
-        const commandesSnap = await getDocs(collection(db, "bon_de_commande"));
-        const livraisonsSnap = await getDocs(collection(db, "bon_de_livraison"));
-
-        const clients = {};
-        // Entrées (bons de commande)
-        commandesSnap.docs.forEach(doc => {
-          const data = doc.data();
-          const clientId = data.client?.email || data.client?.name || "inconnu";
-          if (!clients[clientId]) {
-            clients[clientId] = {
-              clientInfo: data.client,
-              stockMap: {}
-            };
-          }
-          if (Array.isArray(data.entries)) {
-            data.entries.forEach(e => {
-              if (!e.productId) return;
-              clients[clientId].stockMap[e.productId] = (clients[clientId].stockMap[e.productId] || 0) + Number(e.quantity || 0);
-            });
-          }
-        });
-
-        // Sorties (bons de livraison)
-        livraisonsSnap.docs.forEach(doc => {
-          const data = doc.data();
-          const clientId = data.client?.email || data.client?.name || "inconnu";
-          if (!clients[clientId]) {
-            clients[clientId] = {
-              clientInfo: data.client,
-              stockMap: {}
-            };
-          }
-          // Correction ici : statut === "accepté" et entries
-          if (data.statut === "accepté" && Array.isArray(data.entries)) {
-            data.entries.forEach(e => {
-              if (!e.productId) return;
-              clients[clientId].stockMap[e.productId] = (clients[clientId].stockMap[e.productId] || 0) - Number(e.quantity || 0);
-            });
-          }
-        });
-
-        setClientStocks(clients);
-      } catch (error) {
-        console.error("Erreur lors du calcul du stock par client :", error);
-      }
-      setLoadingStock(false);
-    };
-
-    fetchStockByClient();
-  }, []);
+    if (openModal && currentArticle) {
+      setEditArticle({
+        name: currentArticle.name || "",
+        reference: currentArticle.reference || "",
+        category: currentArticle.category || "",
+        unit: currentArticle.unit || "",
+        description: currentArticle.description || "",
+        seuil: currentArticle.seuil !== undefined ? currentArticle.seuil : ""
+      });
+    } else if (openModal && !currentArticle) {
+      setEditArticle({
+        name: "",
+        reference: "",
+        category: "",
+        unit: "",
+        description: "",
+        seuil: ""
+      });
+    }
+  }, [openModal, currentArticle]);
 
   const handleOpenModal = (article) => {
     setCurrentArticle(article);
@@ -124,15 +94,11 @@ const ManageArticle = () => {
 
   const handleSaveArticle = async (event) => {
     event.preventDefault();
-    const formData = new FormData(event.target);
+    setSaving(true);
+
     const articleData = {
-      name: formData.get('name'),
-      reference: formData.get('reference'),
-      category: formData.get('category'),
-      unit: formData.get('unit'),
-      description: formData.get('description'),
-      photoURL: formData.get('photoURL'),
-      seuil: formData.get('seuil') ? Number(formData.get('seuil')) : undefined
+      ...editArticle,
+      seuil: editArticle.seuil ? Number(editArticle.seuil) : undefined
     };
 
     try {
@@ -141,7 +107,6 @@ const ManageArticle = () => {
       } else {
         await addDoc(collection(db, "articles"), articleData);
       }
-
       setOpenModal(false);
 
       const querySnapshot = await getDocs(collection(db, "articles"));
@@ -153,6 +118,7 @@ const ManageArticle = () => {
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de l'article :", error);
     }
+    setSaving(false);
   };
 
   const handleDeleteArticle = async (id) => {
@@ -169,22 +135,10 @@ const ManageArticle = () => {
     article.name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Liste des clients pour le filtre
-  const clientList = Object.entries(clientStocks).map(([clientId, { clientInfo }]) => ({
-    id: clientId,
-    name: clientInfo?.name || clientId,
-    email: clientInfo?.email || ""
-  }));
-
-  // Filtrage des clients à afficher (on ne garde que le client sélectionné)
-  const clientsToDisplay = selectedClient
-    ? Object.entries(clientStocks).filter(([clientId]) => clientId === selectedClient)
-    : [];
-
   return (
     <div>
       <Typography variant="h4" gutterBottom>
-        Gestion des Articles par Client
+        Gestion des Articles
       </Typography>
       <Stack
         direction={isMobile ? "column" : "row"}
@@ -199,116 +153,74 @@ const ManageArticle = () => {
           onChange={(e) => setSearch(e.target.value)}
           size={isMobile ? "small" : "medium"}
         />
-        <FormControl
-          variant="outlined"
-          fullWidth={isMobile}
-          sx={{ minWidth: isMobile ? 120 : 200 }}
-          size={isMobile ? "small" : "medium"}
-        >
-          <InputLabel id="client-select-label">Filtrer par client</InputLabel>
-          <Select
-            labelId="client-select-label"
-            value={selectedClient}
-            onChange={e => setSelectedClient(e.target.value)}
-            label="Filtrer par client"
-          >
-            <MenuItem value="">Sélectionnez un client</MenuItem>
-            {clientList.map(client => (
-              <MenuItem key={client.id} value={client.id}>
-                {client.name} {client.email && `(${client.email})`}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
       </Stack>
       <Button
         variant="contained"
         color="primary"
-        onClick={() => navigate("/stock/add")}
+        onClick={() => {
+          setCurrentArticle(null);
+          setOpenModal(true);
+        }}
         style={{ marginBottom: 20 }}
       >
         Créer un Article
       </Button>
 
-      {/* Affichage uniquement pour le client sélectionné */}
-      {clientsToDisplay.length === 0 ? (
-        <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
-          Sélectionnez un client pour afficher ses articles.
-        </Typography>
-      ) : (
-        clientsToDisplay.map(([clientId, { clientInfo, stockMap }]) => (
-          <Box key={clientId} mb={4}>
-            <Typography variant="h6" color="primary">
-              {clientInfo?.name || clientId}
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              {clientInfo?.email}
-            </Typography>
-            <Grid container spacing={3}>
-              {filteredArticles.map((article) => {
-                const stock = stockMap[article.id] ?? 0;
-                const seuil = article.seuil ?? 0;
-                const isBelowSeuil = seuil > 0 && stock <= seuil;
-                return (
-                  <Grid item xs={12} sm={6} md={4} key={article.id}>
-                    <Card>
-                      <CardContent>
-                        <Box display="flex" alignItems="center">
-                          {article.photoURL && (
-                            <Avatar
-                              src={article.photoURL}
-                              alt="photo"
-                              style={{ width: '60px', height: '60px', marginRight: '10px' }}
-                            />
-                          )}
-                          <Box>
-                            <Typography variant="subtitle1">{article.name}</Typography>
-                            <Typography variant="caption" color="textSecondary">{article.reference}</Typography>
-                            <Chip
-                              label={
-                                loadingStock
-                                  ? "Calcul en cours..."
-                                  : `Stock : ${stock} ${article.unit || ""}`
-                              }
-                              color={isBelowSeuil ? "warning" : "success"}
-                              icon={isBelowSeuil ? <WarningAmberIcon /> : undefined}
-                              sx={{ fontWeight: "bold", fontSize: 16, mt: 1 }}
-                            />
-                            {seuil > 0 && (
-                              <Typography variant="caption" color={isBelowSeuil ? "error" : "textSecondary"} display="block">
-                                Seuil : {seuil}
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
-                      </CardContent>
-                      <CardActions>
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<EditOutlinedIcon />}
-                          onClick={() => handleOpenModal(article)}
-                          sx={{ textTransform: "none" }}
-                        >
-                          Modifier
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          onClick={() => handleDeleteArticle(article.id)}
-                          sx={{ textTransform: "none" }}
-                        >
-                          Supprimer
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          </Box>
-        ))
-      )} {/* <--  parenthèse fermante ici */}
+      <Grid container spacing={3}>
+        {filteredArticles.map((article) => (
+          <Grid item xs={12} sm={6} md={4} key={article.id}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center">
+                  {article.photoURL && (
+                    <Avatar
+                      src={article.photoURL}
+                      alt="photo"
+                      style={{ width: '60px', height: '60px', marginRight: '10px' }}
+                    />
+                  )}
+                  <Box>
+                    <Typography variant="subtitle1">{article.name}</Typography>
+                    <Typography variant="caption" color="textSecondary">{article.reference}</Typography>
+                    {article.unit && (
+                      <Typography variant="body2" color="textSecondary">
+                        Unité : {article.unit}
+                      </Typography>
+                    )}
+                    {article.seuil > 0 && (
+                      <Typography variant="caption" color="warning.main" display="block">
+                        Seuil : {article.seuil}
+                      </Typography>
+                    )}
+                    <Typography variant="body2" color="primary">
+                      Stock disponible : {article.stock ?? article.quantity ?? "N/A"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+              <CardActions>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<EditOutlinedIcon />}
+                  onClick={() => handleOpenModal(article)}
+                  sx={{ textTransform: "none" }}
+                >
+                  Modifier
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleDeleteArticle(article.id)}
+                  sx={{ textTransform: "none" }}
+                >
+                  Supprimer
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
 
       <Modal
         open={openModal}
@@ -322,8 +234,8 @@ const ManageArticle = () => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: { xs: 370, sm: 520, md: 650 }, // Largeur augmentée
-            maxHeight: 480, // Hauteur maximale réduite
+            width: { xs: 370, sm: 520, md: 650 },
+            maxHeight: 480,
             overflowY: 'auto',
             bgcolor: 'background.paper',
             borderRadius: 2,
@@ -339,7 +251,8 @@ const ManageArticle = () => {
             <TextField
               label="Nom"
               name="name"
-              defaultValue={currentArticle ? currentArticle.name : ''}
+              value={editArticle.name}
+              onChange={e => setEditArticle({ ...editArticle, name: e.target.value })}
               fullWidth
               margin="normal"
               required
@@ -347,14 +260,16 @@ const ManageArticle = () => {
             <TextField
               label="Référence"
               name="reference"
-              defaultValue={currentArticle ? currentArticle.reference : ''}
+              value={editArticle.reference}
+              onChange={e => setEditArticle({ ...editArticle, reference: e.target.value })}
               fullWidth
               margin="normal"
             />
             <TextField
               label="Catégorie"
               name="category"
-              defaultValue={currentArticle ? currentArticle.category : ''}
+              value={editArticle.category}
+              onChange={e => setEditArticle({ ...editArticle, category: e.target.value })}
               fullWidth
               margin="normal"
             />
@@ -362,8 +277,9 @@ const ManageArticle = () => {
               <InputLabel>Unité</InputLabel>
               <Select
                 name="unit"
-                defaultValue={currentArticle ? currentArticle.unit : ''}
+                value={editArticle.unit}
                 label="Unité"
+                onChange={e => setEditArticle({ ...editArticle, unit: e.target.value })}
               >
                 <MenuItem value="pcs">Pièce</MenuItem>
                 <MenuItem value="boite">Boîte</MenuItem>
@@ -376,24 +292,19 @@ const ManageArticle = () => {
             <TextField
               label="Description"
               name="description"
-              defaultValue={currentArticle ? currentArticle.description : ''}
+              value={editArticle.description}
+              onChange={e => setEditArticle({ ...editArticle, description: e.target.value })}
               fullWidth
               margin="normal"
               multiline
               rows={2}
             />
             <TextField
-              label="URL de la photo"
-              name="photoURL"
-              defaultValue={currentArticle ? currentArticle.photoURL : ''}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
               label="Seuil d'alerte (optionnel)"
               name="seuil"
               type="number"
-              defaultValue={currentArticle && currentArticle.seuil !== undefined ? currentArticle.seuil : ''}
+              value={editArticle.seuil}
+              onChange={e => setEditArticle({ ...editArticle, seuil: e.target.value })}
               fullWidth
               margin="normal"
               inputProps={{ min: 0 }}
@@ -402,8 +313,13 @@ const ManageArticle = () => {
               <Button variant="outlined" color="secondary" onClick={handleCloseModal}>
                 Annuler
               </Button>
-              <Button type="submit" variant="contained" color="primary">
-                Confirmer
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={saving}
+              >
+                {saving ? "Enregistrement..." : "Confirmer"}
               </Button>
             </Box>
           </form>
