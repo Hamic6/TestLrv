@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../../firebaseConfig";
-import { addDoc, collection, getDocs, serverTimestamp, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, getDocs, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
   TextField,
   Grid,
@@ -24,6 +25,18 @@ const StockEntryForm = () => {
     email: "direction@rayonverts.com",
     taxNumber: "Numéro impot :0801888M"
   };
+
+  // Ajout récupération automatique du nom utilisateur connecté
+  const [userName, setUserName] = useState("");
+  useEffect(() => {
+    const authInstance = getAuth();
+    const unsubscribe = onAuthStateChanged(authInstance, (user) => {
+      if (user) {
+        setUserName(user.displayName || "Utilisateur");
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Numéro de bon de commande auto-incrémenté
   const [orderNumber, setOrderNumber] = useState("");
@@ -132,44 +145,27 @@ const StockEntryForm = () => {
       // Incrémente le numéro de bon
       await setDoc(doc(db, 'metadata', 'lastOrderNumber'), { number: Number(orderNumber) });
 
-      // Ajout du bon de commande (avec les entrées)
+      // Récupère les articles sélectionnés pour les stocker dans le bon de commande
+      const articles = entries.map(entry => {
+        const product = products.find(p => p.id === entry.productId);
+        return {
+          ...entry,
+          name: product?.name || "",
+          article: product || null, // Ajoute l'objet article complet si besoin
+        };
+      });
+
+      // Ajout du bon de commande (avec les entrées et les articles)
       await addDoc(collection(db, "bon_de_commande"), {
         orderNumber,
         companyInfo,
         client: clientInfo,
-        entries,
+        entries: articles, // On stocke les articles enrichis ici
         grandTotal: calculateGrandTotal().toFixed(2),
         date: serverTimestamp(),
         userId: auth?.currentUser?.uid || null,
+        userName, // Ajoute le nom de l'utilisateur ici
       });
-
-      // Ajout des mouvements de stock dans "stockMovements"
-      for (const entry of entries) {
-        // Ajout du mouvement de stock
-        await addDoc(collection(db, "stockMovements"), {
-          productId: entry.productId,
-          name: products.find(p => p.id === entry.productId)?.name || "",
-          reference: entry.reference,
-          unit: entry.unit,
-          quantity: entry.quantity,
-          unitPrice: entry.unitPrice,
-          total: entry.total || (Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2),
-          orderNumber,
-          type: "entrée",
-          createdAt: serverTimestamp(),
-          userId: auth?.currentUser?.uid || null,
-        });
-
-        // Mise à jour du stock dans la fiche article
-        const articleRef = doc(db, "articles", entry.productId);
-        const articleSnap = await getDoc(articleRef);
-        let oldStock = 0;
-        if (articleSnap.exists() && articleSnap.data().stock) {
-          oldStock = Number(articleSnap.data().stock);
-        }
-        const newStock = oldStock + Number(entry.quantity);
-        await updateDoc(articleRef, { stock: newStock });
-      }
 
       setAlertMessage("Entrée de stock enregistrée avec succès !");
       setAlertSeverity("success");
@@ -329,6 +325,13 @@ const StockEntryForm = () => {
         <Typography variant="h6" sx={{ mt: 2 }}>
           Total : {calculateGrandTotal()} USD
         </Typography>
+        <TextField
+          label="Utilisateur"
+          value={userName}
+          fullWidth
+          disabled
+          sx={{ mb: 2 }}
+        />
         <Button
           type="submit"
           variant="contained"

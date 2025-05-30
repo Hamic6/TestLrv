@@ -2,11 +2,17 @@ import React, { useEffect, useState } from "react";
 import { db, auth } from "../../firebaseConfig";
 import { collection, getDocs, updateDoc, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import {
-  Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Chip, Menu, MenuItem, TableContainer, useMediaQuery
+  Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Chip, Menu, MenuItem, TableContainer, useMediaQuery,
+  Dialog, DialogTitle, DialogContent, IconButton, Box
 } from "@mui/material";
 import FiltreValidation from "./FiltreValidation";
-import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon, HourglassEmpty as HourglassEmptyIcon } from "@mui/icons-material";
+import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon, HourglassEmpty as HourglassEmptyIcon, MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
+import QRCode from "qrcode";
+import Bdcpdf, { BdcpdfDocument } from "./Bdcpdf";
+import PreviewOutlinedIcon from "@mui/icons-material/PreviewOutlined";
+import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
 const STATUS_LABELS = {
   en_attente: "En attente",
@@ -20,11 +26,16 @@ const STATUS_COLORS = {
   refusé: "error"
 };
 
-const ValidationBonLivraison = () => {
+const ValidationBdc = () => {
   const [bons, setBons] = useState([]);
   const [filteredBons, setFilteredBons] = useState([]);
+  const [sortOrder, setSortOrder] = useState("desc"); // "asc" ou "desc"
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentBonId, setCurrentBonId] = useState(null);
+  const [openPdf, setOpenPdf] = useState(false);
+  const [selectedBdc, setSelectedBdc] = useState(null);
+  const [qrCodes, setQrCodes] = useState({});
+  const [anchorElActions, setAnchorElActions] = useState(null); // Pour le menu actions mobile
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -43,16 +54,34 @@ const ValidationBonLivraison = () => {
     fetchBons();
   }, []);
 
-  // Met à jour le statut et incrémente le stock si accepté
+  useEffect(() => {
+    // Génère tous les QR codes à l'avance pour chaque bon (pour le téléchargement)
+    const generateAllQRCodes = async () => {
+      const codes = {};
+      for (const bon of bons) {
+        codes[bon.id] = await QRCode.toDataURL("https://rayonverts.com/");
+      }
+      setQrCodes(codes);
+    };
+    if (bons.length) generateAllQRCodes();
+  }, [bons]);
+
+  // Tri des bons selon le numéro
+  useEffect(() => {
+    const sorted = [...filteredBons].sort((a, b) => {
+      const numA = Number(a.orderNumber);
+      const numB = Number(b.orderNumber);
+      return sortOrder === "asc" ? numA - numB : numB - numA;
+    });
+    setFilteredBons(sorted);
+  }, [sortOrder, bons]);
+
   const handleStatusChange = async (id, statut) => {
-    // Trouver le bon concerné
     const bon = bons.find(b => b.id === id);
     await updateDoc(doc(db, "bon_de_commande", id), { statut });
 
-    // Si accepté, incrémente le stock et ajoute un mouvement d'entrée
     if (statut === "accepté" && bon && bon.entries) {
       for (const entry of bon.entries) {
-        // Ajout du mouvement de stock (entrée)
         await addDoc(collection(db, "stockMovements"), {
           productId: entry.productId,
           name: entry.name || "",
@@ -67,7 +96,6 @@ const ValidationBonLivraison = () => {
           userId: auth?.currentUser?.uid || null,
         });
 
-        // Mise à jour du stock dans la fiche article
         const articleRef = doc(db, "articles", entry.productId);
         const articleSnap = await getDoc(articleRef);
         let oldStock = 0;
@@ -82,6 +110,7 @@ const ValidationBonLivraison = () => {
     setBons(prev => prev.map(b => b.id === id ? { ...b, statut } : b));
     setFilteredBons(prev => prev.map(b => b.id === id ? { ...b, statut } : b));
     handleCloseMenu();
+    setAnchorElActions(null);
   };
 
   const handleClickChip = (event, id) => {
@@ -98,10 +127,29 @@ const ValidationBonLivraison = () => {
     setFilteredBons(filtered);
   };
 
+  const handleOpenPdf = (bon) => {
+    setSelectedBdc(bon);
+    setOpenPdf(true);
+    setAnchorElActions(null);
+  };
+
+  const handleClosePdf = () => {
+    setOpenPdf(false);
+    setSelectedBdc(null);
+  };
+
   return (
     <Paper sx={{ p: 2 }}>
       <Typography variant="h5" gutterBottom>Validation des Bons de Commande</Typography>
       <FiltreValidation onApplyFilters={handleApplyFilters} collectionName="bon_de_commande" />
+      <Button
+        variant="outlined"
+        size="small"
+        sx={{ mb: 2 }}
+        onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+      >
+        Trier par numéro {sortOrder === "asc" ? "↓" : "↑"}
+      </Button>
       <TableContainer sx={{ maxWidth: "100vw", overflowX: "auto" }}>
         <Table size={isMobile ? "small" : "medium"}>
           <TableHead>
@@ -110,7 +158,7 @@ const ValidationBonLivraison = () => {
               {!isMobile && <TableCell>Fournisseur</TableCell>}
               <TableCell>Date</TableCell>
               <TableCell>Statut</TableCell>
-              {!isMobile && <TableCell>Actions</TableCell>}
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -155,20 +203,71 @@ const ValidationBonLivraison = () => {
                     </MenuItem>
                   </Menu>
                 </TableCell>
-                {!isMobile && (
-                  <TableCell>
-                    {bon.statut !== "accepté" && (
-                      <Button
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        onClick={() => handleStatusChange(bon.id, "accepté")}
+                <TableCell>
+                  {isMobile ? (
+                    <>
+                      <IconButton onClick={e => setAnchorElActions({ anchor: e.currentTarget, bon })}>
+                        <MoreVertIcon />
+                      </IconButton>
+                      <Menu
+                        anchorEl={anchorElActions?.anchor}
+                        open={Boolean(anchorElActions) && anchorElActions.bon.id === bon.id}
+                        onClose={() => setAnchorElActions(null)}
                       >
-                        Valider
-                      </Button>
-                    )}
-                  </TableCell>
-                )}
+                        <MenuItem onClick={() => handleOpenPdf(bon)}>
+                          <PreviewOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Aperçu
+                        </MenuItem>
+                        <MenuItem
+                          component={PDFDownloadLink}
+                          document={<BdcpdfDocument bdc={bon} qrCodeUrl={qrCodes[bon.id] || ""} />}
+                          fileName={`BDC_${bon.orderNumber || bon.id}.pdf`}
+                          style={{ color: "inherit", textDecoration: "none" }}
+                          onClick={() => setAnchorElActions(null)}
+                        >
+                          <PictureAsPdfOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Télécharger PDF
+                        </MenuItem>
+                        {bon.statut !== "accepté" && (
+                          <MenuItem onClick={() => { handleStatusChange(bon.id, "accepté"); setAnchorElActions(null); }}>
+                            <CheckCircleIcon color="success" fontSize="small" sx={{ mr: 1 }} /> Valider
+                          </MenuItem>
+                        )}
+                      </Menu>
+                    </>
+                  ) : (
+                    <Box display="flex" alignItems="center">
+                      <IconButton color="primary" onClick={() => handleOpenPdf(bon)}>
+                        <PreviewOutlinedIcon />
+                      </IconButton>
+                      <PDFDownloadLink
+                        document={
+                          <BdcpdfDocument
+                            bdc={bon}
+                            qrCodeUrl={qrCodes[bon.id] || ""}
+                          />
+                        }
+                        fileName={`BDC_${bon.orderNumber || bon.id}.pdf`}
+                        style={{ textDecoration: "none", marginLeft: 8 }}
+                      >
+                        {({ loading }) => (
+                          <IconButton color="error">
+                            <PictureAsPdfOutlinedIcon />
+                          </IconButton>
+                        )}
+                      </PDFDownloadLink>
+                      {bon.statut !== "accepté" && (
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          onClick={() => handleStatusChange(bon.id, "accepté")}
+                          sx={{ ml: 1 }}
+                        >
+                          Valider
+                        </Button>
+                      )}
+                    </Box>
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -179,8 +278,19 @@ const ValidationBonLivraison = () => {
           Aucun bon de commande à afficher.
         </Typography>
       )}
+      <Dialog
+        open={openPdf}
+        onClose={handleClosePdf}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>Aperçu du Bon de Commande</DialogTitle>
+        <DialogContent sx={{ height: 900 }}>
+          {selectedBdc && <Bdcpdf bdc={selectedBdc} />}
+        </DialogContent>
+      </Dialog>
     </Paper>
   );
 };
 
-export default ValidationBonLivraison;
+export default ValidationBdc;

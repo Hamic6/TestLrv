@@ -54,7 +54,7 @@ const StockEntryForm = async(() => import("@/pages/gestion-stock/StockEntryForm"
 const AddProducts = async(() => import("@/pages/gestion-stock/AddProducts"));
 const ManageArticle = async(() => import("@/pages/gestion-stock/ManageArticle"));
 const StockOutForm = async(() => import("@/pages/gestion-stock/StockOutForm"));
-const ValidationBonLivraison = async(() => import("@/pages/gestion-stock/ValidationBonLivraison"));
+const ValidationBonLivraison = async(() => import("@/pages/gestion-stock/ValidationBdc"));
 
 // Définition des routes
 const routes = [

@@ -20,10 +20,17 @@ import {
   Select,
   MenuItem,
   Stack,
-  useMediaQuery
+  useMediaQuery,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useTheme } from "@mui/material/styles";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 const ManageArticle = () => {
   const [articles, setArticles] = useState([]);
@@ -35,12 +42,17 @@ const ManageArticle = () => {
     category: "",
     unit: "",
     description: "",
-    seuil: ""
+    seuil: "",
+    photoURL: ""
   });
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [articleToDelete, setArticleToDelete] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -68,7 +80,8 @@ const ManageArticle = () => {
         category: currentArticle.category || "",
         unit: currentArticle.unit || "",
         description: currentArticle.description || "",
-        seuil: currentArticle.seuil !== undefined ? currentArticle.seuil : ""
+        seuil: currentArticle.seuil !== undefined ? currentArticle.seuil : "",
+        photoURL: currentArticle.photoURL || ""
       });
     } else if (openModal && !currentArticle) {
       setEditArticle({
@@ -77,10 +90,22 @@ const ManageArticle = () => {
         category: "",
         unit: "",
         description: "",
-        seuil: ""
+        seuil: "",
+        photoURL: ""
       });
     }
   }, [openModal, currentArticle]);
+
+  // Gestion de l'upload de la photo (modifiée pour stocker le fichier)
+  const handlePhotoChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setPhotoFile(e.target.files[0]);
+      setEditArticle(prev => ({
+        ...prev,
+        photoURL: URL.createObjectURL(e.target.files[0]), // Pour l'aperçu
+      }));
+    }
+  };
 
   const handleOpenModal = (article) => {
     setCurrentArticle(article);
@@ -94,36 +119,89 @@ const ManageArticle = () => {
 
   const handleSaveArticle = async (event) => {
     event.preventDefault();
+    if (uploading) {
+      setSnackbarMessage("Veuillez attendre la fin du téléchargement de la photo.");
+      setSnackbarOpen(true);
+      return;
+    }
     setSaving(true);
 
-    const articleData = {
-      ...editArticle,
-      seuil: editArticle.seuil ? Number(editArticle.seuil) : undefined
-    };
-
+    let photoURL = editArticle.photoURL;
     try {
+      // Si un nouveau fichier a été sélectionné, on l'upload
+      if (photoFile) {
+        setUploading(true);
+        const storage = getStorage();
+        const storageRef = ref(storage, `articles/${Date.now()}_${photoFile.name}`);
+        await uploadBytes(storageRef, photoFile);
+        photoURL = await getDownloadURL(storageRef);
+        setUploading(false);
+      }
+
+      const articleData = {
+        ...editArticle,
+        photoURL: photoURL || "",
+        seuil: editArticle.seuil ? Number(editArticle.seuil) : undefined
+      };
+
       if (currentArticle) {
         await updateDoc(doc(db, "articles", currentArticle.id), articleData);
       } else {
         await addDoc(collection(db, "articles"), articleData);
       }
-      setOpenModal(false);
 
+      // Recharge la liste APRÈS la sauvegarde
       const querySnapshot = await getDocs(collection(db, "articles"));
       const articlesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setArticles(articlesList);
 
       setSnackbarMessage('L\'article a été enregistré avec succès.');
       setSnackbarOpen(true);
+
+      // Réinitialise le formulaire et ferme la modale
+      setCurrentArticle(null);
+      setEditArticle({
+        name: "",
+        reference: "",
+        category: "",
+        unit: "",
+        description: "",
+        seuil: "",
+        photoURL: ""
+      });
+      setPhotoFile(null);
+      setOpenModal(false);
     } catch (error) {
+      setSnackbarMessage("Erreur lors de l'enregistrement de l'article.");
+      setSnackbarOpen(true);
+      setUploading(false);
       console.error("Erreur lors de l'enregistrement de l'article :", error);
     }
     setSaving(false);
   };
 
-  const handleDeleteArticle = async (id) => {
-    await deleteDoc(doc(db, "articles", id));
-    setArticles(articles.filter(article => article.id !== id));
+  // Ouvre la boîte de dialogue de suppression
+  const handleAskDeleteArticle = (article) => {
+    setArticleToDelete(article);
+    setDeleteDialogOpen(true);
+  };
+
+  // Confirme la suppression
+  const handleConfirmDeleteArticle = async () => {
+    if (articleToDelete) {
+      await deleteDoc(doc(db, "articles", articleToDelete.id));
+      setArticles(articles.filter(article => article.id !== articleToDelete.id));
+      setSnackbarMessage("Article supprimé avec succès.");
+      setSnackbarOpen(true);
+    }
+    setDeleteDialogOpen(false);
+    setArticleToDelete(null);
+  };
+
+  // Annule la suppression
+  const handleCancelDeleteArticle = () => {
+    setDeleteDialogOpen(false);
+    setArticleToDelete(null);
   };
 
   const handleSnackbarClose = () => {
@@ -134,6 +212,33 @@ const ManageArticle = () => {
   const filteredArticles = articles.filter(article =>
     article.name?.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Supprime la photo de l'article
+  const handleRemovePhoto = async () => {
+    if (!editArticle.photoURL) return;
+    try {
+      // Supprime la photo du storage si c'est une URL Firebase Storage
+      if (photoFile || (editArticle.photoURL && editArticle.photoURL.startsWith("https://firebasestorage"))) {
+        const storage = getStorage();
+        // On tente de retrouver le chemin du fichier à partir de l'URL
+        // (optionnel, car deleteObject échouera si ce n'est pas une URL Firebase Storage)
+        const url = editArticle.photoURL;
+        const baseUrl = "https://firebasestorage.googleapis.com/v0/b/";
+        if (url.startsWith(baseUrl)) {
+          // On tente de supprimer, mais si ça échoue ce n'est pas bloquant
+          const pathStart = url.indexOf("/o/") + 3;
+          const pathEnd = url.indexOf("?");
+          const filePath = decodeURIComponent(url.substring(pathStart, pathEnd));
+          const photoRef = ref(storage, filePath);
+          await deleteObject(photoRef).catch(() => {});
+        }
+      }
+    } catch (e) {}
+    setEditArticle(prev => ({ ...prev, photoURL: "" }));
+    setPhotoFile(null);
+    setSnackbarMessage("Photo retirée.");
+    setSnackbarOpen(true);
+  };
 
   return (
     <div>
@@ -211,7 +316,7 @@ const ManageArticle = () => {
                 <Button
                   variant="outlined"
                   color="error"
-                  onClick={() => handleDeleteArticle(article.id)}
+                  onClick={() => handleAskDeleteArticle(article)}
                   sx={{ textTransform: "none" }}
                 >
                   Supprimer
@@ -248,6 +353,41 @@ const ManageArticle = () => {
             {currentArticle ? 'Modifier l\'Article' : 'Créer un Article'}
           </Typography>
           <form onSubmit={handleSaveArticle}>
+            {/* Section photo */}
+            <Box display="flex" alignItems="center" mb={2}>
+              {editArticle.photoURL ? (
+                <>
+                  <Avatar
+                    src={editArticle.photoURL}
+                    alt="photo"
+                    sx={{ width: 56, height: 56, mr: 2 }}
+                  />
+                  <IconButton
+                    color="error"
+                    onClick={handleRemovePhoto}
+                    aria-label="Retirer la photo"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    disabled={uploading}
+                  >
+                    {uploading ? "Téléchargement..." : "Ajouter une photo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handlePhotoChange}
+                    />
+                  </Button>
+                </>
+              )}
+            </Box>
             <TextField
               label="Nom"
               name="name"
@@ -317,14 +457,33 @@ const ManageArticle = () => {
                 type="submit"
                 variant="contained"
                 color="primary"
-                disabled={saving}
+                disabled={saving || uploading} // Désactive pendant l'upload
               >
-                {saving ? "Enregistrement..." : "Confirmer"}
+                {saving ? "Enregistrement..." : uploading ? "Téléchargement..." : "Confirmer"}
               </Button>
             </Box>
           </form>
         </Box>
       </Modal>
+
+      {/* Boîte de dialogue de confirmation de suppression */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCancelDeleteArticle}
+      >
+        <DialogTitle>Confirmation de suppression</DialogTitle>
+        <DialogContent>
+          Êtes-vous sûr de vouloir supprimer cet article&nbsp;?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDeleteArticle} color="primary" variant="outlined">
+            Non
+          </Button>
+          <Button onClick={handleConfirmDeleteArticle} color="error" variant="contained">
+            Oui
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbarOpen}
