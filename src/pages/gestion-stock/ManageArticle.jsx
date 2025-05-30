@@ -25,7 +25,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  TablePagination
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -53,6 +54,8 @@ const ManageArticle = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -128,7 +131,6 @@ const ManageArticle = () => {
 
     let photoURL = editArticle.photoURL;
     try {
-      // Si un nouveau fichier a été sélectionné, on l'upload
       if (photoFile) {
         setUploading(true);
         const storage = getStorage();
@@ -138,11 +140,17 @@ const ManageArticle = () => {
         setUploading(false);
       }
 
+      // Prépare les données sans undefined pour Firestore
       const articleData = {
         ...editArticle,
-        photoURL: photoURL || "",
-        seuil: editArticle.seuil ? Number(editArticle.seuil) : undefined
+        photoURL: photoURL || ""
       };
+      // Si seuil est vide ou non numérique, on ne l'ajoute pas
+      if (editArticle.seuil !== "" && !isNaN(Number(editArticle.seuil))) {
+        articleData.seuil = Number(editArticle.seuil);
+      } else {
+        delete articleData.seuil;
+      }
 
       if (currentArticle) {
         await updateDoc(doc(db, "articles", currentArticle.id), articleData);
@@ -208,10 +216,24 @@ const ManageArticle = () => {
     setSnackbarOpen(false);
   };
 
-  // Recherche sur le nom de l'article
-  const filteredArticles = articles.filter(article =>
-    article.name?.toLowerCase().includes(search.toLowerCase())
-  );
+  // Recherche et tri alphabétique sur le nom de l'article
+  const filteredArticles = articles
+    .filter(article =>
+      article.name?.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => (a.name || "").localeCompare(b.name || "", "fr", { sensitivity: "base" }));
+
+  // Pagination
+  const paginatedArticles = filteredArticles.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  // Handlers pour la pagination
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   // Supprime la photo de l'article
   const handleRemovePhoto = async () => {
@@ -272,7 +294,7 @@ const ManageArticle = () => {
       </Button>
 
       <Grid container spacing={3}>
-        {filteredArticles.map((article) => (
+        {paginatedArticles.map((article) => (
           <Grid item xs={12} sm={6} md={4} key={article.id}>
             <Card>
               <CardContent>
@@ -326,6 +348,18 @@ const ManageArticle = () => {
           </Grid>
         ))}
       </Grid>
+
+      <TablePagination
+        component="div"
+        count={filteredArticles.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 20]}
+        labelRowsPerPage="Articles par page :"
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+      />
 
       <Modal
         open={openModal}

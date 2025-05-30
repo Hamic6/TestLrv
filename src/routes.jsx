@@ -55,6 +55,7 @@ const AddProducts = async(() => import("@/pages/gestion-stock/AddProducts"));
 const ManageArticle = async(() => import("@/pages/gestion-stock/ManageArticle"));
 const StockOutForm = async(() => import("@/pages/gestion-stock/StockOutForm"));
 const ValidationBonLivraison = async(() => import("@/pages/gestion-stock/ValidationBdc"));
+const GestionLivraison = async(() => import("@/pages/gestion-stock/GestionLivraison"));
 
 // Définition des routes
 const routes = [
@@ -274,6 +275,10 @@ const routes = [
       {
         path: "delivery-note",
         element: <StockOutForm />,
+      },
+      {
+        path: "delivery-management", // Ajoute cette route pour la gestion des bons de livraison
+        element: <GestionLivraison />,
       },
       {
         path: "validation/management",

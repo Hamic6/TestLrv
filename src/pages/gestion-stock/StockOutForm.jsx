@@ -31,13 +31,16 @@ const StockOutForm = () => {
     fetchClients();
   }, []);
   const [selectedClient, setSelectedClient] = useState("");
-  const [clientInfo, setClientInfo] = useState({ name: "", address: "", phone: "", email: "", responsable: "" });
+  const [clientInfo, setClientInfo] = useState({ name: "", address: "", phone: "", email: "", receveur: "" });
   useEffect(() => {
     if (selectedClient) {
       const client = clients.find(c => c.id === selectedClient);
-      if (client) setClientInfo(client);
+      if (client) setClientInfo({ ...client, receveur: "" });
     }
   }, [selectedClient, clients]);
+
+  // Champ livreur
+  const [livreur, setLivreur] = useState("");
 
   // Articles
   const [products, setProducts] = useState([]);
@@ -49,7 +52,7 @@ const StockOutForm = () => {
     fetchProducts();
   }, []);
   const [entries, setEntries] = useState([
-    { productId: "", reference: "", quantity: "", unit: "", unitPrice: "" }
+    { productId: "", reference: "", quantity: "", unit: "" }
   ]);
   const handleEntryChange = (index, e) => {
     const { name, value } = e.target;
@@ -62,7 +65,6 @@ const StockOutForm = () => {
               ...entry,
               productId: value,
               reference: selectedProduct?.reference || "",
-              unitPrice: selectedProduct?.unitPrice || "",
               unit: selectedProduct?.unit || "",
             };
           }
@@ -72,10 +74,8 @@ const StockOutForm = () => {
       })
     );
   };
-  const addEntry = () => setEntries([...entries, { productId: "", reference: "", quantity: "", unit: "", unitPrice: "" }]);
+  const addEntry = () => setEntries([...entries, { productId: "", reference: "", quantity: "", unit: "" }]);
   const removeEntry = (index) => setEntries(entries.filter((_, i) => i !== index));
-  const calculateGrandTotal = () =>
-    entries.reduce((sum, entry) => sum + (Number(entry.quantity) * Number(entry.unitPrice) || 0), 0);
 
   // Alertes
   const [loading, setLoading] = useState(false);
@@ -92,8 +92,14 @@ const StockOutForm = () => {
       setAlertOpen(true);
       return;
     }
+    if (!livreur) {
+      setAlertMessage("Veuillez renseigner le nom du livreur.");
+      setAlertSeverity("error");
+      setAlertOpen(true);
+      return;
+    }
     for (const entry of entries) {
-      if (!entry.productId || !entry.quantity || Number(entry.quantity) <= 0 || !entry.unitPrice || Number(entry.unitPrice) <= 0) {
+      if (!entry.productId || !entry.quantity || Number(entry.quantity) <= 0) {
         setAlertMessage("Veuillez remplir tous les champs obligatoires avec des valeurs valides.");
         setAlertSeverity("error");
         setAlertOpen(true);
@@ -105,25 +111,22 @@ const StockOutForm = () => {
       await setDoc(doc(db, 'metadata', 'lastDeliveryNumber'), { number: Number(orderNumber) });
       await addDoc(collection(db, "bon_de_livraison"), {
         orderNumber,
-        client: clientInfo,
+        client: { ...clientInfo, receveur: clientInfo.receveur },
+        livreur,
         entries,
-        grandTotal: calculateGrandTotal(),
         date: serverTimestamp(),
         userId: auth?.currentUser?.uid || null,
-        validated: false, // Par défaut, à valider
+        validated: false,
       });
 
       // Décrémente le stock et ajoute un mouvement de sortie pour chaque article
       for (const entry of entries) {
-        // Ajout du mouvement de stock (sortie)
         await addDoc(collection(db, "stockMovements"), {
           productId: entry.productId,
           name: products.find(p => p.id === entry.productId)?.name || "",
           reference: entry.reference,
           unit: entry.unit,
           quantity: entry.quantity,
-          unitPrice: entry.unitPrice,
-          total: entry.total || (Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2),
           orderNumber,
           type: "sortie",
           createdAt: serverTimestamp(),
@@ -144,9 +147,10 @@ const StockOutForm = () => {
       setAlertMessage("Bon de livraison enregistré avec succès !");
       setAlertSeverity("success");
       setAlertOpen(true);
-      setEntries([{ productId: "", reference: "", quantity: "", unit: "", unitPrice: "" }]);
+      setEntries([{ productId: "", reference: "", quantity: "", unit: "" }]);
       setSelectedClient("");
-      setClientInfo({ name: "", address: "", phone: "", email: "", responsable: "" });
+      setClientInfo({ name: "", address: "", phone: "", email: "", receveur: "" });
+      setLivreur("");
     } catch (error) {
       setAlertMessage("Erreur lors de l'enregistrement du bon de livraison.");
       setAlertSeverity("error");
@@ -184,9 +188,16 @@ const StockOutForm = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Responsable"
-              value={clientInfo.responsable || ""}
-              onChange={e => setClientInfo({ ...clientInfo, responsable: e.target.value })}
+              label="Receveur"
+              value={clientInfo.receveur || ""}
+              onChange={e => setClientInfo({ ...clientInfo, receveur: e.target.value })}
+              fullWidth
+              sx={{ mb: 1 }}
+            />
+            <TextField
+              label="Livreur"
+              value={livreur}
+              onChange={e => setLivreur(e.target.value)}
               fullWidth
               sx={{ mb: 1 }}
             />
@@ -200,7 +211,7 @@ const StockOutForm = () => {
         <Typography variant="h6" sx={{ mt: 2 }}>Articles</Typography>
         {entries.map((entry, index) => (
           <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={4}>
               <FormControl fullWidth required>
                 <InputLabel>Article</InputLabel>
                 <Select
@@ -217,7 +228,7 @@ const StockOutForm = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={4}>
               <TextField
                 name="reference"
                 label="Référence"
@@ -226,7 +237,7 @@ const StockOutForm = () => {
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={4}>
               <TextField
                 name="quantity"
                 label="Quantité"
@@ -237,41 +248,7 @@ const StockOutForm = () => {
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={2}>
-              <FormControl fullWidth required>
-                <InputLabel>Unité</InputLabel>
-                <Select
-                  name="unit"
-                  value={entry.unit}
-                  label="Unité"
-                  onChange={e => handleEntryChange(index, e)}
-                >
-                  <MenuItem value="pcs">Pièce</MenuItem>
-                  <MenuItem value="boite">Boîte</MenuItem>
-                  <MenuItem value="kg">Kg</MenuItem>
-                  <MenuItem value="g">g</MenuItem>
-                  <MenuItem value="L">Litre</MenuItem>
-                  <MenuItem value="ml">ml</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={2}>
-              <TextField
-                name="unitPrice"
-                label="Prix Unitaire (USD)"
-                type="number"
-                value={entry.unitPrice}
-                onChange={e => handleEntryChange(index, e)}
-                required
-                fullWidth
-              />
-            </Grid>
             <Grid item xs={12} sm={1} sx={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                {Number(entry.quantity) > 0 && Number(entry.unitPrice) > 0
-                  ? `Sous-total: ${(Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2)} USD`
-                  : ""}
-              </Typography>
               <Button
                 color="error"
                 onClick={() => removeEntry(index)}
@@ -286,9 +263,6 @@ const StockOutForm = () => {
         <Button onClick={addEntry} sx={{ mb: 2 }}>
           Ajouter un article
         </Button>
-        <Typography variant="h6" sx={{ mt: 2 }}>
-          Total : {calculateGrandTotal()} USD
-        </Typography>
         <Button
           type="submit"
           variant="contained"

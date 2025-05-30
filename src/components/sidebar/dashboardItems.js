@@ -25,6 +25,7 @@ import {
   MoveToInbox, // Ajouté pour Formulaire d'entrée de stock (alternative)
   AddBox, // Nouvelle icône pour "Ajouter un Article"
   VerifiedUser as VerifiedUserIcon,
+  LocalShipping as LocalShippingIcon, // Ajoute cette ligne
 } from '@mui/icons-material';
 import React, { useContext } from 'react';
 import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
@@ -176,9 +177,9 @@ const generatePagesSection = (roles = []) => {
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
-          href: "/stock/reports",
-          icon: Archive,
-          title: "Rapports de Stock",
+          href: "/stock/delivery-management",
+          icon: LocalShippingIcon, // Remplace Archive par LocalShippingIcon
+          title: "Gestion des bons de livraison",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
@@ -194,27 +195,7 @@ const generatePagesSection = (roles = []) => {
               parentModule: "Gestion de Stock",
               visible: isAdmin || roles.includes('gestion-de-stock'),
             },
-            {
-              href: "/validation/approved",
-              icon: CheckCircle,
-              parentModule: "Gestion de Stock",
-              title: "Approuvées",
-              visible: isAdmin || roles.includes('gestion-de-stock'),
-            },
-            {
-              href: "/validation/rejected",
-              icon: CheckCircle,
-              parentModule: "Gestion de Stock",
-              title: "Rejetées",
-              visible: isAdmin || roles.includes('gestion-de-stock'),
-            },
-            {
-              href: "/validation/logs",
-              icon: CheckCircle,
-              parentModule: "Gestion de Stock",
-              title: "Historique de Validation",
-              visible: isAdmin || roles.includes('gestion-de-stock'),
-            },
+           
           ],
         },
       ],
