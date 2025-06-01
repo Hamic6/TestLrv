@@ -17,20 +17,40 @@ import {
   Menu,
   MenuItem,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  TextField,
   Box,
   Stack,
   useMediaQuery
 } from '@mui/material';
 import { useTheme } from "@mui/material/styles";
-import { Archive as ArchiveIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import WarningIcon from '@mui/icons-material/Warning';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import Invoice1PDF from './Invoice1PDF';
 import Filters from './Filters';
 import { useNavigate } from "react-router-dom";
+
+const statusIcons = {
+  'Payé': <CheckCircleIcon fontSize="small" sx={{ mr: 0.5 }} />,
+  'Non payé': <ErrorIcon fontSize="small" sx={{ mr: 0.5 }} />,
+  'Envoyé': <HourglassEmptyIcon fontSize="small" sx={{ mr: 0.5 }} />,
+  'Vide': <RemoveCircleOutlineIcon fontSize="small" sx={{ mr: 0.5 }} />,
+  'Erreur': <WarningIcon fontSize="small" sx={{ mr: 0.5 }} />,
+};
+
+const statusColors = {
+  'Payé': 'success',
+  'Envoyé': 'warning',
+  'Non payé': 'error',
+  'Vide': 'default',
+  'Erreur': 'secondary',
+};
 
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState([]);
@@ -41,6 +61,8 @@ const InvoiceList = () => {
   const [selected, setSelected] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentInvoiceId, setCurrentInvoiceId] = useState(null);
+  const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
+  const [actionMenuInvoiceId, setActionMenuInvoiceId] = useState(null);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -50,7 +72,6 @@ const InvoiceList = () => {
       try {
         const querySnapshot = await getDocs(collection(db, "invoices"));
         const invoicesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log("Factures récupérées:", invoicesList); // Journalisation des factures récupérées
 
         // Tri des factures par numéro de facture en ordre décroissant
         const sortedInvoices = invoicesList.sort((a, b) => {
@@ -73,6 +94,7 @@ const InvoiceList = () => {
     handleApplyFilters(filters);
   }, [filters]);
 
+  // Pour le menu de statut
   const handleClickChip = (event, id) => {
     setAnchorEl(event.currentTarget);
     setCurrentInvoiceId(id);
@@ -98,6 +120,17 @@ const InvoiceList = () => {
     } catch (error) {
       console.error("Erreur lors de la mise à jour du statut de la facture :", error);
     }
+  };
+
+  // Pour le menu d'actions sur mobile
+  const handleActionMenuOpen = (event, id) => {
+    setActionMenuAnchor(event.currentTarget);
+    setActionMenuInvoiceId(id);
+  };
+
+  const handleActionMenuClose = () => {
+    setActionMenuAnchor(null);
+    setActionMenuInvoiceId(null);
   };
 
   const handleArchive = async (id) => {
@@ -290,26 +323,39 @@ const InvoiceList = () => {
                     {!isMobile && <TableCell>{invoice.total}</TableCell>}
                     {!isMobile && <TableCell>{invoice.invoiceInfo?.currency || ''}</TableCell>}
                     {!isMobile && (
-                      <TableCell>
-                        {invoice.services && Array.isArray(invoice.services) ? invoice.services.map((service, idx) => (
-                          <div key={idx}>
-                            {service.description} - {service.libelle} - {service.quantity} - {service.unitPrice} - {service.amount}
-                          </div>
-                        )) : ''}
+                      <TableCell sx={{ minWidth: 180, maxWidth: 220, width: 200 }}>
+                        <Stack direction="column" spacing={0.5}>
+                          {invoice.services && Array.isArray(invoice.services) ? (
+                            <>
+                              {invoice.services.slice(0, 2).map((service, idx) => (
+                                <Chip
+                                  key={idx}
+                                  label={service.description}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ mb: 0.5, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                />
+                              ))}
+                              {invoice.services.length > 2 && (
+                                <Chip
+                                  label={`+${invoice.services.length - 2} autre(s)`}
+                                  size="small"
+                                  variant="outlined"
+                                  color="info"
+                                  sx={{ mb: 0.5, maxWidth: 180 }}
+                                />
+                              )}
+                            </>
+                          ) : ''}
+                        </Stack>
                       </TableCell>
                     )}
                     {/* Statut */}
                     <TableCell>
                       <Chip
+                        icon={statusIcons[invoice.status] || null}
                         label={invoice.status}
-                        color={
-                          invoice.status === 'Payé' ? 'success' :
-                          invoice.status === 'Envoyé' ? 'warning' :
-                          invoice.status === 'Non payé' ? 'error' :
-                          invoice.status === 'Vide' ? 'default' :
-                          invoice.status === 'Erreur' ? 'secondary' :
-                          'default'
-                        }
+                        color={statusColors[invoice.status] || 'default'}
                         onClick={(event) => handleClickChip(event, invoice.id)}
                         clickable
                         size={isMobile ? "small" : "medium"}
@@ -317,10 +363,20 @@ const InvoiceList = () => {
                           fontWeight: 600,
                           fontSize: isMobile ? 12 : 14,
                           minWidth: isMobile ? 32 : 80,
-                          px: isMobile ? 0.5 : 2
+                          px: isMobile ? 0.5 : 2,
+                          transition: 'box-shadow 0.2s, background 0.2s',
+                          '&:hover': {
+                            boxShadow: 2,
+                            backgroundColor: (theme) => {
+                              const color = statusColors[invoice.status] || 'primary';
+                              return theme.palette[color] && theme.palette[color].light
+                                ? theme.palette[color].light
+                                : theme.palette.primary.light;
+                            },
+                          },
                         }}
                       />
-                      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
+                      <Menu anchorEl={anchorEl} open={Boolean(anchorEl) && currentInvoiceId === invoice.id} onClose={handleCloseMenu}>
                         <MenuItem onClick={() => handleMenuItemClick('Payé')}>Payé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Envoyé')}>Envoyé</MenuItem>
                         <MenuItem onClick={() => handleMenuItemClick('Non payé')}>Non payé</MenuItem>
@@ -330,27 +386,50 @@ const InvoiceList = () => {
                     </TableCell>
                     {/* Actions */}
                     <TableCell align="right">
-                      <IconButton
-                        aria-label="archive"
-                        onClick={() => { invoice.archived ? handleUnarchive(invoice.id) : handleArchive(invoice.id) }}
-                        size="large"
-                        style={{ color: invoice.archived ? 'green' : 'gray' }}
-                      >
-                        <ArchiveIcon />
-                      </IconButton>
-                      <PDFDownloadLink document={<Invoice1PDF invoice={invoice} />} fileName={`invoice_${invoice.invoiceInfo?.number}.pdf`}>
-                        {({ loading }) => (
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<PdfIcon />}
-                            size={isMobile ? "small" : "medium"}
-                            sx={{ ml: 1, mb: isMobile ? 0.5 : 0 }}
+                      <>
+                        <IconButton
+                          aria-label="actions"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleActionMenuOpen(e, invoice.id);
+                          }}
+                          size={isMobile ? "small" : "large"}
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
+                        <Menu
+                          anchorEl={actionMenuAnchor}
+                          open={Boolean(actionMenuAnchor) && actionMenuInvoiceId === invoice.id}
+                          onClose={handleActionMenuClose}
+                          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                        >
+                          <MenuItem
+                            onClick={() => {
+                              invoice.archived ? handleUnarchive(invoice.id) : handleArchive(invoice.id);
+                              handleActionMenuClose();
+                            }}
                           >
-                            {loading ? '...' : 'PDF'}
-                          </Button>
-                        )}
-                      </PDFDownloadLink>
+                            {invoice.archived ? (
+                              <>
+                                <UnarchiveIcon fontSize="small" sx={{ mr: 1 }} />
+                                Désarchiver
+                              </>
+                            ) : (
+                              <>
+                                <ArchiveIcon fontSize="small" sx={{ mr: 1 }} />
+                                Archiver
+                              </>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            <PictureAsPdfIcon fontSize="small" sx={{ mr: 1 }} />
+                            <PDFDownloadLink document={<Invoice1PDF invoice={invoice} />} fileName={`invoice_${invoice.invoiceInfo?.number}.pdf`}>
+                              {({ loading }) => loading ? '...' : 'PDF'}
+                            </PDFDownloadLink>
+                          </MenuItem>
+                        </Menu>
+                      </>
                     </TableCell>
                   </TableRow>
                 );

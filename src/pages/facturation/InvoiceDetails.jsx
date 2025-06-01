@@ -393,6 +393,7 @@ const InvoiceDetails = () => {
             labelId="client-select-label"
             value={selectedClient}
             onChange={handleClientChange}
+            required
           >
             {clients.map((client) => (
               <MenuItem key={client.id} value={client.id}>
@@ -401,52 +402,7 @@ const InvoiceDetails = () => {
             ))}
           </Select>
         </FormControl>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              id="company"
-              name="company"
-              label="Entreprise"
-              fullWidth
-              value={billTo.company}
-              onChange={(e) => setBillTo({ ...billTo, company: e.target.value })}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              id="address"
-              name="address"
-              label="Adresse"
-              fullWidth
-              value={billTo.address}
-              onChange={(e) => setBillTo({ ...billTo, address: e.target.value })}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              id="phone"
-              name="phone"
-              label="Téléphone"
-              fullWidth
-              value={billTo.phone}
-              onChange={(e) => setBillTo({ ...billTo, phone: e.target.value })}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              id="email"
-              name="email"
-              label="Email"
-              fullWidth
-              value={billTo.email}
-              onChange={(e) => setBillTo({ ...billTo, email: e.target.value })}
-            />
-          </Grid>
-        </Grid>
+        
         <h3>Services</h3>
         {services.map((service, index) => (
           <div key={index}>

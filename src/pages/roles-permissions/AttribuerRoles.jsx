@@ -37,9 +37,17 @@ import {
   Box, // <-- Ajouté ici
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import Tooltip from '@mui/material/Tooltip';
 import { spacing } from '@mui/system';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Menu from '@mui/material/Menu';
+
 
 const Card = styled(MuiCard)(spacing);
 const CardContent = styled(MuiCardContent)(spacing);
@@ -59,6 +67,20 @@ const roles = [
   'gestion-des-clients',
 ];
 
+const roleIcons = {
+  admin: <AdminPanelSettingsIcon fontSize="small" />,
+  manager: <SupervisorAccountIcon fontSize="small" />,
+  facturation: <ReceiptIcon fontSize="small" />,
+  // Ajoute d'autres rôles/icônes si besoin
+};
+
+const roleColors = {
+  admin: 'error',
+  manager: 'info',
+  facturation: 'success',
+  // Ajoute d'autres couleurs si besoin
+};
+
 const AttribuerRoles = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -72,6 +94,8 @@ const AttribuerRoles = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [menuUserId, setMenuUserId] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -145,6 +169,15 @@ const AttribuerRoles = () => {
     setUserToDelete(null);
   };
 
+  const handleMenuOpen = (event, userId) => {
+    setAnchorEl(event.currentTarget);
+    setMenuUserId(userId);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setMenuUserId(null);
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -209,36 +242,119 @@ const AttribuerRoles = () => {
                             {user.roles && user.roles.map((role) => (
                               <Chip
                                 key={role}
+                                icon={roleIcons[role] || null}
                                 label={role}
-                                color="primary"
+                                color={roleColors[role] || 'default'}
                                 size={isMobile ? 'small' : 'medium'}
-                                sx={{ mb: 0.5 }}
+                                variant="outlined"
+                                sx={{
+                                  mb: 0.5,
+                                  borderRadius: 2,
+                                  fontWeight: 500,
+                                  textTransform: 'capitalize',
+                                  transition: 'background 0.2s, box-shadow 0.2s',
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: (theme) =>
+                                      theme.palette[roleColors[role] || 'primary'].light,
+                                    boxShadow: 2,
+                                  },
+                                }}
                               />
                             ))}
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <IconButton
-                            color="primary"
-                            onClick={() => {
-                              setSelectedUser(user.id);
-                              setNewRolesSelected(user.roles);
-                              setDialogOpen(true);
-                            }}
-                            size={isMobile ? 'small' : 'medium'}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            color="secondary"
-                            onClick={() => {
-                              setUserToDelete(user.id);
-                              setDeleteDialogOpen(true);
-                            }}
-                            size={isMobile ? 'small' : 'medium'}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                          {isMobile ? (
+                            <>
+                              <IconButton
+                                aria-label="actions"
+                                onClick={(e) => handleMenuOpen(e, user.id)}
+                                size="small"
+                              >
+                                <MoreVertIcon />
+                              </IconButton>
+                              <Menu
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl) && menuUserId === user.id}
+                                onClose={handleMenuClose}
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                              >
+                                <MenuItem
+                                  onClick={() => {
+                                    setSelectedUser(user.id);
+                                    setNewRolesSelected(user.roles);
+                                    setDialogOpen(true);
+                                    handleMenuClose();
+                                  }}
+                                >
+                                  <ManageAccountsIcon fontSize="small" sx={{ mr: 1 }} />
+                                  Modifier les rôles
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={() => {
+                                    setUserToDelete(user.id);
+                                    setDeleteDialogOpen(true);
+                                    handleMenuClose();
+                                  }}
+                                >
+                                  <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+                                  Désactiver l'utilisateur
+                                </MenuItem>
+                              </Menu>
+                            </>
+                          ) : (
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Tooltip title="Modifier les rôles" arrow>
+                                <IconButton
+                                  color="primary"
+                                  onClick={() => {
+                                    setSelectedUser(user.id);
+                                    setNewRolesSelected(user.roles);
+                                    setDialogOpen(true);
+                                  }}
+                                  size={isMobile ? 'small' : 'medium'}
+                                  sx={{
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(33, 150, 243, 0.08)',
+                                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.15s',
+                                    '&:hover': {
+                                      backgroundColor: 'primary.main',
+                                      color: '#fff',
+                                      boxShadow: 3,
+                                      transform: 'scale(1.12)',
+                                    },
+                                  }}
+                                >
+                                  <ManageAccountsIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Désactiver l'utilisateur" arrow>
+                                <IconButton
+                                  color="error"
+                                  onClick={() => {
+                                    setUserToDelete(user.id);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                  size={isMobile ? 'small' : 'medium'}
+                                  sx={{
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(244, 67, 54, 0.08)',
+                                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.15s',
+                                    '&:hover': {
+                                      backgroundColor: 'error.main',
+                                      color: '#fff',
+                                      boxShadow: 3,
+                                      transform: 'scale(1.12)',
+                                    },
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

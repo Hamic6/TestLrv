@@ -14,7 +14,8 @@ import {
   Snackbar,
   Alert,
   CardActions,
-  Avatar // Import Avatar pour afficher le logo du client
+  Avatar, // Import Avatar pour afficher le logo du client
+  TablePagination
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -26,6 +27,8 @@ const ClientList = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -94,6 +97,15 @@ const ClientList = () => {
     client.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <div>
       <Typography variant="h4" gutterBottom>
@@ -111,42 +123,55 @@ const ClientList = () => {
         Ajouter un Partenaire
       </Button>
       <Grid container spacing={3}>
-        {filteredClients.map((client) => (
-          <Grid item xs={12} sm={6} md={4} key={client.id}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  {client.logoUrl && <Avatar src={client.logoUrl} alt="logo" style={{ width: '60px', height: '60px', marginRight: '10px' }} />}
-                  <Box>
-                    <Typography variant="h5" component="div">
-                      <Link to={`/facturation/clients/${client.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                        {client.name}
-                      </Link>
-                    </Typography>
-                    <Typography color="textSecondary">
-                      {client.email}
-                    </Typography>
-                    <Typography color="textSecondary">
-                      {client.phone}
-                    </Typography>
-                    <Typography variant="body2">
-                      {client.address}
-                    </Typography>
+        {filteredClients
+          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+          .map((client) => (
+            <Grid item xs={12} sm={6} md={4} key={client.id}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center">
+                    {client.logoUrl && <Avatar src={client.logoUrl} alt="logo" style={{ width: '60px', height: '60px', marginRight: '10px' }} />}
+                    <Box>
+                      <Typography variant="h5" component="div">
+                        <Link to={`/facturation/clients/${client.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          {client.name}
+                        </Link>
+                      </Typography>
+                      <Typography color="textSecondary">
+                        {client.email}
+                      </Typography>
+                      <Typography color="textSecondary">
+                        {client.phone}
+                      </Typography>
+                      <Typography variant="body2">
+                        {client.address}
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
-              </CardContent>
-              <CardActions>
-                <IconButton aria-label="edit" onClick={() => handleOpenModal(client)}>
-                  <EditIcon />
-                </IconButton>
-                <IconButton aria-label="delete" onClick={() => handleDeleteClient(client.id)}>
-                  <DeleteIcon />
-                </IconButton>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
+                </CardContent>
+                <CardActions>
+                  <IconButton aria-label="edit" onClick={() => handleOpenModal(client)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton aria-label="delete" onClick={() => handleDeleteClient(client.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
       </Grid>
+
+      <TablePagination
+        rowsPerPageOptions={[6, 12, 24]}
+        component="div"
+        count={filteredClients.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        labelRowsPerPage="Lignes par page"
+      />
 
       <Modal
         open={openModal}
