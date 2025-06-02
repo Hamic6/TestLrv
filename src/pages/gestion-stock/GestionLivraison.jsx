@@ -10,8 +10,7 @@ import QRCode from "qrcode";
 import PreviewOutlinedIcon from "@mui/icons-material/PreviewOutlined";
 import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-// Remplace BdcpdfDocument par ton composant PDF pour les bons de livraison si besoin
-import Bdcpdf, { BdcpdfDocument } from "./Bdcpdf";
+import Bdlpdf, { BdlpdfDocument } from "./Bdlpdf"; // Utilise le PDF des bons de livraison
 
 const GestionLivraison = () => {
   const [bons, setBons] = useState([]);
@@ -121,7 +120,7 @@ const GestionLivraison = () => {
                         </MenuItem>
                         <MenuItem
                           component={PDFDownloadLink}
-                          document={<BdcpdfDocument bdc={bon} qrCodeUrl={qrCodes[bon.id] || ""} />}
+                          document={<BdlpdfDocument bdl={bon} qrCodeUrl={qrCodes[bon.id] || ""} />}
                           fileName={`BDL_${bon.orderNumber || bon.id}.pdf`}
                           style={{ color: "inherit", textDecoration: "none" }}
                           onClick={() => setAnchorElActions(null)}
@@ -137,8 +136,8 @@ const GestionLivraison = () => {
                       </IconButton>
                       <PDFDownloadLink
                         document={
-                          <BdcpdfDocument
-                            bdc={bon}
+                          <BdlpdfDocument
+                            bdl={bon}
                             qrCodeUrl={qrCodes[bon.id] || ""}
                           />
                         }
@@ -172,7 +171,7 @@ const GestionLivraison = () => {
       >
         <DialogTitle>Aperçu du Bon de Livraison</DialogTitle>
         <DialogContent sx={{ height: 900 }}>
-          {selectedBdc && <Bdcpdf bdc={selectedBdc} />}
+          {selectedBdc && <Bdlpdf bdl={selectedBdc} />}
         </DialogContent>
       </Dialog>
     </Paper>
