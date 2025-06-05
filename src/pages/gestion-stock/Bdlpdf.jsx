@@ -2,90 +2,144 @@ import React, { useEffect, useState } from "react";
 import { Document, Page, Text, View, Image, StyleSheet, PDFViewer } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 
-// Styles pour le PDF
+// Styles professionnels
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    fontSize: 12,
     fontFamily: "Helvetica",
-    lineHeight: 1.5,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
+    fontSize: 11,
+    backgroundColor: "#fff",
+    color: "#222",
     position: "relative",
   },
-  headerSection: {
-    display: "flex",
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
+    borderBottomWidth: 2,
+    borderBottomColor: "#388e3c",
+    paddingBottom: 15,
     marginBottom: 20,
-    color: "black",
   },
-  companyDetails: {
-    flex: 1,
-    paddingRight: 20,
-    fontSize: 10,
-    color: "black",
+  companyHeader: {
+    width: "60%",
+    borderRightWidth: 1,
+    borderRightColor: "#e0e0e0",
+    paddingRight: 10,
   },
-  bdlTitleSection: {
-    textAlign: "center",
-    fontSize: 20,
-    marginBottom: 20,
-    color: "#388e3c", // vert
+  documentHeader: {
+    width: "40%",
+    paddingLeft: 10,
+    alignItems: "flex-end",
   },
-  bdlDetailsSection: {
-    flex: 1,
-    paddingLeft: 20,
-    textAlign: "center",
-    color: "black",
+  companyName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2c3e50",
+    marginBottom: 5,
   },
-  billingSection: {
-    marginBottom: 20,
+  documentTitle: {
+    fontSize: 16, // réduit la taille du titre
+    fontWeight: "bold",
+    color: "#388e3c",
+    marginBottom: 10,
+    textTransform: "uppercase",
+  },
+  clientSection: {
+    marginBottom: 18,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#388e3c",
+    marginBottom: 4,
+    textTransform: "uppercase",
   },
   table: {
-    display: "table",
-    width: "auto",
-    marginTop: 20,
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#bfbfbf",
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  tableHeader: {
+    backgroundColor: "#388e3c",
+    flexDirection: "row",
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+  },
+  tableHeaderCell: {
+    padding: 8,
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   tableRow: {
     flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
   },
-  tableColHeader: {
-    width: "25%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#bfbfbf",
-    backgroundColor: "#e3f2fd",
-    padding: 5,
-  },
-  tableCol: {
-    width: "25%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#bfbfbf",
-    padding: 5,
-  },
-  tableCellHeader: {
-    textAlign: "center",
-    fontSize: 10,
-    fontWeight: "bold",
+  tableRowAlternate: {
+    backgroundColor: "#f9f9f9",
   },
   tableCell: {
+    padding: 8,
     fontSize: 10,
+    textAlign: "center",
   },
-  notesSection: {
-    marginTop: 20,
-    textAlign: "left",
-    color: "#388e3c", // vert
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    fontSize: 10,
+    color: "#666",
   },
   footer: {
-    marginTop: 20,
-    textAlign: "center",
+    position: "absolute",
+    bottom: 40,
+    left: 30,
+    right: 30,
     fontSize: 8,
-    color: "#388e3c", // vert
+    color: "#666",
+    textAlign: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+    paddingTop: 5,
+  },
+  legalMentions: {
+    fontSize: 7,
+    lineHeight: 1.2,
+    marginTop: 5,
+  },
+  signaturesContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 60,
+    marginBottom: 20,
+  },
+  signatureBlock: {
+    width: "45%",
+    borderTopWidth: 1,
+    borderTopColor: "#333",
+    paddingTop: 10,
+    alignItems: "center",
+  },
+  signatureLabel: {
+    fontSize: 10,
+    fontWeight: "bold",
+    marginBottom: 30,
+    textAlign: "center",
+  },
+  signatureSpace: {
+    height: 40,
+    borderBottomWidth: 1,
+    borderBottomColor: "#333",
+    marginBottom: 5,
+    width: "100%",
+  },
+  signatureText: {
+    fontSize: 9,
+    color: "#888",
+    marginTop: 5,
   },
   logo: {
     width: 60,
@@ -93,36 +147,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   qrCode: {
-    width: 100,
-    height: 100,
+    width: 60,
+    height: 60,
     marginTop: 10,
-    alignSelf: "center",
-  },
-  footerContainer: {
-    marginTop: "auto",
-  },
-  footerLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#bfbfbf",
     marginBottom: 5,
-  },
-  watermark: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    opacity: 0.1,
-    width: 300,
-    height: 300,
-    zIndex: -1,
   },
 });
 
-// Composant PDF pour Bon de Livraison
 export function BdlpdfDocument({ bdl, qrCodeUrl }) {
   if (!bdl) return null;
 
-  // Utilise le chemin absolu public pour le logo
   const companyInfo = {
     logo: bdl.companyInfo?.logo || "/static/img/avatars/logo.png",
     name: "Le Rayon Vert",
@@ -138,100 +172,151 @@ export function BdlpdfDocument({ bdl, qrCodeUrl }) {
     client = {},
     livreur = "",
     entries = [],
-    userName = "",
   } = bdl;
+
+  // Formatage date
+  const formattedDate =
+    date?.toDate?.().toLocaleDateString?.("fr-FR") ||
+    (typeof date === "string" ? date : "-");
+
+  // Pagination personnalisée : 4 articles sur la première page, 6 sur les suivantes
+  const safeEntries = Array.isArray(entries)
+    ? entries.filter(
+        (e) =>
+          e &&
+          typeof e === "object" &&
+          (typeof e.name === "string" || typeof e.productName === "string")
+      )
+    : [];
+  const pages = [];
+  if (safeEntries.length > 0) {
+    let i = 0;
+    pages.push(safeEntries.slice(i, i + 4));
+    i += 4;
+    while (i < safeEntries.length) {
+      pages.push(safeEntries.slice(i, i + 6));
+      i += 6;
+    }
+  } else {
+    pages.push([]);
+  }
+
+  // Numérotation globale des articles
+  let globalIndex = 0;
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Filigrane avec le logo */}
-        {companyInfo.logo && (
-          <Image
-            src={companyInfo.logo}
-            style={styles.watermark}
-          />
-        )}
-
-        <View style={styles.headerSection}>
-          <View style={styles.companyDetails}>
-            {/* Affichage du logo en haut à gauche */}
-            <Image src={companyInfo.logo} style={styles.logo} />
-            <Text>{companyInfo.name}</Text>
-            <Text>{companyInfo.address}</Text>
-            <Text>{companyInfo.phone}</Text>
-            <Text>{companyInfo.email}</Text>
-            <Text>{companyInfo.taxNumber}</Text>
-          </View>
-          <View style={styles.bdlDetailsSection}>
-            <Text>Numéro : {orderNumber}</Text>
-            <Text>Date : {date?.toDate?.().toLocaleDateString?.() || ""}</Text>
-            {qrCodeUrl && (
-              <View style={styles.qrCode}>
-                <Image src={qrCodeUrl} />
+      {pages.map((entriesPage, pageIndex) => (
+        <Page size="A4" style={styles.page} key={pageIndex}>
+          {/* En-tête professionnel */}
+          <View style={styles.header}>
+            <View style={styles.companyHeader}>
+              <Image src={companyInfo.logo} style={styles.logo} />
+              <Text style={styles.companyName}>{companyInfo.name}</Text>
+              <Text>{companyInfo.address}</Text>
+              <Text>Tél: {companyInfo.phone}</Text>
+              <Text>Email: {companyInfo.email}</Text>
+              <Text>{companyInfo.taxNumber}</Text>
+            </View>
+            {pageIndex === 0 && (
+              <View style={styles.documentHeader}>
+                <Text style={styles.documentTitle}>Bon de Livraison</Text>
+                <Text>N°: {orderNumber || "-"}</Text>
+                <Text>Date: {formattedDate}</Text>
+                {qrCodeUrl && <Image src={qrCodeUrl} style={styles.qrCode} />}
               </View>
             )}
           </View>
-        </View>
-        <View style={styles.bdlTitleSection}>
-          <Text>BON DE LIVRAISON</Text>
-        </View>
-        <View style={styles.billingSection}>
-          <Text style={styles.label}>Client :</Text>
-          <Text>{client.name}</Text>
-          <Text>{client.address}</Text>
-          <Text>{client.phone}</Text>
-          <Text>{client.email}</Text>
-          {client.receveur && (
-            <Text>Receveur : {client.receveur}</Text>
+
+          {/* Informations client uniquement sur la première page */}
+          {pageIndex === 0 && (
+            <View style={styles.clientSection}>
+              <Text style={styles.sectionTitle}>Client</Text>
+              <Text>{client.name || "-"}</Text>
+              <Text>{client.address || "-"}</Text>
+              <Text>
+                {client.phone || "-"} {client.email ? " - " + client.email : ""}
+              </Text>
+              {client.receveur && <Text>Contact: {client.receveur}</Text>}
+              {livreur && <Text>Livreur: {livreur}</Text>}
+            </View>
           )}
-          {livreur && (
-            <Text>Livreur : {livreur}</Text>
+
+          {/* Tableau des articles */}
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderCell, { width: "8%" }]}>N°</Text>
+              <Text style={[styles.tableHeaderCell, { width: "34%", textAlign: "left" }]}>Article</Text>
+              <Text style={[styles.tableHeaderCell, { width: "18%" }]}>Référence</Text>
+              <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Quantité</Text>
+              <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Unité</Text>
+            </View>
+            {entriesPage.length > 0 ? (
+              entriesPage.map((entry, index) => {
+                globalIndex++;
+                return (
+                  <View
+                    style={[
+                      styles.tableRow,
+                      globalIndex % 2 === 0 && styles.tableRowAlternate,
+                    ]}
+                    key={index}
+                  >
+                    <Text style={[styles.tableCell, { width: "8%" }]}>{globalIndex}</Text>
+                    <Text style={[styles.tableCell, { width: "34%", textAlign: "left" }]}>
+                      {(entry.name ?? entry.productName ?? "-") || "-"}
+                    </Text>
+                    <Text style={[styles.tableCell, { width: "18%" }]}>
+                      {entry.reference || "-"}
+                    </Text>
+                    <Text style={[styles.tableCell, { width: "20%" }]}>
+                      {entry.quantity || "-"}
+                    </Text>
+                    <Text style={[styles.tableCell, { width: "20%" }]}>
+                      {entry.unit || "-"}
+                    </Text>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableCell, { width: "100%" }]}>Aucune donnée</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Signatures uniquement sur la dernière page */}
+          {pageIndex === pages.length - 1 && (
+            <View style={styles.signaturesContainer}>
+              <View style={styles.signatureBlock}>
+                <Text style={styles.signatureLabel}>Le livreur</Text>
+                <View style={styles.signatureSpace} />
+                <Text style={styles.signatureText}>Nom et signature</Text>
+              </View>
+              <View style={styles.signatureBlock}>
+                <Text style={styles.signatureLabel}>Le client</Text>
+                <View style={styles.signatureSpace} />
+                <Text style={styles.signatureText}>Nom et signature</Text>
+              </View>
+            </View>
           )}
-        </View>
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Article</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Référence</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Quantité</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Unité</Text>
-            </View>
+
+          {/* Numéro de page */}
+          <Text style={styles.pageNumber}>
+            Page {pageIndex + 1} / {pages.length}
+          </Text>
+
+          {/* Footer professionnel */}
+          <View style={styles.footer} fixed>
+            <Text>
+              {companyInfo.name} - {companyInfo.address} - Tél: {companyInfo.phone}
+            </Text>
+            <Text style={styles.legalMentions}>
+              RCCM : 138-01049 - Ident Nat : 01-83-K28816G - Permis 137/CAB/MIN/ECN-T/15/JEB/2010
+            </Text>
           </View>
-          {entries.map((entry, index) => (
-            <View style={styles.tableRow} key={index}>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{entry.name || entry.productName || ""}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{entry.reference}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{entry.quantity}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{entry.unit}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-        <View style={styles.notesSection}>
-          <Text>Signature du livreur : ____________________________</Text>
-          <Text>Signature du receveur : ___________________________</Text>
-        </View>
-        <View style={styles.footerContainer}>
-          <View style={styles.footerLine} />
-          <View style={styles.footer}>
-            <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
-            <Text>Bon de livraison généré par : {userName}</Text>
-          </View>
-        </View>
-      </Page>
+        </Page>
+      ))}
     </Document>
   );
 }

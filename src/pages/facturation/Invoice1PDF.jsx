@@ -2,102 +2,115 @@ import React, { useEffect, useState } from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 
-// Créez des styles pour votre document PDF
+// Styles inspirés du Bdlpdf.jsx
 const styles = StyleSheet.create({
   page: {
     padding: 30,
+    fontFamily: "Helvetica",
+    fontSize: 11,
+    backgroundColor: "#fff",
+    color: "#222",
+    position: "relative",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottomWidth: 2,
+    borderBottomColor: "#388e3c",
+    paddingBottom: 15,
+    marginBottom: 20,
+  },
+  companyHeader: {
+    width: "60%",
+    borderRightWidth: 1,
+    borderRightColor: "#e0e0e0",
+    paddingRight: 10,
+  },
+  documentHeader: {
+    width: "40%",
+    paddingLeft: 10,
+    alignItems: "flex-end",
+  },
+  companyName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2c3e50",
+    marginBottom: 5,
+  },
+  documentTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#388e3c",
+    marginBottom: 10,
+    textTransform: "uppercase",
+  },
+  clientSection: {
+    marginBottom: 18,
+  },
+  sectionTitle: {
     fontSize: 12,
-    fontFamily: 'Helvetica',
-    lineHeight: 1.5,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    position: 'relative', // Nécessaire pour le filigrane
-  },
-  headerSection: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    color: 'black',
-  },
-  companyDetails: {
-    flex: 1,
-    paddingRight: 20,
-    fontSize: 10,
-    color: 'black',
-  },
-  invoiceTitleSection: {
-    textAlign: 'center',
-    fontSize: 20,
-    marginBottom: 20,
-    color: 'green',
-  },
-  invoiceDetailsSection: {
-    flex: 1,
-    paddingLeft: 20,
-    textAlign: 'center',
-    color: 'black',
-  },
-  billingSection: {
-    marginBottom: 20,
+    fontWeight: "bold",
+    color: "#388e3c",
+    marginBottom: 4,
+    textTransform: "uppercase",
   },
   table: {
-    display: 'table',
-    width: 'auto',
-    marginTop: 20,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  tableHeader: {
+    backgroundColor: "#388e3c",
+    flexDirection: "row",
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+  },
+  tableHeaderCell: {
+    padding: 8,
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
   },
-  tableColHeader: {
-    width: '20%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    backgroundColor: '#e8f5e9', // Vert clair
-    padding: 5,
-  },
-  tableCol: {
-    width: '20%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    padding: 5,
-  },
-  tableCellHeader: {
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: 'bold',
+  tableRowAlternate: {
+    backgroundColor: "#f9f9f9",
   },
   tableCell: {
+    padding: 8,
     fontSize: 10,
+    textAlign: "center",
   },
   totalsSection: {
-    marginTop: 20,
-    textAlign: 'right',
-    backgroundColor: '#f3f3f3', // Gris clair
-    padding: 10,
-    borderRadius: 5, // Coins arrondis
+    marginTop: 10,
+    marginBottom: 20,
+    alignItems: "flex-end",
   },
-  paymentInfoSection: {
-    marginTop: 20,
-    textAlign: 'center',
-    color: 'green',
-    fontSize: 8,
-  },
-  notesSection: {
-    marginTop: 20,
-    textAlign: 'left',
-    color: 'black',
+  totalText: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#388e3c",
+    marginBottom: 2,
   },
   footer: {
-    marginTop: 20,
-    textAlign: 'center',
+    position: "absolute",
+    bottom: 40,
+    left: 30,
+    right: 30,
     fontSize: 8,
-    color: 'green',
+    color: "#666",
+    textAlign: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+    paddingTop: 5,
+  },
+  legalMentions: {
+    fontSize: 7,
+    lineHeight: 1.2,
+    marginTop: 5,
   },
   logo: {
     width: 60,
@@ -105,33 +118,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   qrCode: {
-    width: 100,
-    height: 100,
+    width: 60,
+    height: 60,
     marginTop: 10,
-    alignSelf: 'center',
-  },
-  footerContainer: {
-    marginTop: 'auto',
-  },
-  footerLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#bfbfbf',
     marginBottom: 5,
   },
 });
 
-// Créez un composant Document pour le PDF
 const Invoice1PDF = ({ invoice }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
     const qrCodeData = "https://rayonverts.com/";
     QRCode.toDataURL(qrCodeData, (err, url) => {
-      if (err) {
-        console.error(err);
-      } else {
-        setQrCodeUrl(url);
-      }
+      if (!err) setQrCodeUrl(url);
     });
   }, []);
 
@@ -143,115 +143,112 @@ const Invoice1PDF = ({ invoice }) => {
     subtotal,
     vatAmount,
     total,
-    paymentInfo,
-    additionalNotes,
   } = invoice;
 
   const subtotalFormatted = parseFloat(subtotal || 0).toFixed(2);
   const vatAmountFormatted = parseFloat(vatAmount || 0).toFixed(2);
   const totalFormatted = parseFloat(total || 0).toFixed(2);
 
+  // Limite à 4 services
+  const displayedServices = Array.isArray(services) ? services.slice(0, 4) : [];
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.headerSection}>
-          <View style={styles.companyDetails}>
-            {companyInfo.logo && <Image src={companyInfo.logo} style={styles.logo} />}
-            <Text>{companyInfo.name}</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.companyHeader}>
+            <Image src={companyInfo.logo} style={styles.logo} />
+            <Text style={styles.companyName}>{companyInfo.name}</Text>
             <Text>{companyInfo.address}</Text>
-            <Text>{companyInfo.phone}</Text>
-            <Text>{companyInfo.email}</Text>
+            <Text>Tél: {companyInfo.phone}</Text>
+            <Text>Email: {companyInfo.email}</Text>
             <Text>{companyInfo.taxNumber}</Text>
           </View>
-          <View style={styles.invoiceDetailsSection}>
-            <Text>LRV{invoiceInfo.number}</Text>
-            <Text>Date : {invoiceInfo.date}</Text>
-            {qrCodeUrl && (
-              <View style={styles.qrCode}>
-                <Image src={qrCodeUrl} />
-              </View>
-            )}
+          <View style={styles.documentHeader}>
+            <Text style={styles.documentTitle}>Facture</Text>
+            <Text>N°: LRV{invoiceInfo.number}</Text>
+            <Text>Date: {invoiceInfo.date}</Text>
+            {qrCodeUrl && <Image src={qrCodeUrl} style={styles.qrCode} />}
           </View>
         </View>
-        <View style={styles.invoiceTitleSection}>
-          <Text>FACTURE</Text>
+
+        {/* Client */}
+        <View style={styles.clientSection}>
+          <Text style={styles.sectionTitle}>Client</Text>
+          <Text>{billTo.name || "-"}</Text>
+          <Text>{billTo.company || "-"}</Text>
+          <Text>{billTo.address || "-"}</Text>
+          <Text>
+            {billTo.phone || "-"} {billTo.email ? " - " + billTo.email : ""}
+          </Text>
         </View>
-        <View style={styles.billingSection}>
-          <Text style={styles.label}>Facturé à :</Text>
-          <Text>{billTo.name}</Text>
-          <Text>{billTo.company}</Text>
-          <Text>{billTo.address}</Text>
-          <Text>{billTo.phone}</Text>
-          <Text>{billTo.email}</Text>
-        </View>
+
+        {/* Tableau des services */}
         <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Description du service</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Libellé</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Quantité</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Prix Unitaire ({invoiceInfo.currency})</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Montant ({invoiceInfo.currency})</Text>
-            </View>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderCell, { width: "8%" }]}>N°</Text>
+            <Text style={[styles.tableHeaderCell, { width: "34%", textAlign: "left" }]}>Service</Text>
+            <Text style={[styles.tableHeaderCell, { width: "18%" }]}>Libellé</Text>
+            <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Quantité</Text>
+            <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Montant</Text>
           </View>
-          {services.map((service, index) => (
-            <View style={styles.tableRow} key={index}>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.description}</Text>
+          {displayedServices.length > 0 ? (
+            displayedServices.map((service, index) => (
+              <View
+                style={[
+                  styles.tableRow,
+                  index % 2 === 1 && styles.tableRowAlternate,
+                ]}
+                key={index}
+              >
+                <Text style={[styles.tableCell, { width: "8%" }]}>{index + 1}</Text>
+                <Text style={[styles.tableCell, { width: "34%", textAlign: "left" }]}>{service.description || "-"}</Text>
+                <Text style={[styles.tableCell, { width: "18%" }]}>{service.libelle || "-"}</Text>
+                <Text style={[styles.tableCell, { width: "20%" }]}>{service.quantity || "-"}</Text>
+                <Text style={[styles.tableCell, { width: "20%" }]}>
+                  {(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}
+                </Text>
               </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.libelle}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{service.quantity}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{parseFloat(service.unitPrice).toFixed(2)}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</Text>
-              </View>
+            ))
+          ) : (
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableCell, { width: "100%" }]}>Aucune donnée</Text>
             </View>
-          ))}
+          )}
         </View>
+
+        {/* Totaux */}
         <View style={styles.totalsSection}>
-          <Text>Sous-total : {invoiceInfo.currency} {subtotalFormatted}</Text>
-          <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmountFormatted}</Text>
-          <Text>Total : {invoiceInfo.currency} {totalFormatted}</Text>
+          <Text style={styles.totalText}>
+            Sous-total : {invoiceInfo.currency} {subtotalFormatted}
+          </Text>
+          <Text style={styles.totalText}>
+            TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmountFormatted}
+          </Text>
+          <Text style={styles.totalText}>
+            Total : {invoiceInfo.currency} {totalFormatted}
+          </Text>
+          <Text style={{ fontSize: 9, color: "#888", marginTop: 8 }}>
+            Date d'échéance : {invoiceInfo.dueDate || 'Non spécifiée'}
+          </Text>
         </View>
-        
-        <Image
-          src={companyInfo.logo}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            opacity: 0.1, // Transparence
-            width: 300,
-            height: 300,
-          }}
-        />
-        
-        <View style={styles.footerContainer}>
-          <View style={styles.footerLine} />
-          <View style={styles.footer}>
-            <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
-            <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
-            <Text>Date d'échéance : {invoiceInfo.dueDate || 'Non spécifiée'}</Text>
-          </View>
+
+        {/* Footer */}
+        <View style={styles.footer} fixed>
+          <Text>
+            Le Rayon Vert Sarl - 01, Av. OUA (concession PROCOKI) - Tél: +243808317816
+          </Text>
+          <Text style={styles.legalMentions}>
+            RCCM : 138-01049 - Ident Nat : 01-83-K28816G - Permis 137/CAB/MIN/ECN-T/15/JEB/2010
+          </Text>
+          <Text style={styles.legalMentions}>
+            Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | 05100 05101 01039948801-80 (USD)
+          </Text>
         </View>
       </Page>
     </Document>
   );
-}
+};
 
 export default Invoice1PDF;

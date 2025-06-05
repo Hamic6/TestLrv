@@ -118,14 +118,19 @@ const GestionLivraison = () => {
                         <MenuItem onClick={() => handleOpenPdf(bon)}>
                           <PreviewOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Aperçu
                         </MenuItem>
-                        <MenuItem
-                          component={PDFDownloadLink}
-                          document={<BdlpdfDocument bdl={bon} qrCodeUrl={qrCodes[bon.id] || ""} />}
-                          fileName={`BDL_${bon.orderNumber || bon.id}.pdf`}
-                          style={{ color: "inherit", textDecoration: "none" }}
-                          onClick={() => setAnchorElActions(null)}
-                        >
-                          <PictureAsPdfOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Télécharger PDF
+                        <MenuItem onClick={() => setAnchorElActions(null)}>
+                          <PDFDownloadLink
+                            document={<BdlpdfDocument bdl={bon} qrCodeUrl={qrCodes[bon.id] || ""} />}
+                            fileName={`BDL_${bon.orderNumber || bon.id}.pdf`}
+                            style={{ color: "inherit", textDecoration: "none", display: "flex", alignItems: "center", width: "100%" }}
+                          >
+                            {({ loading }) => (
+                              <>
+                                <PictureAsPdfOutlinedIcon fontSize="small" sx={{ mr: 1 }} />
+                                Télécharger PDF
+                              </>
+                            )}
+                          </PDFDownloadLink>
                         </MenuItem>
                       </Menu>
                     </>
@@ -135,12 +140,7 @@ const GestionLivraison = () => {
                         <PreviewOutlinedIcon />
                       </IconButton>
                       <PDFDownloadLink
-                        document={
-                          <BdlpdfDocument
-                            bdl={bon}
-                            qrCodeUrl={qrCodes[bon.id] || ""}
-                          />
-                        }
+                        document={<BdlpdfDocument bdl={bon} qrCodeUrl={qrCodes[bon.id] || ""} />}
                         fileName={`BDL_${bon.orderNumber || bon.id}.pdf`}
                         style={{ textDecoration: "none", marginLeft: 8 }}
                       >

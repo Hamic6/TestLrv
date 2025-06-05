@@ -109,21 +109,28 @@ const StockOutForm = () => {
     setLoading(true);
     try {
       await setDoc(doc(db, 'metadata', 'lastDeliveryNumber'), { number: Number(orderNumber) });
+
+      // Ajout du nom de l'article dans chaque entrée
+      const entriesWithName = entries.map(entry => ({
+        ...entry,
+        name: products.find(p => p.id === entry.productId)?.name || "",
+      }));
+
       await addDoc(collection(db, "bon_de_livraison"), {
         orderNumber,
         client: { ...clientInfo, receveur: clientInfo.receveur },
         livreur,
-        entries,
+        entries: entriesWithName,
         date: serverTimestamp(),
         userId: auth?.currentUser?.uid || null,
         validated: false,
       });
 
       // Décrémente le stock et ajoute un mouvement de sortie pour chaque article
-      for (const entry of entries) {
+      for (const entry of entriesWithName) {
         await addDoc(collection(db, "stockMovements"), {
           productId: entry.productId,
-          name: products.find(p => p.id === entry.productId)?.name || "",
+          name: entry.name,
           reference: entry.reference,
           unit: entry.unit,
           quantity: entry.quantity,
