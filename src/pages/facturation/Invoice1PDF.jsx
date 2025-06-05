@@ -125,6 +125,7 @@ const styles = StyleSheet.create({
   },
 });
 
+// Créez un composant Document pour le PDF
 const Invoice1PDF = ({ invoice }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
@@ -149,102 +150,103 @@ const Invoice1PDF = ({ invoice }) => {
   const vatAmountFormatted = parseFloat(vatAmount || 0).toFixed(2);
   const totalFormatted = parseFloat(total || 0).toFixed(2);
 
-  // Limite à 4 services
-  const displayedServices = Array.isArray(services) ? services.slice(0, 4) : [];
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.companyHeader}>
-            <Image src={companyInfo.logo} style={styles.logo} />
-            <Text style={styles.companyName}>{companyInfo.name}</Text>
+        <View style={styles.headerSection}>
+          <View style={styles.companyDetails}>
+            {companyInfo.logo && <Image src={companyInfo.logo} style={styles.logo} />}
+            <Text>{companyInfo.name}</Text>
             <Text>{companyInfo.address}</Text>
-            <Text>Tél: {companyInfo.phone}</Text>
-            <Text>Email: {companyInfo.email}</Text>
+            <Text>{companyInfo.phone}</Text>
+            <Text>{companyInfo.email}</Text>
             <Text>{companyInfo.taxNumber}</Text>
           </View>
-          <View style={styles.documentHeader}>
-            <Text style={styles.documentTitle}>Facture</Text>
-            <Text>N°: LRV{invoiceInfo.number}</Text>
-            <Text>Date: {invoiceInfo.date}</Text>
-            {qrCodeUrl && <Image src={qrCodeUrl} style={styles.qrCode} />}
-          </View>
-        </View>
-
-        {/* Client */}
-        <View style={styles.clientSection}>
-          <Text style={styles.sectionTitle}>Client</Text>
-          <Text>{billTo.name || "-"}</Text>
-          <Text>{billTo.company || "-"}</Text>
-          <Text>{billTo.address || "-"}</Text>
-          <Text>
-            {billTo.phone || "-"} {billTo.email ? " - " + billTo.email : ""}
-          </Text>
-        </View>
-
-        {/* Tableau des services */}
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, { width: "8%" }]}>N°</Text>
-            <Text style={[styles.tableHeaderCell, { width: "34%", textAlign: "left" }]}>Service</Text>
-            <Text style={[styles.tableHeaderCell, { width: "18%" }]}>Libellé</Text>
-            <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Quantité</Text>
-            <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Montant</Text>
-          </View>
-          {displayedServices.length > 0 ? (
-            displayedServices.map((service, index) => (
-              <View
-                style={[
-                  styles.tableRow,
-                  index % 2 === 1 && styles.tableRowAlternate,
-                ]}
-                key={index}
-              >
-                <Text style={[styles.tableCell, { width: "8%" }]}>{index + 1}</Text>
-                <Text style={[styles.tableCell, { width: "34%", textAlign: "left" }]}>{service.description || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "18%" }]}>{service.libelle || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "20%" }]}>{service.quantity || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "20%" }]}>
-                  {(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}
-                </Text>
+          <View style={styles.invoiceDetailsSection}>
+            <Text>LRV{invoiceInfo.number}</Text>
+            <Text>Date : {invoiceInfo.date}</Text>
+            {qrCodeUrl && (
+              <View style={styles.qrCode}>
+                <Image src={qrCodeUrl} />
               </View>
-            ))
-          ) : (
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, { width: "100%" }]}>Aucune donnée</Text>
+            )}
+          </View>
+        </View>
+        <View style={styles.invoiceTitleSection}>
+          <Text>FACTURE</Text>
+        </View>
+        <View style={styles.billingSection}>
+          <Text style={styles.label}>Facturé à :</Text>
+          <Text>{billTo.name}</Text>
+          <Text>{billTo.company}</Text>
+          <Text>{billTo.address}</Text>
+          <Text>{billTo.phone}</Text>
+          <Text>{billTo.email}</Text>
+        </View>
+        <View style={styles.table}>
+          <View style={styles.tableRow}>
+            <View style={styles.tableColHeader}>
+              <Text style={styles.tableCellHeader}>Description du service</Text>
             </View>
-          )}
+            <View style={styles.tableColHeader}>
+              <Text style={styles.tableCellHeader}>Libellé</Text>
+            </View>
+            <View style={styles.tableColHeader}>
+              <Text style={styles.tableCellHeader}>Quantité</Text>
+            </View>
+            <View style={styles.tableColHeader}>
+              <Text style={styles.tableCellHeader}>Prix Unitaire ({invoiceInfo.currency})</Text>
+            </View>
+            <View style={styles.tableColHeader}>
+              <Text style={styles.tableCellHeader}>Montant ({invoiceInfo.currency})</Text>
+            </View>
+          </View>
+          {services.map((service, index) => (
+            <View style={styles.tableRow} key={index}>
+              <View style={styles.tableCol}>
+                <Text style={styles.tableCell}>{service.description}</Text>
+              </View>
+              <View style={styles.tableCol}>
+                <Text style={styles.tableCell}>{service.libelle}</Text>
+              </View>
+              <View style={styles.tableCol}>
+                <Text style={styles.tableCell}>{service.quantity}</Text>
+              </View>
+              <View style={styles.tableCol}>
+                <Text style={styles.tableCell}>{parseFloat(service.unitPrice).toFixed(2)}</Text>
+              </View>
+              <View style={styles.tableCol}>
+                <Text style={styles.tableCell}>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</Text>
+              </View>
+            </View>
+          ))}
         </View>
-
-        {/* Totaux */}
         <View style={styles.totalsSection}>
-          <Text style={styles.totalText}>
-            Sous-total : {invoiceInfo.currency} {subtotalFormatted}
-          </Text>
-          <Text style={styles.totalText}>
-            TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmountFormatted}
-          </Text>
-          <Text style={styles.totalText}>
-            Total : {invoiceInfo.currency} {totalFormatted}
-          </Text>
-          <Text style={{ fontSize: 9, color: "#888", marginTop: 8 }}>
-            Date d'échéance : {invoiceInfo.dueDate || 'Non spécifiée'}
-          </Text>
+          <Text>Sous-total : {invoiceInfo.currency} {subtotalFormatted}</Text>
+          <Text>TVA ({invoiceInfo.vatPercent}%) : {invoiceInfo.currency} {vatAmountFormatted}</Text>
+          <Text>Total : {invoiceInfo.currency} {totalFormatted}</Text>
         </View>
-
-        {/* Footer */}
-        <View style={styles.footer} fixed>
-          <Text>
-            Le Rayon Vert Sarl - 01, Av. OUA (concession PROCOKI) - Tél: +243808317816
-          </Text>
-          <Text style={styles.legalMentions}>
-            RCCM : 138-01049 - Ident Nat : 01-83-K28816G - Permis 137/CAB/MIN/ECN-T/15/JEB/2010
-          </Text>
-          <Text style={styles.legalMentions}>
-            Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | 05100 05101 01039948801-80 (USD)
-          </Text>
+        
+        <Image
+          src={companyInfo.logo}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            opacity: 0.1, // Transparence
+            width: 300,
+            height: 300,
+          }}
+        />
+        
+        <View style={styles.footerContainer}>
+          <View style={styles.footerLine} />
+          <View style={styles.footer}>
+            <Text>Le Rayon Vert Sarl Permis 137/CAB/MIN/ECN-T/15/JEB/2010 RCCM : 138-01049 - Ident Nat : 01-83-K28816G</Text>
+            <Text>Banque : Rawbank | Compte : 05100 05101 01039948802-77 (EURO) | Compte : 05100 05101 01039948801-80 (USD)</Text>
+            <Text>Date d'échéance : {invoiceInfo.dueDate || 'Non spécifiée'}</Text>
+          </View>
         </View>
       </Page>
     </Document>
