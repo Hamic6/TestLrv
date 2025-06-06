@@ -2,20 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../../firebaseConfig'; 
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import {
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
-  TextField,
-  Snackbar,
-  Alert,
-  CardActions,
-  Box,
-  Button,
-  TablePagination
+  Table, TableHead, TableRow, TableCell, TableBody, Typography, Paper, IconButton, Box, TextField, Snackbar, Alert, TableContainer, TablePagination, Dialog, DialogTitle, DialogContent
 } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, PreviewOutlined as PreviewOutlinedIcon, PictureAsPdfOutlined as PictureAsPdfOutlinedIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import AvisDePassagePDF from './AvisDePassagePDF';
@@ -29,19 +18,20 @@ const SearchAvisDePassage = () => {
   const [filters, setFilters] = useState({});
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [openPdf, setOpenPdf] = useState(false);
+  const [selectedAvis, setSelectedAvis] = useState(null);
 
   useEffect(() => {
     const fetchAvis = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "avisDePassage"));
         const avisList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log("Avis de Passage récupérés:", avisList);
         setAvis(avisList);
       } catch (error) {
         console.error("Erreur lors de la récupération des avis de passage :", error);
       }
     };
-
     fetchAvis();
   }, []);
 
@@ -69,19 +59,36 @@ const SearchAvisDePassage = () => {
     setPage(0);
   };
 
+  const handleOpenPdf = (avis) => {
+    setSelectedAvis(avis);
+    setOpenPdf(true);
+  };
+
+  const handleClosePdf = () => {
+    setOpenPdf(false);
+    setSelectedAvis(null);
+  };
+
   const filteredAvis = avis.filter(avis =>
     (!search || avis.billTo?.company?.toLowerCase().includes(search.toLowerCase())) &&
-    (!filters.currency || avis.avisInfo?.currency.toLowerCase().includes(filters.currency.toLowerCase())) &&
+    (!filters.currency || avis.avisInfo?.currency?.toLowerCase().includes(filters.currency.toLowerCase())) &&
     (!filters.month || avis.avisInfo?.date?.split('-')[1] === filters.month) &&
     (!filters.year || avis.avisInfo?.date?.split('-')[0] === filters.year) &&
-    (!filters.number || avis.avisInfo?.number.includes(filters.number))
+    (!filters.number || avis.avisInfo?.number?.includes(filters.number))
   );
 
-  const paginatedAvis = filteredAvis.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const sortedAvis = [...filteredAvis].sort((a, b) => {
+    const numA = a.avisInfo?.number || "";
+    const numB = b.avisInfo?.number || "";
+    if (sortOrder === "asc") return numA.localeCompare(numB, undefined, { numeric: true });
+    return numB.localeCompare(numA, undefined, { numeric: true });
+  });
+
+  const paginatedAvis = sortedAvis.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <div>
-      <Typography variant="h4" gutterBottom>
+    <Paper sx={{ p: 2 }}>
+      <Typography variant="h5" gutterBottom>
         Recherche des Avis de Passage
       </Typography>
       <TextField
@@ -95,61 +102,78 @@ const SearchAvisDePassage = () => {
       <Box display="flex" alignItems="center" mb={2}>
         <FiltersAvisDePassage onApplyFilters={handleApplyFilters} />
       </Box>
-      <Grid container spacing={3}>
-        {paginatedAvis.map((avis) => (
-          <Grid item xs={12} sm={6} md={4} key={avis.id}>
-            <Card>
-              <CardContent>
-                <Box display="flex" flexDirection="column">
-                  <Typography variant="h5" component="div">
-                    <Link to={`/avis-de-passage/${avis.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                      {avis.billTo?.company}
-                    </Link>
-                  </Typography>
-                  <Typography color="textSecondary">
-                    Date : {avis.avisInfo?.date}
-                  </Typography>
-                  <Typography color="textSecondary">
-                    Téléphone : {avis.billTo?.phone}
-                  </Typography>
-                  <Typography variant="body2">
-                    Adresse : {avis.billTo?.address}
-                  </Typography>
-                  <Typography variant="body2">
-                    Numéro d'Avis : {avis.avisInfo?.number}
-                  </Typography>
-                  <Box mt={2}>
-                    <Typography variant="h6">Services</Typography>
-                    {avis.services?.map((service, index) => (
-                      <Box key={index} mt={1}>
-                        <Typography variant="body2">
-                          <strong>Libellé :</strong> {service.libelle}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Description :</strong> {service.description}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                </Box>
-              </CardContent>
-              <CardActions>
-                <IconButton aria-label="delete" onClick={() => handleDeleteAvis(avis.id)}>
-                  <DeleteIcon />
-                </IconButton>
-                <PDFDownloadLink document={<AvisDePassagePDF avis={avis} />} fileName={`avis_de_passage_${avis.avisInfo?.number}.pdf`}>
-                  {({ loading }) => (
-                    <Button variant="contained" color="primary" disabled={loading}>
-                      {loading ? 'Chargement...' : 'Télécharger PDF'}
-                    </Button>
+      <TableContainer sx={{ maxWidth: "100vw", overflowX: "auto" }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell
+                sortDirection={sortOrder}
+                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                style={{ cursor: "pointer", fontWeight: "bold" }}
+              >
+                Numéro
+              </TableCell>
+              <TableCell>Client</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Adresse</TableCell>
+              <TableCell>Services</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedAvis.map(avis => (
+              <TableRow key={avis.id}>
+                <TableCell>{avis.avisInfo?.number}</TableCell>
+                <TableCell>
+                  <Link to={`/avis-de-passage/${avis.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    {avis.billTo?.company}
+                  </Link>
+                </TableCell>
+                <TableCell>{avis.avisInfo?.date}</TableCell>
+                <TableCell>{avis.billTo?.address}</TableCell>
+                <TableCell>
+                  {avis.services?.slice(0, 2).map((service, idx) => (
+                    <Box key={idx}>
+                      <Typography variant="body2"><strong>{service.libelle}</strong>: {service.description}</Typography>
+                    </Box>
+                  ))}
+                  {avis.services?.length > 2 && (
+                    <Typography variant="caption" color="textSecondary">
+                      ...et {avis.services.length - 2} autres
+                    </Typography>
                   )}
-                </PDFDownloadLink>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
+                </TableCell>
+                <TableCell>
+                  <Box display="flex" alignItems="center">
+                    <IconButton color="primary" onClick={() => handleOpenPdf(avis)}>
+                      <PreviewOutlinedIcon />
+                    </IconButton>
+                    <PDFDownloadLink document={<AvisDePassagePDF avis={avis} />} fileName={`avis_de_passage_${avis.avisInfo?.number}.pdf`}>
+                      {({ loading }) => (
+                        <IconButton color="error" disabled={loading}>
+                          <PictureAsPdfOutlinedIcon />
+                        </IconButton>
+                      )}
+                    </PDFDownloadLink>
+                    <IconButton aria-label="delete" onClick={() => handleDeleteAvis(avis.id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+            {paginatedAvis.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  <Typography variant="body2" color="text.secondary">
+                    Aucun avis de passage à afficher.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
       <TablePagination
         component="div"
         count={filteredAvis.length}
@@ -160,7 +184,6 @@ const SearchAvisDePassage = () => {
         labelRowsPerPage="Lignes par page"
         labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
       />
-
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
@@ -170,7 +193,18 @@ const SearchAvisDePassage = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </div>
+      <Dialog
+        open={openPdf}
+        onClose={handleClosePdf}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>Aperçu de l'Avis de Passage</DialogTitle>
+        <DialogContent sx={{ height: 900 }}>
+          {selectedAvis && <AvisDePassagePDF avis={selectedAvis} />}
+        </DialogContent>
+      </Dialog>
+    </Paper>
   );
 };
 

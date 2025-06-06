@@ -26,6 +26,7 @@ import {
   AddBox, // Nouvelle icône pour "Ajouter un Article"
   VerifiedUser as VerifiedUserIcon,
   LocalShipping as LocalShippingIcon, // Ajoute cette ligne
+  NoteAdd, // Nouvelle icône pour "Ajouter/Créer un Proforma"
 } from '@mui/icons-material';
 import React, { useContext } from 'react';
 import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
@@ -103,14 +104,14 @@ const generatePagesSection = (roles = []) => {
         },
         {
           href: "/facturation/creer-proforma",
-          icon: DraftsIcon, // Nouvelle icône pour "Créer un Proforma"
+          icon: NoteAdd, // Icône feuille avec un + pour "Créer une Proforma"
           title: "Créer une Proforma",
           visible: isAdmin || roles.includes('proforma'),
         },
         {
           href: "/facturation/chercher-proforma",
-          icon: SearchIcon, // Nouvelle icône pour "Rechercher un Proforma"
-          title: "Rechercher une Proforma",
+          icon: ReceiptIcon, // Icône ticket/facture pour "Rechercher un Proforma"
+          title: "Proforma",
           visible: isAdmin || roles.includes('proforma'),
         },
       ],
@@ -130,12 +131,6 @@ const generatePagesSection = (roles = []) => {
           href: "/avis-de-passage/rechercher-avis-passage",
           icon: SearchIcon,
           title: "Rechercher un Avis de Passage",
-          visible: isAdmin || roles.includes('avis-de-passage'),
-        },
-        {
-          href: "/avis-de-passage/imprimer-avis-passage", // Route pour afficher le composant ADPmanuel
-          icon: PrintIcon, // Icône d'imprimante
-          title: "Imprimer Avis de Passage",
           visible: isAdmin || roles.includes('avis-de-passage'),
         },
       ],

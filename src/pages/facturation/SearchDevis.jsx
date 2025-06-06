@@ -16,6 +16,7 @@ import {
   TablePagination,
   MenuItem,
   Chip, // Import du Chip
+  Avatar,
 } from '@mui/material';
 import { Delete as DeleteIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -164,44 +165,59 @@ const SearchDevis = () => {
           <Grid item xs={12} sm={6} md={4} key={devis.id}>
             <Card>
               <CardContent>
-                <Box display="flex" flexDirection="column">
-                  <Typography variant="h5" component="div">
-                    <Link to={`/devis/${devis.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                      {devis.billTo?.company}
-                    </Link>
-                  </Typography>
-                  <Typography color="textSecondary">
-                    Date : {devis.invoiceInfo?.date}
-                  </Typography>
-                  <Typography color="textSecondary">
-                    Téléphone : {devis.billTo?.phone}
-                  </Typography>
-                  <Typography variant="body2">
-                    Adresse : {devis.billTo?.address}
-                  </Typography>
-                  <Typography variant="body2">
-                    Numéro du Proforma : {devis.invoiceInfo?.number}
-                  </Typography>
-                  <Box mt={2}>
-                    <Typography variant="h6">Services</Typography>
-                    {devis.services?.map((service, index) => (
-                      <Box key={index} mt={1}>
-                        <Typography variant="body2">
-                          <strong>Libellé :</strong> {service.libelle}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Description :</strong> {service.description}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                  <Box mt={2}>
-                    <Chip
-                      label={devis.status || "En attente"}
-                      color={devis.status === "Confirmée" ? "success" : "default"}
-                      onClick={() => handleConfirmDevis(devis.id, devis.status)}
-                      style={{ cursor: "pointer" }}
+                <Box display="flex" alignItems="center">
+                  {/* Affiche le logo du client si disponible */}
+                  {devis.billTo?.logoUrl && (
+                    <Avatar
+                      src={devis.billTo.logoUrl}
+                      alt="logo"
+                      style={{ width: '60px', height: '60px', marginRight: '10px' }}
                     />
+                  )}
+                  <Box>
+                    <Typography variant="h5" component="div">
+                      <Link to={`/devis/${devis.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        {devis.billTo?.company}
+                      </Link>
+                    </Typography>
+                    <Typography color="textSecondary">
+                      Date : {devis.invoiceInfo?.date}
+                    </Typography>
+                    <Typography color="textSecondary">
+                      Téléphone : {devis.billTo?.phone}
+                    </Typography>
+                    <Typography variant="body2">
+                      Adresse : {devis.billTo?.address}
+                    </Typography>
+                    <Typography variant="body2">
+                      Numéro du Proforma : {devis.invoiceInfo?.number}
+                    </Typography>
+                    <Box mt={1}>
+                      <Typography variant="h6">Services</Typography>
+                      {devis.services?.slice(0, 2).map((service, index) => (
+                        <Box key={index} mt={0.5}>
+                          <Typography variant="body2">
+                            <strong>Libellé :</strong> {service.libelle}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>Description :</strong> {service.description}
+                          </Typography>
+                        </Box>
+                      ))}
+                      {devis.services?.length > 2 && (
+                        <Typography variant="body2" color="textSecondary">
+                          ...et {devis.services.length - 2} autres
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box mt={2}>
+                      <Chip
+                        label={devis.status || "En attente"}
+                        color={devis.status === "Confirmée" ? "success" : "default"}
+                        onClick={() => handleConfirmDevis(devis.id, devis.status)}
+                        style={{ cursor: "pointer" }}
+                      />
+                    </Box>
                   </Box>
                 </Box>
               </CardContent>
