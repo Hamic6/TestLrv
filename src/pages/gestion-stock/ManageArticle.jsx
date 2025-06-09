@@ -29,6 +29,8 @@ import {
   TablePagination
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import SettingsIcon from "@mui/icons-material/Settings";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useTheme } from "@mui/material/styles";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
@@ -325,16 +327,13 @@ const ManageArticle = () => {
                 </Box>
               </CardContent>
               <CardActions>
-                <Button
-                  variant="outlined"
+                <IconButton
                   color="primary"
-                  startIcon={<EditOutlinedIcon />}
                   onClick={() => handleOpenModal(article)}
-                  sx={{ textTransform: "none" }}
+                  aria-label="Paramètres"
                 >
-                  Modifier
-                </Button>
-                {/* Le bouton Supprimer a été retiré */}
+                  <SettingsIcon />
+                </IconButton>
               </CardActions>
             </Card>
           </Grid>

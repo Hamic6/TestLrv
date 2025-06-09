@@ -15,6 +15,7 @@ import {
   InputLabel,
   FormControl
 } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete"; // Ajout pour l'autocomplete
 
 const StockEntryForm = () => {
   // Infos entreprise (fixes)
@@ -93,7 +94,6 @@ const StockEntryForm = () => {
     setEntries((prev) =>
       prev.map((entry, i) => {
         if (i === index) {
-          // Si on change l'article, on met à jour la référence et le prix automatiquement
           if (name === "productId") {
             const selectedProduct = products.find(p => p.id === value);
             return {
@@ -147,11 +147,15 @@ const StockEntryForm = () => {
 
       // Récupère les articles sélectionnés pour les stocker dans le bon de commande
       const articles = entries.map(entry => {
-        const product = products.find(p => p.id === entry.productId);
+        const product = products.find(p => p.id === entry.productId) || {};
         return {
           ...entry,
-          name: product?.name || "",
-          article: product || null, // Ajoute l'objet article complet si besoin
+          name: product.name || "",
+          reference: entry.reference || "",
+          unit: entry.unit || "",
+          unitPrice: entry.unitPrice || "",
+          quantity: entry.quantity || "",
+          article: product, // ou null si tu préfères
         };
       });
 
@@ -160,11 +164,11 @@ const StockEntryForm = () => {
         orderNumber,
         companyInfo,
         client: clientInfo,
-        entries: articles, // On stocke les articles enrichis ici
+        entries: articles,
         grandTotal: calculateGrandTotal().toFixed(2),
         date: serverTimestamp(),
         userId: auth?.currentUser?.uid || null,
-        userName, // Ajoute le nom de l'utilisateur ici
+        userName,
       });
 
       setAlertMessage("Entrée de stock enregistrée avec succès !");
@@ -237,21 +241,23 @@ const StockEntryForm = () => {
         {entries.map((entry, index) => (
           <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
             <Grid item xs={12} sm={3}>
-              <FormControl fullWidth required>
-                <InputLabel>Article</InputLabel>
-                <Select
-                  name="productId"
-                  value={entry.productId}
-                  label="Article"
-                  onChange={e => handleEntryChange(index, e)}
-                >
-                  {products.map(product => (
-                    <MenuItem key={product.id} value={product.id}>
-                      {product.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Autocomplete
+                options={products}
+                getOptionLabel={option => option.name || ""}
+                value={products.find(p => p.id === entry.productId) || null}
+                onChange={(e, value) =>
+                  handleEntryChange(index, { target: { name: "productId", value: value ? value.id : "" } })
+                }
+                renderInput={params => (
+                  <TextField {...params} label="Article" required />
+                )}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    {option.name} {option.reference ? `- ${option.reference}` : ""}
+                  </li>
+                )}
+              />
             </Grid>
             <Grid item xs={12} sm={2}>
               <TextField
