@@ -3,7 +3,7 @@ import { db } from "../../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Menu, MenuItem, TableContainer, useMediaQuery,
-  Dialog, DialogTitle, DialogContent, IconButton, Box
+  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import QRCode from "qrcode";
@@ -11,6 +11,7 @@ import PreviewOutlinedIcon from "@mui/icons-material/PreviewOutlined";
 import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import Bdlpdf, { BdlpdfDocument } from "./Bdlpdf"; // Utilise le PDF des bons de livraison
+import FiltreValidation from "./FiltreValidation"; // Ajoute le filtre
 
 const GestionLivraison = () => {
   const [bons, setBons] = useState([]);
@@ -20,6 +21,10 @@ const GestionLivraison = () => {
   const [selectedBdc, setSelectedBdc] = useState(null);
   const [qrCodes, setQrCodes] = useState({});
   const [anchorElActions, setAnchorElActions] = useState(null);
+
+  // Pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -59,6 +64,11 @@ const GestionLivraison = () => {
     setFilteredBons(sorted);
   }, [sortOrder, bons]);
 
+  const handleApplyFilters = (filtered) => {
+    setFilteredBons(filtered);
+    setPage(0); // Reset page on filter
+  };
+
   const handleOpenPdf = (bon) => {
     setSelectedBdc(bon);
     setOpenPdf(true);
@@ -70,9 +80,22 @@ const GestionLivraison = () => {
     setSelectedBdc(null);
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Pagination des bons
+  const paginatedBons = filteredBons.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   return (
     <Paper sx={{ p: 2 }}>
       <Typography variant="h5" gutterBottom>Gestion des Bons de Livraison</Typography>
+      <FiltreValidation onApplyFilters={handleApplyFilters} collectionName="bon_de_livraison" />
       <Button
         variant="outlined"
         size="small"
@@ -92,7 +115,7 @@ const GestionLivraison = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredBons.map(bon => (
+            {paginatedBons.map(bon => (
               <TableRow key={bon.id}>
                 <TableCell>{bon.orderNumber}</TableCell>
                 {!isMobile && <TableCell>{bon.client?.name}</TableCell>}
@@ -115,7 +138,7 @@ const GestionLivraison = () => {
                         open={Boolean(anchorElActions) && anchorElActions.bon.id === bon.id}
                         onClose={() => setAnchorElActions(null)}
                       >
-                        <MenuItem onClick={() => handleOpenPdf(bon)}>
+                        <MenuItem onClick={() => { handleOpenPdf(bon); setAnchorElActions(null); }}>
                           <PreviewOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Aperçu
                         </MenuItem>
                         <MenuItem onClick={() => setAnchorElActions(null)}>
@@ -158,6 +181,17 @@ const GestionLivraison = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        component="div"
+        count={filteredBons.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 25]}
+        labelRowsPerPage="Lignes par page"
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+      />
       {filteredBons.length === 0 && (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
           Aucun bon de livraison à afficher.
