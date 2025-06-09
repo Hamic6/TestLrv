@@ -56,6 +56,7 @@ const ManageArticle = async(() => import("@/pages/gestion-stock/ManageArticle"))
 const StockOutForm = async(() => import("@/pages/gestion-stock/StockOutForm"));
 const ValidationBonLivraison = async(() => import("@/pages/gestion-stock/ValidationBdc"));
 const GestionLivraison = async(() => import("@/pages/gestion-stock/GestionLivraison"));
+const GestionBdc = async(() => import("@/pages/gestion-stock/Gestionbdc"));
 
 // Définition des routes
 const routes = [
@@ -273,11 +274,15 @@ const routes = [
         element: <ManageArticle />,
       },
       {
+        path: "bon-de-commande",
+        element: <GestionBdc />, // Gestion des bons de commande (pile de cartons)
+      },
+      {
         path: "delivery-note",
         element: <StockOutForm />,
       },
       {
-        path: "delivery-management", // Ajoute cette route pour la gestion des bons de livraison
+        path: "delivery-management",
         element: <GestionLivraison />,
       },
       {

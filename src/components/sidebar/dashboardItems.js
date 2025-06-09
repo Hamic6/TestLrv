@@ -28,8 +28,10 @@ import {
   LocalShipping as LocalShippingIcon, // Ajoute cette ligne
   NoteAdd, // Nouvelle icône pour "Ajouter/Créer un Proforma"
 } from '@mui/icons-material';
+import AdminPanelSettings from '@mui/icons-material/AdminPanelSettings';
 import React, { useContext } from 'react';
 import { AuthContext } from '../../contexts/FirebaseAuthContext'; // Utiliser AuthContext
+import CategoryIcon from '@mui/icons-material/Category';
 
 const useAuth = () => {
   const { user } = useContext(AuthContext);
@@ -155,13 +157,13 @@ const generatePagesSection = (roles = []) => {
         },
         {
           href: "/stock/management",
-          icon: Inventory2Outlined, 
+          icon: CategoryIcon, // Icône cubes pour "Inventaire" (articles/produits)
           title: "Inventaire",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
           href: "/stock/bon-de-commande",
-          icon: Archive, 
+          icon: Inventory2Outlined, // Icône pile de cartons pour "Gestion des bons de commande"
           title: "Gestion des bons de commande",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },

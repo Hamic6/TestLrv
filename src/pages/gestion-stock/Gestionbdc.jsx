@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { db, auth } from "../../firebaseConfig";
-import { collection, getDocs, updateDoc, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Chip, Menu, MenuItem, TableContainer, useMediaQuery,
   Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination
@@ -26,7 +26,7 @@ const STATUS_COLORS = {
   refusé: "error"
 };
 
-const ValidationBdc = () => {
+const Gestionbdc = () => {
   const [bons, setBons] = useState([]);
   const [filteredBons, setFilteredBons] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc"); // "asc" ou "desc"
@@ -36,8 +36,6 @@ const ValidationBdc = () => {
   const [selectedBdc, setSelectedBdc] = useState(null);
   const [qrCodes, setQrCodes] = useState({});
   const [anchorElActions, setAnchorElActions] = useState(null); // Pour le menu actions mobile
-
-  // Pagination
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -52,9 +50,8 @@ const ValidationBdc = () => {
         ...d.data(),
         statut: d.data().statut || "en_attente"
       }));
-      // Par défaut, n'affiche que les bons en attente
       setBons(list);
-      setFilteredBons(list.filter(b => b.statut === "en_attente"));
+      setFilteredBons(list);
     };
     fetchBons();
   }, []);
@@ -81,43 +78,6 @@ const ValidationBdc = () => {
     setFilteredBons(sorted);
   }, [sortOrder, bons]);
 
-  const handleStatusChange = async (id, statut) => {
-    const bon = bons.find(b => b.id === id);
-    await updateDoc(doc(db, "bon_de_commande", id), { statut });
-
-    if (statut === "accepté" && bon && bon.entries) {
-      for (const entry of bon.entries) {
-        await addDoc(collection(db, "stockMovements"), {
-          productId: entry.productId,
-          name: entry.name || "",
-          reference: entry.reference,
-          unit: entry.unit,
-          quantity: entry.quantity,
-          unitPrice: entry.unitPrice,
-          total: entry.total || (Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2),
-          orderNumber: bon.orderNumber,
-          type: "entrée",
-          createdAt: serverTimestamp(),
-          userId: auth?.currentUser?.uid || null,
-        });
-
-        const articleRef = doc(db, "articles", entry.productId);
-        const articleSnap = await getDoc(articleRef);
-        let oldStock = 0;
-        if (articleSnap.exists() && articleSnap.data().stock) {
-          oldStock = Number(articleSnap.data().stock);
-        }
-        const newStock = oldStock + Number(entry.quantity);
-        await updateDoc(articleRef, { stock: newStock });
-      }
-    }
-
-    setBons(prev => prev.map(b => b.id === id ? { ...b, statut } : b));
-    setFilteredBons(prev => prev.map(b => b.id === id ? { ...b, statut } : b));
-    handleCloseMenu();
-    setAnchorElActions(null);
-  };
-
   const handleClickChip = (event, id) => {
     setAnchorEl(event.currentTarget);
     setCurrentBonId(id);
@@ -130,7 +90,6 @@ const ValidationBdc = () => {
 
   const handleApplyFilters = (filtered) => {
     setFilteredBons(filtered);
-    setPage(0); // Reset page on filter
   };
 
   const handleOpenPdf = (bon) => {
@@ -144,21 +103,12 @@ const ValidationBdc = () => {
     setSelectedBdc(null);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   // Pagination des bons
   const paginatedBons = filteredBons.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Paper sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>Validation des Bons de Commande</Typography>
+      <Typography variant="h5" gutterBottom>Gestion des Bons de Commande</Typography>
       <FiltreValidation onApplyFilters={handleApplyFilters} collectionName="bon_de_commande" />
       <Button
         variant="outlined"
@@ -210,13 +160,13 @@ const ValidationBdc = () => {
                     open={Boolean(anchorEl) && currentBonId === bon.id}
                     onClose={handleCloseMenu}
                   >
-                    <MenuItem onClick={() => handleStatusChange(bon.id, "accepté")}>
+                    <MenuItem disabled>
                       <CheckCircleIcon color="success" sx={{ mr: 1 }} /> Accepté
                     </MenuItem>
-                    <MenuItem onClick={() => handleStatusChange(bon.id, "refusé")}>
+                    <MenuItem disabled>
                       <CancelIcon color="error" sx={{ mr: 1 }} /> Refusé
                     </MenuItem>
-                    <MenuItem onClick={() => handleStatusChange(bon.id, "en_attente")}>
+                    <MenuItem disabled>
                       <HourglassEmptyIcon color="warning" sx={{ mr: 1 }} /> En attente
                     </MenuItem>
                   </Menu>
@@ -244,11 +194,6 @@ const ValidationBdc = () => {
                         >
                           <PictureAsPdfOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Télécharger PDF
                         </MenuItem>
-                        {bon.statut !== "accepté" && (
-                          <MenuItem onClick={() => { handleStatusChange(bon.id, "accepté"); setAnchorElActions(null); }}>
-                            <CheckCircleIcon color="success" fontSize="small" sx={{ mr: 1 }} /> Valider
-                          </MenuItem>
-                        )}
                       </Menu>
                     </>
                   ) : (
@@ -272,17 +217,6 @@ const ValidationBdc = () => {
                           </IconButton>
                         )}
                       </PDFDownloadLink>
-                      {bon.statut !== "accepté" && (
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          onClick={() => handleStatusChange(bon.id, "accepté")}
-                          sx={{ ml: 1 }}
-                        >
-                          Valider
-                        </Button>
-                      )}
                     </Box>
                   )}
                 </TableCell>
@@ -295,9 +229,12 @@ const ValidationBdc = () => {
         component="div"
         count={filteredBons.length}
         page={page}
-        onPageChange={handleChangePage}
+        onPageChange={(event, newPage) => setPage(newPage)}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
+        onRowsPerPageChange={event => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0);
+        }}
         rowsPerPageOptions={[5, 10, 25]}
         labelRowsPerPage="Lignes par page"
         labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
@@ -322,4 +259,4 @@ const ValidationBdc = () => {
   );
 };
 
-export default ValidationBdc;
+export default Gestionbdc;
