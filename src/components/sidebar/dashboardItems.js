@@ -27,6 +27,7 @@ import {
   VerifiedUser as VerifiedUserIcon,
   LocalShipping as LocalShippingIcon, // Ajoute cette ligne
   NoteAdd, // Nouvelle icône pour "Ajouter/Créer un Proforma"
+  FactCheck as FactCheckIcon,
 } from '@mui/icons-material';
 import AdminPanelSettings from '@mui/icons-material/AdminPanelSettings';
 import React, { useContext } from 'react';
@@ -131,8 +132,8 @@ const generatePagesSection = (roles = []) => {
         },
         {
           href: "/avis-de-passage/rechercher-avis-passage",
-          icon: SearchIcon,
-          title: "Rechercher un Avis de Passage",
+          icon: FactCheckIcon,
+          title: "Gestion des Avis de Passage",
           visible: isAdmin || roles.includes('avis-de-passage'),
         },
       ],

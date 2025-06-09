@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../../firebaseConfig'; 
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import {
-  Table, TableHead, TableRow, TableCell, TableBody, Typography, Paper, IconButton, Box, TextField, Snackbar, Alert, TableContainer, TablePagination, Dialog, DialogTitle, DialogContent
+  Table, TableHead, TableRow, TableCell, TableBody, Typography, Paper, IconButton, Box, TextField, Snackbar, Alert, TableContainer, TablePagination, Dialog, DialogTitle, DialogContent, Chip, useMediaQuery, Menu, MenuItem, Stack
 } from '@mui/material';
-import { Delete as DeleteIcon, PreviewOutlined as PreviewOutlinedIcon, PictureAsPdfOutlined as PictureAsPdfOutlinedIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, PreviewOutlined as PreviewOutlinedIcon, PictureAsPdfOutlined as PictureAsPdfOutlinedIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import AvisDePassagePDF from './AvisDePassagePDF';
 import FiltersAvisDePassage from './FiltersAvisDePassage';
+import { useTheme } from "@mui/material/styles";
+import AvisDePassagePreview from './AvisDePassagePreview';
 
 const SearchAvisDePassage = () => {
   const [avis, setAvis] = useState([]);
@@ -21,6 +23,10 @@ const SearchAvisDePassage = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [openPdf, setOpenPdf] = useState(false);
   const [selectedAvis, setSelectedAvis] = useState(null);
+  const [anchorElActions, setAnchorElActions] = useState(null);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     const fetchAvis = async () => {
@@ -62,6 +68,7 @@ const SearchAvisDePassage = () => {
   const handleOpenPdf = (avis) => {
     setSelectedAvis(avis);
     setOpenPdf(true);
+    setAnchorElActions(null);
   };
 
   const handleClosePdf = () => {
@@ -87,8 +94,8 @@ const SearchAvisDePassage = () => {
   const paginatedAvis = sortedAvis.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Paper sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>
+    <Paper sx={{ p: isMobile ? 1 : 2 }}>
+      <Typography variant={isMobile ? "h6" : "h5"} gutterBottom>
         Recherche des Avis de Passage
       </Typography>
       <TextField
@@ -98,12 +105,13 @@ const SearchAvisDePassage = () => {
         margin="normal"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
+        size={isMobile ? "small" : "medium"}
       />
       <Box display="flex" alignItems="center" mb={2}>
         <FiltersAvisDePassage onApplyFilters={handleApplyFilters} />
       </Box>
       <TableContainer sx={{ maxWidth: "100vw", overflowX: "auto" }}>
-        <Table>
+        <Table size={isMobile ? "small" : "medium"}>
           <TableHead>
             <TableRow>
               <TableCell
@@ -114,8 +122,7 @@ const SearchAvisDePassage = () => {
                 Numéro
               </TableCell>
               <TableCell>Client</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Adresse</TableCell>
+              {!isMobile && <TableCell>Date</TableCell>}
               <TableCell>Services</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -129,42 +136,110 @@ const SearchAvisDePassage = () => {
                     {avis.billTo?.company}
                   </Link>
                 </TableCell>
-                <TableCell>{avis.avisInfo?.date}</TableCell>
-                <TableCell>{avis.billTo?.address}</TableCell>
+                {!isMobile && (
+                  <TableCell>
+                    {avis.avisInfo?.date}
+                  </TableCell>
+                )}
                 <TableCell>
-                  {avis.services?.slice(0, 2).map((service, idx) => (
-                    <Box key={idx}>
-                      <Typography variant="body2"><strong>{service.libelle}</strong>: {service.description}</Typography>
-                    </Box>
-                  ))}
-                  {avis.services?.length > 2 && (
-                    <Typography variant="caption" color="textSecondary">
-                      ...et {avis.services.length - 2} autres
-                    </Typography>
-                  )}
+                  <Stack direction="column" spacing={0.5}>
+                    {avis.services && Array.isArray(avis.services) ? (
+                      <>
+                        {avis.services.slice(0, isMobile ? 1 : 2).map((service, idx) => (
+                          <Chip
+                            key={idx}
+                            label={service.libelle}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              mb: 0.5,
+                              maxWidth: isMobile ? 120 : 180,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              fontSize: isMobile ? 11 : 13,
+                              height: isMobile ? 22 : 28,
+                            }}
+                          />
+                        ))}
+                        {avis.services.length > (isMobile ? 1 : 2) && (
+                          <Chip
+                            label={`+${avis.services.length - (isMobile ? 1 : 2)} autre(s)`}
+                            size="small"
+                            variant="outlined"
+                            color="info"
+                            sx={{
+                              mb: 0.5,
+                              maxWidth: isMobile ? 120 : 180,
+                              fontSize: isMobile ? 11 : 13,
+                              height: isMobile ? 22 : 28,
+                            }}
+                          />
+                        )}
+                      </>
+                    ) : null}
+                    {isMobile && (
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        {avis.avisInfo?.date}
+                      </Typography>
+                    )}
+                  </Stack>
                 </TableCell>
                 <TableCell>
-                  <Box display="flex" alignItems="center">
-                    <IconButton color="primary" onClick={() => handleOpenPdf(avis)}>
-                      <PreviewOutlinedIcon />
-                    </IconButton>
-                    <PDFDownloadLink document={<AvisDePassagePDF avis={avis} />} fileName={`avis_de_passage_${avis.avisInfo?.number}.pdf`}>
-                      {({ loading }) => (
-                        <IconButton color="error" disabled={loading}>
-                          <PictureAsPdfOutlinedIcon />
-                        </IconButton>
-                      )}
-                    </PDFDownloadLink>
-                    <IconButton aria-label="delete" onClick={() => handleDeleteAvis(avis.id)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
+                  {isMobile ? (
+                    <>
+                      <IconButton onClick={e => setAnchorElActions({ anchor: e.currentTarget, avis })}>
+                        <MoreVertIcon />
+                      </IconButton>
+                      <Menu
+                        anchorEl={anchorElActions?.anchor}
+                        open={Boolean(anchorElActions) && anchorElActions.avis.id === avis.id}
+                        onClose={() => setAnchorElActions(null)}
+                      >
+                        <MenuItem onClick={() => { handleOpenPdf(avis); setAnchorElActions(null); }}>
+                          <PreviewOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Aperçu
+                        </MenuItem>
+                        <MenuItem onClick={() => setAnchorElActions(null)}>
+                          <PDFDownloadLink
+                            document={<AvisDePassagePDF avis={avis} />}
+                            fileName={`avis_de_passage_${avis.avisInfo?.number}.pdf`}
+                            style={{ color: "inherit", textDecoration: "none", display: "flex", alignItems: "center", width: "100%" }}
+                          >
+                            {({ loading }) => (
+                              <>
+                                <PictureAsPdfOutlinedIcon fontSize="small" sx={{ mr: 1 }} />
+                                Télécharger PDF
+                              </>
+                            )}
+                          </PDFDownloadLink>
+                        </MenuItem>
+                        <MenuItem onClick={() => { handleDeleteAvis(avis.id); setAnchorElActions(null); }}>
+                          <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Supprimer
+                        </MenuItem>
+                      </Menu>
+                    </>
+                  ) : (
+                    <Box display="flex" alignItems="center">
+                      <IconButton color="primary" onClick={() => handleOpenPdf(avis)}>
+                        <PreviewOutlinedIcon />
+                      </IconButton>
+                      <PDFDownloadLink document={<AvisDePassagePDF avis={avis} />} fileName={`avis_de_passage_${avis.avisInfo?.number}.pdf`}>
+                        {({ loading }) => (
+                          <IconButton color="error" disabled={loading}>
+                            <PictureAsPdfOutlinedIcon />
+                          </IconButton>
+                        )}
+                      </PDFDownloadLink>
+                      <IconButton aria-label="delete" onClick={() => handleDeleteAvis(avis.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
             {paginatedAvis.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={5} align="center">
                   <Typography variant="body2" color="text.secondary">
                     Aucun avis de passage à afficher.
                   </Typography>
@@ -183,6 +258,7 @@ const SearchAvisDePassage = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
         labelRowsPerPage="Lignes par page"
         labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+        rowsPerPageOptions={[5, 10, 25]}
       />
       <Snackbar
         open={snackbarOpen}
@@ -200,8 +276,12 @@ const SearchAvisDePassage = () => {
         fullWidth
       >
         <DialogTitle>Aperçu de l'Avis de Passage</DialogTitle>
-        <DialogContent sx={{ height: 900 }}>
-          {selectedAvis && <AvisDePassagePDF avis={selectedAvis} />}
+        <DialogContent sx={{ height: 900, p: 0 }}>
+          {selectedAvis && (
+            <PDFViewer width="100%" height={900} style={{ border: "none" }}>
+              <AvisDePassagePDF avis={selectedAvis} />
+            </PDFViewer>
+          )}
         </DialogContent>
       </Dialog>
     </Paper>
