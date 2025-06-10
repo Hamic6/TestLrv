@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs } from "firebase/firestore";
-import { TextField, MenuItem, Button, Grid } from '@mui/material';
+import { TextField, MenuItem, Grid } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 
 const Filters = ({ onApplyFilters }) => {
   const [clients, setClients] = useState([]);
@@ -29,27 +30,19 @@ const Filters = ({ onApplyFilters }) => {
     fetchClients();
   }, []);
 
-  const handleApplyFilters = () => {
+  useEffect(() => {
     onApplyFilters({ client, year, month, status, currency, service, archived, invoiceNumber });
-  };
+  }, [client, year, month, status, currency, service, archived, invoiceNumber]);
 
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          label="Client"
-          select
-          variant="outlined"
-          fullWidth
-          value={client}
-          onChange={(e) => setClient(e.target.value)}
-        >
-          {clients.map((client) => (
-            <MenuItem key={client.id} value={client.name}>
-              {client.name}
-            </MenuItem>
-          ))}
-        </TextField>
+        <Autocomplete
+          options={clients.map(c => ({ label: c.name }))}
+          value={client ? { label: client } : null}
+          onChange={(_, newValue) => setClient(newValue ? newValue.label : "")}
+          renderInput={(params) => <TextField {...params} label="Client" variant="outlined" fullWidth />}
+        />
       </Grid>
       <Grid item xs={12} sm={6} md={4}>
         <TextField
@@ -144,11 +137,6 @@ const Filters = ({ onApplyFilters }) => {
           <MenuItem value="oui">Archivées</MenuItem>
           <MenuItem value="toutes">Toutes</MenuItem>
         </TextField>
-      </Grid>
-      <Grid item xs={12}>
-        <Button variant="contained" color="primary" onClick={handleApplyFilters}>
-          Appliquer les Filtres
-        </Button>
       </Grid>
     </Grid>
   );

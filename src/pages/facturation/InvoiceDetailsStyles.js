@@ -1,21 +1,28 @@
 import styled from 'styled-components';
 
+// Style aligné sur le PDF : fonds très clair, coins arrondis, ombres douces, titres marqués, sections espacées
 export const InvoiceContainer = styled.div`
-  background-color: #f9f9f9;
-  padding: 40px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.04);
+  color: #222;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 `;
 
 export const HeaderSection = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #388e3c;
 `;
 
 export const CompanyDetails = styled.div`
-  text-align: left;
+  width: 60%;
+  border-right: 1px solid #e0e0e0;
+  padding-right: 10px;
 
   img {
     height: 60px;
@@ -23,84 +30,144 @@ export const CompanyDetails = styled.div`
   }
 
   h2 {
-    font-size: 1.5rem;
-    margin: 0;
+    font-size: 1.6rem;
+    margin: 0 0 5px 0;
+    font-weight: bold;
+    color: #2c3e50;
   }
 
   p {
     margin: 0;
-    color: #666;
+    color: #222;
+    font-size: 1rem;
   }
 `;
 
 export const InvoiceDetailsSection = styled.div`
-  text-align: right;
+  width: 40%;
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 
   h3 {
-    font-size: 2rem;
-    margin: 0 0 10px;
-    color: #3a3a3a;
+    font-size: 1.2rem;
+    margin: 0 0 10px 0;
+    color: #388e3c;
+    font-weight: bold;
+    text-transform: uppercase;
   }
 
   p {
     margin: 0;
-    color: #666;
+    color: #222;
+    font-size: 1rem;
   }
 `;
 
 export const BillingSection = styled.div`
-  margin: 20px 0;
-
-  h4 {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-    color: #3a3a3a;
-  }
-
-  p {
-    margin: 0;
-    color: #666;
-  }
+  margin-bottom: 18px;
+  margin-top: 0;
+  padding: 0;
 `;
 
+export const SectionTitle = styled.div`
+  font-size: 12px;
+  font-weight: bold;
+  color: #388e3c;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+`;
+
+// TABLEAU PRINCIPAL (services)
 export const TableContainer = styled.div`
   overflow-x: auto;
+  margin: 10px 0 20px 0;
 
   table {
     width: 100%;
     border-collapse: collapse;
-    margin: 20px 0;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.04);
 
     th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      font-size: 0.95rem;
+      text-align: center;
     }
 
     th {
-      background-color: #f0f0f0;
-      color: #333;
+      background-color: #388e3c;
+      color: #fff;
+      font-weight: bold;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      font-size: 1rem;
     }
 
-    td {
+    tr:nth-child(even) td {
+      background-color: #f9f9f9;
+    }
+    tr:nth-child(odd) td {
       background-color: #fff;
     }
   }
 `;
 
+// TABLEAU DYNAMIQUE EN BAS (style identique au PDF)
+export const DynamicTableContainer = styled.div`
+  overflow-x: auto;
+  margin: 20px 0 0 0;
 
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.04);
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    th {
+      background-color: #388e3c;
+      color: #fff;
+      font-weight: bold;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      font-size: 1rem;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f9f9f9;
+    }
+    tr:nth-child(odd) td {
+      background-color: #fff;
+    }
+  }
+`;
 
 export const TotalsSection = styled.div`
   text-align: right;
-  margin-top: 20px;
+  margin-top: 10px;
+  margin-bottom: 20px;
 
   p {
-    margin: 5px 0;
+    margin: 2px 0;
     font-size: 1rem;
+    color: #222;
   }
 
   p.total {
     font-weight: bold;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    color: #388e3c;
   }
 `;
 
@@ -110,6 +177,7 @@ export const PaymentInfoSection = styled.div`
   p {
     margin: 0;
     color: #666;
+    font-size: 1rem;
   }
 `;
 
@@ -119,5 +187,16 @@ export const NotesSection = styled.div`
   p {
     margin: 0;
     color: #666;
+    font-size: 1rem;
   }
+`;
+
+export const Footer = styled.div`
+  margin-top: 40px;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 5px;
+  line-height: 1.2;
 `;

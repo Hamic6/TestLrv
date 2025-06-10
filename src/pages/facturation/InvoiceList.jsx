@@ -122,8 +122,9 @@ const InvoiceList = () => {
     }
   };
 
-  // Pour le menu d'actions sur mobile
+  // Pour le menu d'actions sur chaque ligne
   const handleActionMenuOpen = (event, id) => {
+    event.stopPropagation();
     setActionMenuAnchor(event.currentTarget);
     setActionMenuInvoiceId(id);
   };
@@ -216,6 +217,7 @@ const InvoiceList = () => {
   };
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
+
   const exportToCSV = () => {
     const headers = ["Numéro de Facture", "Date", "Client", "Total", "Devise", "Services", "Statut"];
     const rows = (selected.length ? selected : filteredInvoices).map(id => {
@@ -278,6 +280,8 @@ const InvoiceList = () => {
               .map((invoice, index) => {
                 const isItemSelected = isSelected(invoice.id);
                 const labelId = `enhanced-table-checkbox-${index}`;
+                // Menu contextuel pour actions
+                const isActionMenuOpen = actionMenuAnchor && actionMenuInvoiceId === invoice.id;
                 return (
                   <TableRow
                     hover
@@ -386,50 +390,45 @@ const InvoiceList = () => {
                     </TableCell>
                     {/* Actions */}
                     <TableCell align="right">
-                      <>
-                        <IconButton
-                          aria-label="actions"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleActionMenuOpen(e, invoice.id);
+                      <IconButton
+                        aria-label="actions"
+                        onClick={(e) => handleActionMenuOpen(e, invoice.id)}
+                        size={isMobile ? "small" : "large"}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                      <Menu
+                        anchorEl={actionMenuAnchor}
+                        open={isActionMenuOpen}
+                        onClose={handleActionMenuClose}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                      >
+                        <MenuItem
+                          onClick={() => {
+                            invoice.archived ? handleUnarchive(invoice.id) : handleArchive(invoice.id);
+                            handleActionMenuClose();
                           }}
-                          size={isMobile ? "small" : "large"}
                         >
-                          <MoreVertIcon />
-                        </IconButton>
-                        <Menu
-                          anchorEl={actionMenuAnchor}
-                          open={Boolean(actionMenuAnchor) && actionMenuInvoiceId === invoice.id}
-                          onClose={handleActionMenuClose}
-                          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                        >
-                          <MenuItem
-                            onClick={() => {
-                              invoice.archived ? handleUnarchive(invoice.id) : handleArchive(invoice.id);
-                              handleActionMenuClose();
-                            }}
-                          >
-                            {invoice.archived ? (
-                              <>
-                                <UnarchiveIcon fontSize="small" sx={{ mr: 1 }} />
-                                Désarchiver
-                              </>
-                            ) : (
-                              <>
-                                <ArchiveIcon fontSize="small" sx={{ mr: 1 }} />
-                                Archiver
-                              </>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            <PictureAsPdfIcon fontSize="small" sx={{ mr: 1 }} />
-                            <PDFDownloadLink document={<Invoice1PDF invoice={invoice} />} fileName={`invoice_${invoice.invoiceInfo?.number}.pdf`}>
-                              {({ loading }) => loading ? '...' : 'PDF'}
-                            </PDFDownloadLink>
-                          </MenuItem>
-                        </Menu>
-                      </>
+                          {invoice.archived ? (
+                            <>
+                              <UnarchiveIcon fontSize="small" sx={{ mr: 1 }} />
+                              Désarchiver
+                            </>
+                          ) : (
+                            <>
+                              <ArchiveIcon fontSize="small" sx={{ mr: 1 }} />
+                              Archiver
+                            </>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          <PictureAsPdfIcon fontSize="small" sx={{ mr: 1 }} />
+                          <PDFDownloadLink document={<Invoice1PDF invoice={invoice} />} fileName={`invoice_${invoice.invoiceInfo?.number}.pdf`}>
+                            {({ loading }) => loading ? '...' : 'PDF'}
+                          </PDFDownloadLink>
+                        </MenuItem>
+                      </Menu>
                     </TableCell>
                   </TableRow>
                 );

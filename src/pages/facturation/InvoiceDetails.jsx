@@ -423,7 +423,7 @@ const InvoiceDetails = () => {
                   required
                   id="libelle"
                   name="libelle"
-                  label="Libellé"
+                  label="Numéro avis de passage"
                   fullWidth
                   value={service.libelle}
                   onChange={(e) => handleServiceChange(index, e)}
@@ -525,21 +525,23 @@ const InvoiceDetails = () => {
         <HeaderSection>
           <CompanyDetails>
             <img src={logo} alt='Logo' />
-            <h2>{companyInfo.name}</h2>
+            <h2 style={{ color: "#2c3e50", fontWeight: "bold", fontSize: 18, marginBottom: 5 }}>{companyInfo.name}</h2>
             <p>{companyInfo.address}</p>
-            <p>{companyInfo.phone}</p>
-            <p>{companyInfo.email}</p>
+            <p>Tél: {companyInfo.phone}</p>
+            <p>Email: {companyInfo.email}</p>
             <p>{companyInfo.taxNumber}</p>
           </CompanyDetails>
           <InvoiceDetailsSection>
-            <h3>FACTURE <AiFillFilePdf /></h3>
-            <p>LRV{invoiceInfo.number}</p>
+            <h3 style={{ color: "#388e3c", fontWeight: "bold", textTransform: "uppercase", fontSize: 16, marginBottom: 10 }}>
+              FACTURE <AiFillFilePdf />
+            </h3>
+            <p style={{ fontWeight: "bold" }}>N°: LRV{invoiceInfo.number}</p>
             <p>Date : {invoiceInfo.date}</p>
             <p>Date d'échéance : {invoiceInfo.dueDate}</p>
           </InvoiceDetailsSection>
         </HeaderSection>
         <BillingSection>
-          <h4>Facturé à :</h4>
+          <h4 style={{ color: "#388e3c", fontWeight: "bold", marginBottom: 10 }}>Facturé à :</h4>
           <p>{billTo.company}</p>
           <p>{billTo.address}</p>
           <p>{billTo.phone}</p>
@@ -550,7 +552,7 @@ const InvoiceDetails = () => {
             <thead>
               <tr>
                 <th>Description du service</th>
-                <th>Libellé</th>
+                <th>Num_Avis de passage</th>
                 <th>Quantité</th>
                 <th>Prix Unitaire ({invoiceInfo.currency})</th>
                 <th>Montant ({invoiceInfo.currency})</th>

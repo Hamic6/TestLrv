@@ -210,8 +210,8 @@ const Invoice1PDF = ({ invoice }) => {
           <View style={styles.table}>
             <View style={styles.tableHeader}>
               <Text style={[styles.tableHeaderCell, { width: "8%" }]}>N°</Text>
-              <Text style={[styles.tableHeaderCell, { width: "34%", textAlign: "left" }]}>Service</Text>
-              <Text style={[styles.tableHeaderCell, { width: "18%" }]}>Libellé</Text>
+              <Text style={[styles.tableHeaderCell, { width: "34%", textAlign: "left" }]}>Service(s)</Text>
+              <Text style={[styles.tableHeaderCell, { width: "18%" }]}>Numéro Avis de passage</Text>
               <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Quantité</Text>
               <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Montant</Text>
             </View>
