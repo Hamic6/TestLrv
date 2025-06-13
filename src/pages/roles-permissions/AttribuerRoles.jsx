@@ -47,6 +47,7 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'; // en haut du fichier
 
 
 const Card = styled(MuiCard)(spacing);
@@ -61,6 +62,7 @@ const roles = [
   'proforma',
   'avis-de-passage',
   'gestion-de-stock',
+  'validation-stock', // <-- Ajouté ici
   'gestion-des-utilisateurs',
   'liste-des-factures',
   'creer-facture',
@@ -71,6 +73,7 @@ const roleIcons = {
   admin: <AdminPanelSettingsIcon fontSize="small" />,
   manager: <SupervisorAccountIcon fontSize="small" />,
   facturation: <ReceiptIcon fontSize="small" />,
+  "validation-stock": <VerifiedUserIcon fontSize="small" />, // <-- Corrigé ici
   // Ajoute d'autres rôles/icônes si besoin
 };
 
@@ -78,6 +81,7 @@ const roleColors = {
   admin: 'error',
   manager: 'info',
   facturation: 'success',
+  "validation-stock": 'warning', // <-- Corrigé ici
   // Ajoute d'autres couleurs si besoin
 };
 

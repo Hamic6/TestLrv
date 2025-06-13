@@ -57,6 +57,7 @@ const StockOutForm = async(() => import("@/pages/gestion-stock/StockOutForm"));
 const ValidationBonLivraison = async(() => import("@/pages/gestion-stock/ValidationBdc"));
 const GestionLivraison = async(() => import("@/pages/gestion-stock/GestionLivraison"));
 const GestionBdc = async(() => import("@/pages/gestion-stock/Gestionbdc"));
+const Invoice1PDFWrapper = async(() => import("@/pages/facturation/Invoice1PDFWrapper"));
 
 // Définition des routes
 const routes = [
@@ -198,6 +199,10 @@ const routes = [
       {
         path: "chercher-proforma", // Route pour "Rechercher un Proforma"
         element: <SearchDevis />, // Réutilisation du composant SearchDevis
+      },
+      {
+        path: "pdf/:id", // Route pour afficher le PDF de la facture
+        element: <Invoice1PDFWrapper />, // Ce composant va charger la facture et afficher <Invoice1PDF invoice={...} />
       },
     ],
   },

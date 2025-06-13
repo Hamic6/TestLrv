@@ -17,6 +17,8 @@ import { store } from "./redux/store";
 import createEmotionCache from "./utils/createEmotionCache";
 
 import { AuthProvider } from "./contexts/FirebaseAuthContext"; // Utilisation de FirebaseAuthContext
+import { StockAlertProvider } from "./contexts/StockAlertContext";
+import { InvoiceNotifsProvider } from "./contexts/InvoiceNotifsContext";
 
 import SplashScreen from "./components/SplashScreen"; // Ajout du splash screen
 
@@ -46,7 +48,11 @@ function App({ emotionCache = clientSideEmotionCache }) {
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <MuiThemeProvider theme={createTheme(theme)}>
               <AuthProvider>
-                {content}
+                <StockAlertProvider>
+                  <InvoiceNotifsProvider>
+                    {content}
+                  </InvoiceNotifsProvider>
+                </StockAlertProvider>
               </AuthProvider>
             </MuiThemeProvider>
           </LocalizationProvider>

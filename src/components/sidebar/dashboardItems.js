@@ -148,7 +148,7 @@ const generatePagesSection = (roles = []) => {
           href: "/stock/items",
           icon: MoveToInbox, 
           title: "Bon de commande ",
-          visible: isAdmin || roles.includes('gestion-de-stock'),
+          visible: isAdmin || (roles.includes('gestion-de-stock')), // <-- Retire validation-stock ici
         },
         {
           href: "/stock/add",
@@ -160,7 +160,7 @@ const generatePagesSection = (roles = []) => {
           href: "/stock/management",
           icon: CategoryIcon, // Icône cubes pour "Inventaire" (articles/produits)
           title: "Inventaire",
-          visible: isAdmin || roles.includes('gestion-de-stock'),
+          visible: isAdmin || roles.includes('gestion-de-stock') || roles.includes('validation-stock'),
         },
         {
           href: "/stock/bon-de-commande",
@@ -184,20 +184,19 @@ const generatePagesSection = (roles = []) => {
           href: "/stock/validation",
           icon: CheckCircle,
           title: "Validation",
-          visible: isAdmin || roles.includes('gestion-de-stock'),
+          visible: isAdmin || roles.includes('validation-stock'),
           children: [
             {
               href: "/stock/validation/management",
               icon: VerifiedUserIcon, // Icône de validation/gestion (bouclier avec check)
               title: "Gestion des validations",
               parentModule: "Gestion de Stock",
-              visible: isAdmin || roles.includes('gestion-de-stock'),
+              visible: isAdmin || roles.includes('validation-stock'),
             },
-           
           ],
         },
       ],
-      visible: isAdmin || roles.includes('gestion-de-stock'),
+      visible: isAdmin || roles.includes('gestion-de-stock') || roles.includes('validation-stock'),
     },
     {
       href: "/roles-permissions",

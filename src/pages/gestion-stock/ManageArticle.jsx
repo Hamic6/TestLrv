@@ -33,6 +33,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useTheme } from "@mui/material/styles";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { useStockAlert } from "../../contexts/StockAlertContext";
 
 const ManageArticle = () => {
   const [articles, setArticles] = useState([]);
@@ -60,6 +61,7 @@ const ManageArticle = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { setStockAlertCount, setStockAlertArticles } = useStockAlert();
 
   // Récupération des articles
   useEffect(() => {
@@ -74,6 +76,17 @@ const ManageArticle = () => {
     };
     fetchArticles();
   }, []);
+
+  // Met à jour le nombre d'alertes stock dans le context à chaque changement d'articles
+  useEffect(() => {
+    const sousSeuil = articles.filter(
+      article =>
+        article.seuil > 0 &&
+        (article.stock ?? article.quantity ?? 0) <= article.seuil
+    );
+    setStockAlertCount(sousSeuil.length);
+    setStockAlertArticles(sousSeuil);
+  }, [articles, setStockAlertCount, setStockAlertArticles]);
 
   // Synchronise l'état du formulaire avec l'article sélectionné
   useEffect(() => {
@@ -262,6 +275,12 @@ const ManageArticle = () => {
     setSnackbarMessage("Photo retirée.");
     setSnackbarOpen(true);
   };
+
+  const articlesSousSeuil = articles.filter(
+    article =>
+      article.seuil > 0 &&
+      (article.stock ?? article.quantity ?? 0) <= article.seuil
+  );
 
   return (
     <div>

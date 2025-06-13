@@ -17,6 +17,7 @@ import { Menu as MenuIcon } from "@mui/icons-material";
 import logo from "../../vendor/logo.svg"; // Chemin corrigé pour accéder au logo
 
 import NavbarUserDropdown from "./NavbarUserDropdown";
+import NavbarNotificationsDropdown from "./NavbarNotificationsDropdown"; // Ajoute ceci
 
 const AppBar = styled(MuiAppBar)`
   background: ${(props) => props.theme.header.background};
@@ -101,6 +102,9 @@ const Navbar = ({ onDrawerToggle }) => {
               <Logo src={logo} alt="Logo de Le Rayon Vert" />
             </Grid>
             <Grid item xs />
+            <Grid item>
+              <NavbarNotificationsDropdown /> {/* Ajoute la cloche de notifications ici */}
+            </Grid>
             <Grid item>
               <NavbarUserDropdown />
             </Grid>

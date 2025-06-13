@@ -5,6 +5,7 @@ import { Container, Typography, Grid, List, ListItem, ListItemText, ListItemIcon
 import { Notifications, Error as AlertIcon, Payment as PaymentIcon, Repeat as RepeatIcon } from '@mui/icons-material';
 import Actions from './Actions'; // Import du composant Actions
 import notifsImage from './img/notifs.jpg'; // Import de l'image notifs
+import { useInvoiceNotifs } from "../../contexts/InvoiceNotifsContext";
 
 const AlertsAndNotifications = () => {
   const [alerts, setAlerts] = useState({
@@ -12,6 +13,46 @@ const AlertsAndNotifications = () => {
     upcomingPayments: [],
     recurringInvoices: [],
   });
+
+  const { setInvoiceNotifs } = useInvoiceNotifs();
+
+  const formatNotifs = (alerts) => {
+    const notifs = [];
+    alerts.overdueInvoices.forEach(invoice => {
+      notifs.push({
+        id: invoice.id,
+        type: "overdue",
+        title: "Facture en retard",
+        description: `${invoice.billTo.company} - ${parseFloat(invoice.total).toFixed(2)} USD`,
+        date: invoice.invoiceInfo.dueDate,
+        link: `/facturation/pdf/${invoice.id}`, // <-- correspond à ta route
+        icon: "alert"
+      });
+    });
+    alerts.upcomingPayments.forEach(invoice => {
+      notifs.push({
+        id: invoice.id,
+        type: "upcoming",
+        title: "Paiement à venir",
+        description: `${invoice.billTo.company} - ${parseFloat(invoice.total).toFixed(2)} USD`,
+        date: invoice.invoiceInfo.dueDate,
+        link: `/facturation/pdf/${invoice.id}`,
+        icon: "payment"
+      });
+    });
+    alerts.recurringInvoices.forEach(invoice => {
+      notifs.push({
+        id: invoice.id,
+        type: "recurring",
+        title: "Rappel facture récurrente",
+        description: `${invoice.billTo.company} - ${parseFloat(invoice.total).toFixed(2)} USD`,
+        date: invoice.invoiceInfo.date,
+        link: `/facturation/pdf/${invoice.id}`,
+        icon: "repeat"
+      });
+    });
+    return notifs;
+  };
 
   const fetchAlerts = async (filters) => {
     try {
@@ -71,6 +112,12 @@ const AlertsAndNotifications = () => {
         upcomingPayments,
         recurringInvoices,
       });
+
+      setInvoiceNotifs(formatNotifs({
+        overdueInvoices,
+        upcomingPayments,
+        recurringInvoices,
+      }));
     } catch (error) {
       console.error('Erreur lors de la récupération des alertes et notifications :', error);
     }
