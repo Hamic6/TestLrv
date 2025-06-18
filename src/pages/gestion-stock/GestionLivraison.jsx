@@ -3,7 +3,7 @@ import { db } from "../../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Menu, MenuItem, TableContainer, useMediaQuery,
-  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination
+  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination, Checkbox
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import QRCode from "qrcode";
@@ -25,6 +25,9 @@ const GestionLivraison = () => {
   // Pagination
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Sélection
+  const [selected, setSelected] = useState([]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -89,6 +92,20 @@ const GestionLivraison = () => {
     setPage(0);
   };
 
+  const handleSelect = (id) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selected.length === filteredBons.length) {
+      setSelected([]);
+    } else {
+      setSelected(filteredBons.map((bl) => bl.id));
+    }
+  };
+
   // Pagination des bons
   const paginatedBons = filteredBons.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -108,6 +125,13 @@ const GestionLivraison = () => {
         <Table size={isMobile ? "small" : "medium"}>
           <TableHead>
             <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={selected.length === filteredBons.length && filteredBons.length > 0}
+                  indeterminate={selected.length > 0 && selected.length < filteredBons.length}
+                  onChange={handleSelectAll}
+                />
+              </TableCell>
               <TableCell>Numéro</TableCell>
               {!isMobile && <TableCell>Client</TableCell>}
               <TableCell>Date</TableCell>
@@ -116,7 +140,13 @@ const GestionLivraison = () => {
           </TableHead>
           <TableBody>
             {paginatedBons.map(bon => (
-              <TableRow key={bon.id}>
+              <TableRow key={bon.id} selected={selected.includes(bon.id)}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selected.includes(bon.id)}
+                    onChange={() => handleSelect(bon.id)}
+                  />
+                </TableCell>
                 <TableCell>{bon.orderNumber}</TableCell>
                 {!isMobile && <TableCell>{bon.client?.name}</TableCell>}
                 <TableCell>
@@ -208,6 +238,11 @@ const GestionLivraison = () => {
           {selectedBdc && <Bdlpdf bdl={selectedBdc} />}
         </DialogContent>
       </Dialog>
+      <Box mt={2}>
+        <Typography variant="body2">
+          {selected.length} bon(s) de livraison sélectionné(s)
+        </Typography>
+      </Box>
     </Paper>
   );
 };

@@ -26,7 +26,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TablePagination
+  TablePagination,
+  Checkbox
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -58,6 +59,7 @@ const ManageArticle = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedArticles, setSelectedArticles] = useState([]);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -282,6 +284,21 @@ const ManageArticle = () => {
       (article.stock ?? article.quantity ?? 0) <= article.seuil
   );
 
+  // Gestion de la sélection
+  const handleSelectArticle = (id) => {
+    setSelectedArticles((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedArticles.length === paginatedArticles.length) {
+      setSelectedArticles([]);
+    } else {
+      setSelectedArticles(paginatedArticles.map((article) => article.id));
+    }
+  };
+
   return (
     <div>
       <Typography variant="h4" gutterBottom>
@@ -313,51 +330,60 @@ const ManageArticle = () => {
         Créer un Article
       </Button>
 
-      <Grid container spacing={3}>
-        {paginatedArticles.map((article) => (
-          <Grid item xs={12} sm={6} md={4} key={article.id}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  {article.photoURL && (
-                    <Avatar
-                      src={article.photoURL}
-                      alt="photo"
-                      style={{ width: '60px', height: '60px', marginRight: '10px' }}
-                    />
-                  )}
-                  <Box>
-                    <Typography variant="subtitle1">{article.name}</Typography>
-                    <Typography variant="caption" color="textSecondary">{article.reference}</Typography>
-                    {article.unit && (
-                      <Typography variant="body2" color="textSecondary">
-                        Unité : {article.unit}
-                      </Typography>
-                    )}
-                    {article.seuil > 0 && (
-                      <Typography variant="caption" color="warning.main" display="block">
-                        Seuil : {article.seuil}
-                      </Typography>
-                    )}
-                    <Typography variant="body2" color="primary">
-                      Stock disponible : {article.stock ?? article.quantity ?? "N/A"}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-              <CardActions>
-                <IconButton
-                  color="primary"
-                  onClick={() => handleOpenModal(article)}
-                  aria-label="Paramètres"
-                >
-                  <SettingsIcon />
-                </IconButton>
-              </CardActions>
-            </Card>
+      {/* Gestion de la sélection */}
+      <Box>
+        <Grid container spacing={3} alignItems="center" sx={{ mb: 1 }}>
+          <Grid item xs={1}>
+            <Checkbox
+              checked={selectedArticles.length === paginatedArticles.length && paginatedArticles.length > 0}
+              indeterminate={selectedArticles.length > 0 && selectedArticles.length < paginatedArticles.length}
+              onChange={handleSelectAll}
+            />
           </Grid>
-        ))}
-      </Grid>
+          <Grid item xs={11}>
+            <Typography variant="subtitle2">Sélectionner tout</Typography>
+          </Grid>
+        </Grid>
+        <Grid container spacing={3}>
+          {paginatedArticles.map((article) => (
+            <Grid item xs={12} sm={6} md={4} key={article.id}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center">
+                    <Checkbox
+                      checked={selectedArticles.includes(article.id)}
+                      onChange={() => handleSelectArticle(article.id)}
+                      sx={{ mr: 1 }}
+                    />
+                    {article.photoURL && (
+                      <Avatar
+                        src={article.photoURL}
+                        alt="photo"
+                        sx={{ width: 60, height: 60, mr: 1 }}
+                      />
+                    )}
+                    <Box>
+                      <Typography variant="subtitle1">{article.name}</Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {article.reference}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+                <CardActions>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleOpenModal(article)}
+                    aria-label="Paramètres"
+                  >
+                    <SettingsIcon />
+                  </IconButton>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
 
       <TablePagination
         component="div"

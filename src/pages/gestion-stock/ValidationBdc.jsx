@@ -3,7 +3,7 @@ import { db, auth } from "../../firebaseConfig";
 import { collection, getDocs, updateDoc, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Chip, Menu, MenuItem, TableContainer, useMediaQuery,
-  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination
+  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination, Checkbox
 } from "@mui/material";
 import FiltreValidation from "./FiltreValidation";
 import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon, HourglassEmpty as HourglassEmptyIcon, MoreVert as MoreVertIcon } from "@mui/icons-material";
@@ -40,6 +40,9 @@ const ValidationBdc = () => {
   // Pagination
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Checkbox selection state
+  const [selected, setSelected] = useState([]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -156,6 +159,22 @@ const ValidationBdc = () => {
   // Pagination des bons
   const paginatedBons = filteredBons.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+  // Checkbox handlers
+  const handleSelect = (id) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const ids = paginatedBons.map((b) => b.id);
+    if (selected.length === ids.length) {
+      setSelected([]);
+    } else {
+      setSelected(ids);
+    }
+  };
+
   return (
     <Paper sx={{ p: 2 }}>
       <Typography variant="h5" gutterBottom>Validation des Bons de Commande</Typography>
@@ -172,6 +191,13 @@ const ValidationBdc = () => {
         <Table size={isMobile ? "small" : "medium"}>
           <TableHead>
             <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={selected.length === paginatedBons.length && paginatedBons.length > 0}
+                  indeterminate={selected.length > 0 && selected.length < paginatedBons.length}
+                  onChange={handleSelectAll}
+                />
+              </TableCell>
               <TableCell>Numéro</TableCell>
               {!isMobile && <TableCell>Fournisseur</TableCell>}
               <TableCell>Date</TableCell>
@@ -181,7 +207,13 @@ const ValidationBdc = () => {
           </TableHead>
           <TableBody>
             {paginatedBons.map(bon => (
-              <TableRow key={bon.id}>
+              <TableRow key={bon.id} selected={selected.includes(bon.id)}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selected.includes(bon.id)}
+                    onChange={() => handleSelect(bon.id)}
+                  />
+                </TableCell>
                 <TableCell>{bon.orderNumber}</TableCell>
                 {!isMobile && <TableCell>{bon.client?.name}</TableCell>}
                 <TableCell>

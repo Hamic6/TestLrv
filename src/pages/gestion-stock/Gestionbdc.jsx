@@ -3,7 +3,7 @@ import { db } from "../../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Chip, Menu, MenuItem, TableContainer, useMediaQuery,
-  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination
+  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination, Checkbox
 } from "@mui/material";
 import FiltreValidation from "./FiltreValidation";
 import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon, HourglassEmpty as HourglassEmptyIcon, MoreVert as MoreVertIcon } from "@mui/icons-material";
@@ -26,6 +26,12 @@ const STATUS_COLORS = {
   refusé: "error"
 };
 
+const bonsDeCommande = [
+  // Exemple de données, à remplacer par tes vraies données
+  { id: 1, numero: "BDC-001", fournisseur: "Fournisseur A", montant: 500 },
+  { id: 2, numero: "BDC-002", fournisseur: "Fournisseur B", montant: 800 },
+];
+
 const Gestionbdc = () => {
   const [bons, setBons] = useState([]);
   const [filteredBons, setFilteredBons] = useState([]);
@@ -38,6 +44,7 @@ const Gestionbdc = () => {
   const [anchorElActions, setAnchorElActions] = useState(null); // Pour le menu actions mobile
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [selected, setSelected] = useState([]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -103,6 +110,22 @@ const Gestionbdc = () => {
     setSelectedBdc(null);
   };
 
+  const handleSelect = (id) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const pageIds = filteredBons.map((bdc) => bdc.id);
+    const allSelected = pageIds.every((id) => selected.includes(id));
+    if (allSelected) {
+      setSelected((prev) => prev.filter((id) => !pageIds.includes(id)));
+    } else {
+      setSelected((prev) => [...prev, ...pageIds.filter((id) => !prev.includes(id))]);
+    }
+  };
+
   // Pagination des bons
   const paginatedBons = filteredBons.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -122,6 +145,13 @@ const Gestionbdc = () => {
         <Table size={isMobile ? "small" : "medium"}>
           <TableHead>
             <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={selected.length === bonsDeCommande.length && bonsDeCommande.length > 0}
+                  indeterminate={selected.length > 0 && selected.length < bonsDeCommande.length}
+                  onChange={handleSelectAll}
+                />
+              </TableCell>
               <TableCell>Numéro</TableCell>
               {!isMobile && <TableCell>Fournisseur</TableCell>}
               <TableCell>Date</TableCell>
@@ -131,7 +161,13 @@ const Gestionbdc = () => {
           </TableHead>
           <TableBody>
             {paginatedBons.map(bon => (
-              <TableRow key={bon.id}>
+              <TableRow key={bon.id} selected={selected.includes(bon.id)}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selected.includes(bon.id)}
+                    onChange={() => handleSelect(bon.id)}
+                  />
+                </TableCell>
                 <TableCell>{bon.orderNumber}</TableCell>
                 {!isMobile && <TableCell>{bon.client?.name}</TableCell>}
                 <TableCell>
@@ -255,6 +291,11 @@ const Gestionbdc = () => {
           {selectedBdc && <Bdcpdf bdc={selectedBdc} />}
         </DialogContent>
       </Dialog>
+      <Box mt={2}>
+        <Typography variant="body2">
+          {selected.length} bon(s) de commande sélectionné(s)
+        </Typography>
+      </Box>
     </Paper>
   );
 };
