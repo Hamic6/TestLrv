@@ -2,6 +2,8 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import async from "@/components/Async";
 
+const Conditions = async(() => import("@/pages/pages/Conditions"));
+
 // Layouts
 import AuthLayout from "@/layouts/Auth";
 import DashboardLayout from "@/layouts/Dashboard";
@@ -84,6 +86,10 @@ const routes = [
       {
         path: "404",
         element: <Page404 />,
+      },
+      {
+        path: "conditions-utilisation",
+        element: <Conditions />,
       },
     ],
   },

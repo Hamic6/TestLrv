@@ -5,6 +5,7 @@ import {
   TextField, Grid, Button, Snackbar, Alert, Paper, Typography,
   MenuItem, Select, InputLabel, FormControl
 } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete"; // Ajout pour la recherche d'article
 
 const StockOutForm = () => {
   // Numéro de bon de livraison auto-incrémenté
@@ -20,7 +21,7 @@ const StockOutForm = () => {
     };
     fetchOrderNumber();
   }, []);
-
+  
   // Clients
   const [clients, setClients] = useState([]);
   useEffect(() => {
@@ -219,21 +220,24 @@ const StockOutForm = () => {
         {entries.map((entry, index) => (
           <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
             <Grid item xs={12} sm={4}>
-              <FormControl fullWidth required>
-                <InputLabel>Article</InputLabel>
-                <Select
-                  name="productId"
-                  value={entry.productId}
-                  label="Article"
-                  onChange={e => handleEntryChange(index, e)}
-                >
-                  {products.map(product => (
-                    <MenuItem key={product.id} value={product.id}>
-                      {product.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              {/* Remplace le Select par Autocomplete pour la recherche */}
+              <Autocomplete
+                options={products}
+                getOptionLabel={option => option.name || ""}
+                value={products.find(p => p.id === entry.productId) || null}
+                onChange={(e, value) =>
+                  handleEntryChange(index, { target: { name: "productId", value: value ? value.id : "" } })
+                }
+                renderInput={params => (
+                  <TextField {...params} label="Article" required />
+                )}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    {option.name} {option.reference ? `- ${option.reference}` : ""}
+                  </li>
+                )}
+              />
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField

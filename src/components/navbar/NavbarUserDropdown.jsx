@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { green } from "@mui/material/colors";
 import {
   Avatar,
@@ -97,9 +97,15 @@ function NavbarUserDropdown() {
         onClose={closeMenu}
       >
         <MenuItem onClick={handleProfile}>Profil</MenuItem>
-        <MenuItem onClick={closeMenu}>Paramètres & Confidentialité</MenuItem>
+        <MenuItem
+          component={Link}
+          to="/conditions-utilisation"
+          onClick={closeMenu}
+        >
+          Conditions d'utilisation
+        </MenuItem>
         <Divider />
-        <MenuItem onClick={closeMenu}>Aide</MenuItem>
+        <MenuItem onClick={closeMenu}>Assistance</MenuItem>
         <MenuItem onClick={handleLogout}>Se déconnecter</MenuItem>
       </Menu>
     </React.Fragment>
