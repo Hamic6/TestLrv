@@ -47,6 +47,7 @@ const ManageArticle = () => {
     unit: "",
     description: "",
     seuil: "",
+    stock: "",
     photoURL: ""
   });
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -100,6 +101,7 @@ const ManageArticle = () => {
         unit: currentArticle.unit || "",
         description: currentArticle.description || "",
         seuil: currentArticle.seuil !== undefined ? currentArticle.seuil : "",
+        stock: currentArticle.stock !== undefined ? currentArticle.stock : "",
         photoURL: currentArticle.photoURL || ""
       });
     } else if (openModal && !currentArticle) {
@@ -110,6 +112,7 @@ const ManageArticle = () => {
         unit: "",
         description: "",
         seuil: "",
+        stock: "",
         photoURL: ""
       });
     }
@@ -167,6 +170,12 @@ const ManageArticle = () => {
       } else {
         delete articleData.seuil;
       }
+      // Si stock est vide ou non numérique, on ne l'ajoute pas
+      if (editArticle.stock !== "" && !isNaN(Number(editArticle.stock))) {
+        articleData.stock = Number(editArticle.stock);
+      } else {
+        delete articleData.stock;
+      }
 
       if (currentArticle) {
         await updateDoc(doc(db, "articles", currentArticle.id), articleData);
@@ -191,6 +200,7 @@ const ManageArticle = () => {
         unit: "",
         description: "",
         seuil: "",
+        stock: "",
         photoURL: ""
       });
       setPhotoFile(null);
@@ -367,6 +377,14 @@ const ManageArticle = () => {
                       <Typography variant="body2" color="textSecondary">
                         {article.reference}
                       </Typography>
+                      <Typography variant="body2" color="primary">
+                        Stock disponible : {article.stock !== undefined && article.stock !== "" ? article.stock : "N/A"}
+                      </Typography>
+                      {article.seuil !== undefined && article.seuil !== "" && (
+                        <Typography variant="caption" color="warning.main" display="block">
+                          Seuil : {article.seuil}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 </CardContent>
@@ -518,6 +536,17 @@ const ManageArticle = () => {
               fullWidth
               margin="normal"
               inputProps={{ min: 0 }}
+            />
+            <TextField
+              label="Stock disponible"
+              name="stock"
+              type="number"
+              value={editArticle.stock}
+              onChange={e => setEditArticle({ ...editArticle, stock: e.target.value })}
+              fullWidth
+              margin="normal"
+              inputProps={{ min: 0 }}
+              required
             />
             <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
               <Button variant="outlined" color="secondary" onClick={handleCloseModal}>
