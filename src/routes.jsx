@@ -60,6 +60,7 @@ const ValidationBonLivraison = async(() => import("@/pages/gestion-stock/Validat
 const GestionLivraison = async(() => import("@/pages/gestion-stock/GestionLivraison"));
 const GestionBdc = async(() => import("@/pages/gestion-stock/Gestionbdc"));
 const Invoice1PDFWrapper = async(() => import("@/pages/facturation/Invoice1PDFWrapper"));
+const GestionReception = async(() => import("@/pages/gestion-stock/GestionReception"));
 
 // Définition des routes
 const routes = [
@@ -286,7 +287,7 @@ const routes = [
       },
       {
         path: "bon-de-commande",
-        element: <GestionBdc />, // Gestion des bons de commande (pile de cartons)
+        element: <GestionBdc />,
       },
       {
         path: "delivery-note",
@@ -299,6 +300,10 @@ const routes = [
       {
         path: "validation/management",
         element: <ValidationBonLivraison />,
+      },
+      {
+        path: "receptions",
+        element: <GestionReception />,
       },
       // Ajoutez ici d'autres routes liées au stock si besoin
     ],

@@ -148,7 +148,7 @@ const generatePagesSection = (roles = []) => {
           href: "/stock/items",
           icon: MoveToInbox, 
           title: "Bon de commande ",
-          visible: isAdmin || (roles.includes('gestion-de-stock')), // <-- Retire validation-stock ici
+          visible: isAdmin || (roles.includes('gestion-de-stock')),
         },
         {
           href: "/stock/add",
@@ -158,26 +158,32 @@ const generatePagesSection = (roles = []) => {
         },
         {
           href: "/stock/management",
-          icon: CategoryIcon, // Icône cubes pour "Inventaire" (articles/produits)
+          icon: CategoryIcon,
           title: "Inventaire",
           visible: isAdmin || roles.includes('gestion-de-stock') || roles.includes('validation-stock'),
         },
         {
           href: "/stock/bon-de-commande",
-          icon: Inventory2Outlined, // Icône pile de cartons pour "Gestion des bons de commande"
+          icon: Inventory2Outlined,
           title: "Gestion des bons de commande",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
-       {
+        {
           href: "/stock/delivery-note",
-          icon: DescriptionIcon, // Icône de formulaire (feuille/papier)
+          icon: DescriptionIcon,
           title: "Créer un bon de livraison", 
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
           href: "/stock/delivery-management",
-          icon: LocalShippingIcon, // Remplace Archive par LocalShippingIcon
+          icon: LocalShippingIcon,
           title: "Gestion des bons de livraison",
+          visible: isAdmin || roles.includes('gestion-de-stock'),
+        },
+        {
+          href: "/stock/receptions",
+          icon: ReceiptIcon, // ou une autre icône adaptée
+          title: "Bons de Réception",
           visible: isAdmin || roles.includes('gestion-de-stock'),
         },
         {
@@ -188,7 +194,7 @@ const generatePagesSection = (roles = []) => {
           children: [
             {
               href: "/stock/validation/management",
-              icon: VerifiedUserIcon, // Icône de validation/gestion (bouclier avec check)
+              icon: VerifiedUserIcon,
               title: "Gestion des validations",
               parentModule: "Gestion de Stock",
               visible: isAdmin || roles.includes('validation-stock'),

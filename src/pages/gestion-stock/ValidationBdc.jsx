@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { db, auth } from "../../firebaseConfig";
-import { collection, getDocs, updateDoc, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
+import { collection, getDocs, updateDoc, doc, addDoc } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Chip, Menu, MenuItem, TableContainer, useMediaQuery,
   Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination, Checkbox
@@ -29,20 +29,18 @@ const STATUS_COLORS = {
 const ValidationBdc = () => {
   const [bons, setBons] = useState([]);
   const [filteredBons, setFilteredBons] = useState([]);
-  const [sortOrder, setSortOrder] = useState("desc"); // "asc" ou "desc"
+  const [sortOrder, setSortOrder] = useState("desc");
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentBonId, setCurrentBonId] = useState(null);
   const [openPdf, setOpenPdf] = useState(false);
   const [selectedBdc, setSelectedBdc] = useState(null);
   const [qrCodes, setQrCodes] = useState({});
-  const [anchorElActions, setAnchorElActions] = useState(null); // Pour le menu actions mobile
-
-  // Pagination
+  const [anchorElActions, setAnchorElActions] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  // Checkbox selection state
   const [selected, setSelected] = useState([]);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -55,7 +53,6 @@ const ValidationBdc = () => {
         ...d.data(),
         statut: d.data().statut || "en_attente"
       }));
-      // Par défaut, n'affiche que les bons en attente
       setBons(list);
       setFilteredBons(list.filter(b => b.statut === "en_attente"));
     };
@@ -84,41 +81,58 @@ const ValidationBdc = () => {
     setFilteredBons(sorted);
   }, [sortOrder, bons]);
 
+  // --- MODIFICATION PRINCIPALE ICI ---
   const handleStatusChange = async (id, statut) => {
-    const bon = bons.find(b => b.id === id);
-    await updateDoc(doc(db, "bon_de_commande", id), { statut });
+    try {
+      // Met à jour uniquement le statut du BDC
+      await updateDoc(doc(db, "bon_de_commande", id), { statut });
 
-    if (statut === "accepté" && bon && bon.entries) {
-      for (const entry of bon.entries) {
-        await addDoc(collection(db, "stockMovements"), {
-          productId: entry.productId,
-          name: entry.name || "",
-          reference: entry.reference,
-          unit: entry.unit,
-          quantity: entry.quantity,
-          unitPrice: entry.unitPrice,
-          total: entry.total || (Number(entry.quantity) * Number(entry.unitPrice)).toFixed(2),
-          orderNumber: bon.orderNumber,
-          type: "entrée",
-          createdAt: serverTimestamp(),
-          userId: auth?.currentUser?.uid || null,
-        });
+      // Si accepté, créer automatiquement un BR
+      if (statut === "accepté") {
+        // Récupère le BDC complet
+        const bdc = bons.find(b => b.id === id);
+        if (bdc) {
+          // Prépare les articles pour le BR
+          const articlesReception = (bdc.entries || []).map(entry => ({
+            articleId: entry.productId || entry.id || "",
+            name: entry.name || entry.productName || "",
+            reference: entry.reference || "",
+            quantite_commandee: Number(entry.quantity) || 0,
+            quantite_recue: Number(entry.quantity) || 0, // Par défaut, à modifier lors de la réception réelle
+            unit: entry.unit || "",
+          }));
 
-        const articleRef = doc(db, "articles", entry.productId);
-        const articleSnap = await getDoc(articleRef);
-        let oldStock = 0;
-        if (articleSnap.exists() && articleSnap.data().stock) {
-          oldStock = Number(articleSnap.data().stock);
+          // Génère un numéro de BR (simple incrément ou basé sur la date)
+          const orderNumber = `BR-${Date.now()}`;
+
+          // Ajoute le BR en base
+          await addDoc(collection(db, "bon_de_reception"), {
+            orderNumber,
+            linkedBdcId: bdc.id,
+            fournisseur: bdc.client || {},
+            articles: articlesReception,
+            dateReception: null,
+            statut: "en_attente",
+            commentaire: "",
+            userId: bdc.userId || null,
+            createdAt: new Date()
+          });
         }
-        const newStock = oldStock + Number(entry.quantity);
-        await updateDoc(articleRef, { stock: newStock });
       }
-    }
 
-    setBons(prev => prev.map(b => b.id === id ? { ...b, statut } : b));
-    setFilteredBons(prev => prev.map(b => b.id === id ? { ...b, statut } : b));
-    handleCloseMenu();
-    setAnchorElActions(null);
+      // Mets à jour l'état local si besoin
+      setBons(prev =>
+        prev.map(bon =>
+          bon.id === id ? { ...bon, statut } : bon
+        )
+      );
+      setSnackbarMessage(`Bon de commande ${statut === "accepté" ? "accepté" : statut === "refusé" ? "refusé" : "mis à jour"} avec succès.`);
+      setSnackbarOpen(true);
+    } catch (error) {
+      setSnackbarMessage("Erreur lors de la mise à jour du statut.");
+      setSnackbarOpen(true);
+      console.error(error);
+    }
   };
 
   const handleClickChip = (event, id) => {
