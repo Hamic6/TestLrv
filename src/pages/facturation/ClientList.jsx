@@ -109,7 +109,7 @@ const ClientList = () => {
   return (
     <div>
       <Typography variant="h4" gutterBottom>
-        Gestion des Partenaires 
+        Gestion 
       </Typography>
       <TextField
         label="Rechercher un Partenaire"
