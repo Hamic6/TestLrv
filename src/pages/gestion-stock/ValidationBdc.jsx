@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs, updateDoc, doc, addDoc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, addDoc, deleteDoc } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Chip, Menu, MenuItem, TableContainer, useMediaQuery,
   Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination, Checkbox
@@ -13,6 +13,7 @@ import Bdcpdf, { BdcpdfDocument } from "./Bdcpdf";
 import PreviewOutlinedIcon from "@mui/icons-material/PreviewOutlined";
 import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
 import { PDFDownloadLink } from "@react-pdf/renderer";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const STATUS_LABELS = {
   en_attente: "En attente",
@@ -54,7 +55,7 @@ const ValidationBdc = () => {
         statut: d.data().statut || "en_attente"
       }));
       setBons(list);
-      setFilteredBons(list.filter(b => b.statut === "en_attente"));
+      setFilteredBons(list.filter(b => b.statut === "en_attente")); // <-- ici, filtre par défaut
     };
     fetchBons();
   }, []);
@@ -84,28 +85,25 @@ const ValidationBdc = () => {
   // --- MODIFICATION PRINCIPALE ICI ---
   const handleStatusChange = async (id, statut) => {
     try {
-      // Met à jour uniquement le statut du BDC
-      await updateDoc(doc(db, "bon_de_commande", id), { statut });
+      const updateData = { statut };
+      if (statut === "accepté") {
+        updateData.dateAcceptation = new Date();
+      }
+      await updateDoc(doc(db, "bon_de_commande", id), updateData);
 
       // Si accepté, créer automatiquement un BR
       if (statut === "accepté") {
-        // Récupère le BDC complet
         const bdc = bons.find(b => b.id === id);
         if (bdc) {
-          // Prépare les articles pour le BR
           const articlesReception = (bdc.entries || []).map(entry => ({
             articleId: entry.productId || entry.id || "",
             name: entry.name || entry.productName || "",
             reference: entry.reference || "",
             quantite_commandee: Number(entry.quantity) || 0,
-            quantite_recue: Number(entry.quantity) || 0, // Par défaut, à modifier lors de la réception réelle
+            quantite_recue: Number(entry.quantity) || 0,
             unit: entry.unit || "",
           }));
-
-          // Génère un numéro de BR (simple incrément ou basé sur la date)
           const orderNumber = `BR-${Date.now()}`;
-
-          // Ajoute le BR en base
           await addDoc(collection(db, "bon_de_reception"), {
             orderNumber,
             linkedBdcId: bdc.id,
@@ -115,17 +113,22 @@ const ValidationBdc = () => {
             statut: "en_attente",
             commentaire: "",
             userId: bdc.userId || null,
-            createdAt: new Date()
+            createdAt: new Date(),
+            dateAcceptation: bdc.dateAcceptation || null // AJOUT ICI
           });
         }
       }
 
-      // Mets à jour l'état local si besoin
-      setBons(prev =>
-        prev.map(bon =>
-          bon.id === id ? { ...bon, statut } : bon
-        )
-      );
+      // Recharge la liste à jour depuis Firestore
+      const snap = await getDocs(collection(db, "bon_de_commande"));
+      const list = snap.docs.map(d => ({
+        id: d.id,
+        ...d.data(),
+        statut: d.data().statut || "en_attente"
+      }));
+      setBons(list);
+      setFilteredBons(list.filter(b => b.statut === "en_attente")); // ou adapte selon tes filtres
+
       setSnackbarMessage(`Bon de commande ${statut === "accepté" ? "accepté" : statut === "refusé" ? "refusé" : "mis à jour"} avec succès.`);
       setSnackbarOpen(true);
     } catch (error) {
@@ -215,6 +218,7 @@ const ValidationBdc = () => {
               <TableCell>Numéro</TableCell>
               {!isMobile && <TableCell>Fournisseur</TableCell>}
               <TableCell>Date</TableCell>
+              <TableCell>Date acceptation</TableCell> {/* AJOUT */}
               <TableCell>Statut</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -239,6 +243,11 @@ const ValidationBdc = () => {
                   )}
                 </TableCell>
                 <TableCell>
+                  {bon.dateAcceptation?.toDate
+                    ? bon.dateAcceptation.toDate().toLocaleString()
+                    : ""}
+                </TableCell>
+                <TableCell>
                   <Chip
                     label={isMobile ? "" : (STATUS_LABELS[bon.statut] || "En attente")}
                     color={STATUS_COLORS[bon.statut] || "warning"}
@@ -248,23 +257,28 @@ const ValidationBdc = () => {
                       <HourglassEmptyIcon fontSize="small" />
                     }
                     size={isMobile ? "small" : "medium"}
-                    clickable
-                    onClick={e => handleClickChip(e, bon.id)}
+                    clickable={bon.statut !== "accepté"}
+                    onClick={bon.statut !== "accepté" ? (e => handleClickChip(e, bon.id)) : undefined}
                   />
                   <Menu
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl) && currentBonId === bon.id}
                     onClose={handleCloseMenu}
                   >
-                    <MenuItem onClick={() => handleStatusChange(bon.id, "accepté")}>
-                      <CheckCircleIcon color="success" sx={{ mr: 1 }} /> Accepté
-                    </MenuItem>
-                    <MenuItem onClick={() => handleStatusChange(bon.id, "refusé")}>
-                      <CancelIcon color="error" sx={{ mr: 1 }} /> Refusé
-                    </MenuItem>
-                    <MenuItem onClick={() => handleStatusChange(bon.id, "en_attente")}>
-                      <HourglassEmptyIcon color="warning" sx={{ mr: 1 }} /> En attente
-                    </MenuItem>
+                    {/* N'affiche les options que si le bon n'est pas accepté */}
+                    {bon.statut !== "accepté" && (
+                      <>
+                        <MenuItem onClick={() => handleStatusChange(bon.id, "accepté")}>
+                          <CheckCircleIcon color="success" sx={{ mr: 1 }} /> Accepté
+                        </MenuItem>
+                        <MenuItem onClick={() => handleStatusChange(bon.id, "refusé")}>
+                          <CancelIcon color="error" sx={{ mr: 1 }} /> Refusé
+                        </MenuItem>
+                        <MenuItem onClick={() => handleStatusChange(bon.id, "en_attente")}>
+                          <HourglassEmptyIcon color="warning" sx={{ mr: 1 }} /> En attente
+                        </MenuItem>
+                      </>
+                    )}
                   </Menu>
                 </TableCell>
                 <TableCell>
@@ -295,6 +309,7 @@ const ValidationBdc = () => {
                             <CheckCircleIcon color="success" fontSize="small" sx={{ mr: 1 }} /> Valider
                           </MenuItem>
                         )}
+                        {/* Le bouton supprimer a été retiré */}
                       </Menu>
                     </>
                   ) : (
@@ -329,6 +344,7 @@ const ValidationBdc = () => {
                           Valider
                         </Button>
                       )}
+                      {/* Le bouton supprimer a été retiré */}
                     </Box>
                   )}
                 </TableCell>
@@ -350,7 +366,7 @@ const ValidationBdc = () => {
       />
       {filteredBons.length === 0 && (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Aucun bon de commande à afficher.
+          Aucun bon de commande à valider.
         </Typography>
       )}
       <Dialog

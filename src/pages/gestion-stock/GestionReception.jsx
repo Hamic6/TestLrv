@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs, updateDoc, doc, increment, addDoc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, increment, addDoc, deleteDoc } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, TextField, TableContainer, TablePagination, Box, Chip
 } from "@mui/material";
 import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon, HourglassEmpty as HourglassEmptyIcon } from "@mui/icons-material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const STATUS_LABELS = {
   en_attente: "En attente",
@@ -20,6 +21,7 @@ const STATUS_COLORS = {
 
 const GestionReception = () => {
   const [bonsReception, setBonsReception] = useState([]);
+  const [bdcs, setBdcs] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -29,6 +31,14 @@ const GestionReception = () => {
       setBonsReception(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     };
     fetchBonsReception();
+  }, []);
+
+  useEffect(() => {
+    const fetchBdcs = async () => {
+      const snap = await getDocs(collection(db, "bon_de_commande"));
+      setBdcs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    };
+    fetchBdcs();
   }, []);
 
   const handleQuantiteRecueChange = (brId, articleId, value) => {
@@ -50,30 +60,50 @@ const GestionReception = () => {
 
   const handleValidateReception = async (br) => {
     const reliquatArticles = [];
-    // Incrémente le stock pour chaque article reçu
+    let hasValidReception = false;
+
     for (const art of br.articles) {
       if (!art.articleId) continue;
       const qtyRecue = Number(art.quantite_recue) || 0;
       const qtyCommandee = Number(art.quantite_commandee) || 0;
+
+      // Empêche la validation si quantité reçue <= 0 ou > commandée
+      if (qtyRecue <= 0) continue;
+      if (qtyRecue > qtyCommandee) {
+        alert(
+          `Impossible de recevoir plus que la quantité commandée pour l'article "${art.name}" (${qtyRecue}/${qtyCommandee}).`
+        );
+        return;
+      }
+
+      hasValidReception = true;
+
       await updateDoc(doc(db, "articles", art.articleId), {
         stock: increment(qtyRecue)
       });
-      // Si reliquat, prépare pour un nouveau BR
+
       if (qtyRecue < qtyCommandee) {
         reliquatArticles.push({
           ...art,
           quantite_commandee: qtyCommandee - qtyRecue,
-          quantite_recue: 0 // à saisir lors de la prochaine réception
+          quantite_recue: 0
         });
       }
     }
+
+    // Si aucun article n'a été reçu correctement, on arrête tout
+    if (!hasValidReception) {
+      alert("Aucun article reçu avec une quantité valide (> 0 et ≤ commandée).");
+      return;
+    }
+
     await updateDoc(doc(db, "bon_de_reception", br.id), {
       statut: "validé",
       dateReception: new Date()
     });
 
-    // Création automatique d'un nouveau BR pour le reliquat
     if (reliquatArticles.length > 0) {
+      const bdc = bdcs.find(b => b.id === br.linkedBdcId);
       await addDoc(collection(db, "bon_de_reception"), {
         orderNumber: `BR-${Date.now()}`,
         linkedBdcId: br.linkedBdcId,
@@ -83,11 +113,17 @@ const GestionReception = () => {
         statut: "en_attente",
         commentaire: "Reliquat de la livraison précédente",
         userId: br.userId || null,
-        createdAt: new Date()
+        createdAt: new Date(),
+        dateAcceptation: bdc?.dateAcceptation || null,
       });
     }
 
-    // Rafraîchir la liste
+    const snap = await getDocs(collection(db, "bon_de_reception"));
+    setBonsReception(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  };
+
+  const handleDeleteReception = async (brId) => {
+    await deleteDoc(doc(db, "bon_de_reception", brId));
     const snap = await getDocs(collection(db, "bon_de_reception"));
     setBonsReception(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   };
@@ -113,6 +149,7 @@ const GestionReception = () => {
             <TableRow>
               <TableCell>Numéro</TableCell>
               <TableCell>Fournisseur</TableCell>
+              <TableCell>Date acceptation</TableCell>
               <TableCell>Articles</TableCell>
               <TableCell>Statut</TableCell>
               <TableCell>Actions</TableCell>
@@ -123,6 +160,16 @@ const GestionReception = () => {
               <TableRow key={br.id}>
                 <TableCell>{br.orderNumber}</TableCell>
                 <TableCell>{br.fournisseur?.name}</TableCell>
+                <TableCell>
+                  {(() => {
+                    // On cherche la date d'acceptation du BDC lié
+                    const bdc = bdcs.find(b => b.id === br.linkedBdcId);
+                    if (bdc?.dateAcceptation?.toDate) {
+                      return bdc.dateAcceptation.toDate().toLocaleString();
+                    }
+                    return "";
+                  })()}
+                </TableCell>
                 <TableCell>
                   {br.articles.map(a => (
                     <Box key={a.articleId} sx={{ mb: 1 }}>
@@ -157,6 +204,16 @@ const GestionReception = () => {
                       Valider la réception
                     </Button>
                   )}
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    sx={{ ml: 1 }}
+                    onClick={() => handleDeleteReception(br.id)}
+                    startIcon={<DeleteIcon />}
+                  >
+                    Supprimer
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

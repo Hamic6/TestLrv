@@ -171,7 +171,7 @@ const StockEntryForm = () => {
         userName,
       });
 
-      setAlertMessage("Entrée de stock enregistrée avec succès !");
+      setAlertMessage("Bon de commande envoyé pour validation avec succès !");
       setAlertSeverity("success");
       setAlertOpen(true);
       setEntries([{ productId: "", reference: "", quantity: "", unit: "", unitPrice: "", total: "" }]);

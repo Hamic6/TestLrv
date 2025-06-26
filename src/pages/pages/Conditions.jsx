@@ -81,7 +81,7 @@ const Conditions = () => (
         Conditions d’Utilisation de Rayonvert.online
       </Typography>
       <Typography variant="subtitle2" color="text.secondary" align="center" gutterBottom>
-        Dernière mise à jour : 19/06/2025
+        Dernière mise à jour : 26/06/2025
       </Typography>
       <Divider sx={{ my: 3 }} />
       {sections.map((section, idx) => (
