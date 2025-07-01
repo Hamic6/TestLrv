@@ -2,10 +2,16 @@ import React, { useEffect, useState } from "react";
 import { db } from "../../firebaseConfig";
 import { collection, getDocs, updateDoc, doc, increment, addDoc, deleteDoc } from "firebase/firestore";
 import {
-  Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, TextField, TableContainer, TablePagination, Box, Chip
+  Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, TextField, TableContainer, TablePagination, Box, Chip, IconButton, Dialog, DialogTitle, DialogContent, useMediaQuery, MenuItem
 } from "@mui/material";
 import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon, HourglassEmpty as HourglassEmptyIcon } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PreviewOutlinedIcon from "@mui/icons-material/PreviewOutlined";
+import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import Bdreceptionpdf, { BdreceptionpdfDocument } from "./Bdreceptionpdf";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import Menu from "@mui/material/Menu";
 
 const STATUS_LABELS = {
   en_attente: "En attente",
@@ -24,6 +30,16 @@ const GestionReception = () => {
   const [bdcs, setBdcs] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [openReceptionPdf, setOpenReceptionPdf] = useState(false);
+  const [selectedReception, setSelectedReception] = useState(null);
+  const [anchorElActions, setAnchorElActions] = useState(null);
+  const [currentBrId, setCurrentBrId] = useState(null);
+  const [filterFournisseur, setFilterFournisseur] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [filterArticle, setFilterArticle] = useState("");
+  const [filterStatut, setFilterStatut] = useState("");
+
+  const isMobile = useMediaQuery("(max-width:900px)");
 
   useEffect(() => {
     const fetchBonsReception = async () => {
@@ -67,7 +83,6 @@ const GestionReception = () => {
       const qtyRecue = Number(art.quantite_recue) || 0;
       const qtyCommandee = Number(art.quantite_commandee) || 0;
 
-      // Empêche la validation si quantité reçue <= 0 ou > commandée
       if (qtyRecue <= 0) continue;
       if (qtyRecue > qtyCommandee) {
         alert(
@@ -91,7 +106,6 @@ const GestionReception = () => {
       }
     }
 
-    // Si aucun article n'a été reçu correctement, on arrête tout
     if (!hasValidReception) {
       alert("Aucun article reçu avec une quantité valide (> 0 et ≤ commandée).");
       return;
@@ -128,8 +142,46 @@ const GestionReception = () => {
     setBonsReception(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   };
 
-  // Pagination
-  const paginatedBons = bonsReception.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const handleOpenReceptionPdf = (br) => {
+    setSelectedReception(br);
+    setOpenReceptionPdf(true);
+  };
+
+  const handleCloseReceptionPdf = () => {
+    setOpenReceptionPdf(false);
+    setSelectedReception(null);
+  };
+
+  const filteredBons = bonsReception.filter(br => {
+    // Filtre fournisseur
+    const fournisseurMatch = filterFournisseur
+      ? (br.fournisseur?.name || "").toLowerCase().includes(filterFournisseur.toLowerCase())
+      : true;
+    // Filtre date acceptation
+    const dateAcceptation = (() => {
+      const bdc = bdcs.find(b => b.id === br.linkedBdcId);
+      if (bdc?.dateAcceptation?.toDate) {
+        return bdc.dateAcceptation.toDate();
+      }
+      return null;
+    })();
+    const dateMatch = filterDate
+      ? dateAcceptation &&
+        dateAcceptation.toISOString().slice(0, 10) === filterDate
+      : true;
+    // Filtre article
+    const articleMatch = filterArticle
+      ? br.articles.some(a =>
+          (a.name || "").toLowerCase().includes(filterArticle.toLowerCase())
+        )
+      : true;
+    // Filtre statut
+    const statutMatch = filterStatut ? br.statut === filterStatut : true;
+
+    return fournisseurMatch && dateMatch && articleMatch && statutMatch;
+  });
+
+  const paginatedBons = filteredBons.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -143,6 +195,41 @@ const GestionReception = () => {
   return (
     <Paper sx={{ p: 2 }}>
       <Typography variant="h5" gutterBottom>Gestion des Bons de Réception</Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+        <TextField
+          label="Fournisseur"
+          size="small"
+          value={filterFournisseur}
+          onChange={e => setFilterFournisseur(e.target.value)}
+        />
+        <TextField
+          label="Date acceptation"
+          type="date"
+          size="small"
+          InputLabelProps={{ shrink: true }}
+          value={filterDate}
+          onChange={e => setFilterDate(e.target.value)}
+        />
+        <TextField
+          label="Article"
+          size="small"
+          value={filterArticle}
+          onChange={e => setFilterArticle(e.target.value)}
+        />
+        <TextField
+          label="Statut"
+          size="small"
+          select
+          value={filterStatut}
+          onChange={e => setFilterStatut(e.target.value)}
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="">Tous</MenuItem>
+          <MenuItem value="en_attente">En attente</MenuItem>
+          <MenuItem value="validé">Validé</MenuItem>
+          <MenuItem value="refusé">Refusé</MenuItem>
+        </TextField>
+      </Box>
       <TableContainer sx={{ maxWidth: "100vw", overflowX: "auto" }}>
         <Table>
           <TableHead>
@@ -151,7 +238,7 @@ const GestionReception = () => {
               <TableCell>Fournisseur</TableCell>
               <TableCell>Date acceptation</TableCell>
               <TableCell>Articles</TableCell>
-              <TableCell>Statut</TableCell>
+              {!isMobile && <TableCell>Statut</TableCell>}
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -162,13 +249,26 @@ const GestionReception = () => {
                 <TableCell>{br.fournisseur?.name}</TableCell>
                 <TableCell>
                   {(() => {
-                    // On cherche la date d'acceptation du BDC lié
                     const bdc = bdcs.find(b => b.id === br.linkedBdcId);
                     if (bdc?.dateAcceptation?.toDate) {
                       return bdc.dateAcceptation.toDate().toLocaleString();
                     }
                     return "";
                   })()}
+                  {isMobile && (
+                    <Box mt={1}>
+                      <Chip
+                        label={STATUS_LABELS[br.statut] || "En attente"}
+                        color={STATUS_COLORS[br.statut] || "warning"}
+                        icon={
+                          br.statut === "validé" ? <CheckCircleIcon fontSize="small" /> :
+                          br.statut === "refusé" ? <CancelIcon fontSize="small" /> :
+                          <HourglassEmptyIcon fontSize="small" />
+                        }
+                        size="small"
+                      />
+                    </Box>
+                  )}
                 </TableCell>
                 <TableCell>
                   {br.articles.map(a => (
@@ -186,34 +286,50 @@ const GestionReception = () => {
                     </Box>
                   ))}
                 </TableCell>
+                {!isMobile && (
+                  <TableCell>
+                    <Chip
+                      label={STATUS_LABELS[br.statut] || "En attente"}
+                      color={STATUS_COLORS[br.statut] || "warning"}
+                      icon={
+                        br.statut === "validé" ? <CheckCircleIcon fontSize="small" /> :
+                        br.statut === "refusé" ? <CancelIcon fontSize="small" /> :
+                        <HourglassEmptyIcon fontSize="small" />
+                      }
+                      size="medium"
+                    />
+                  </TableCell>
+                )}
                 <TableCell>
-                  <Chip
-                    label={STATUS_LABELS[br.statut] || "En attente"}
-                    color={STATUS_COLORS[br.statut] || "warning"}
-                    icon={
-                      br.statut === "validé" ? <CheckCircleIcon fontSize="small" /> :
-                      br.statut === "refusé" ? <CancelIcon fontSize="small" /> :
-                      <HourglassEmptyIcon fontSize="small" />
-                    }
-                    size="medium"
-                  />
-                </TableCell>
-                <TableCell>
-                  {br.statut === "en_attente" && (
-                    <Button variant="contained" color="success" onClick={() => handleValidateReception(br)}>
-                      Valider la réception
-                    </Button>
-                  )}
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    sx={{ ml: 1 }}
-                    onClick={() => handleDeleteReception(br.id)}
-                    startIcon={<DeleteIcon />}
+                  <IconButton onClick={e => { setAnchorElActions(e.currentTarget); setCurrentBrId(br.id); }}>
+                    <MoreVertIcon />
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorElActions}
+                    open={Boolean(anchorElActions) && currentBrId === br.id}
+                    onClose={() => setAnchorElActions(null)}
                   >
-                    Supprimer
-                  </Button>
+                    <MenuItem onClick={() => { handleOpenReceptionPdf(br); setAnchorElActions(null); }}>
+                      <PreviewOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Aperçu
+                    </MenuItem>
+                    <MenuItem
+                      component={PDFDownloadLink}
+                      document={<BdreceptionpdfDocument br={br} qrCodeUrl={""} />}
+                      fileName={`BR_${br.orderNumber || br.id}.pdf`}
+                      style={{ color: "inherit", textDecoration: "none" }}
+                      onClick={() => setAnchorElActions(null)}
+                    >
+                      <PictureAsPdfOutlinedIcon fontSize="small" sx={{ mr: 1 }} /> Télécharger PDF
+                    </MenuItem>
+                    {br.statut === "en_attente" && (
+                      <MenuItem onClick={() => { handleValidateReception(br); setAnchorElActions(null); }}>
+                        <CheckCircleIcon color="success" fontSize="small" sx={{ mr: 1 }} /> Valider la réception
+                      </MenuItem>
+                    )}
+                    <MenuItem onClick={() => { handleDeleteReception(br.id); setAnchorElActions(null); }}>
+                      <DeleteIcon color="error" fontSize="small" sx={{ mr: 1 }} /> Supprimer
+                    </MenuItem>
+                  </Menu>
                 </TableCell>
               </TableRow>
             ))}
@@ -222,7 +338,7 @@ const GestionReception = () => {
       </TableContainer>
       <TablePagination
         component="div"
-        count={bonsReception.length}
+        count={filteredBons.length}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
@@ -236,6 +352,17 @@ const GestionReception = () => {
           Aucun bon de réception à afficher.
         </Typography>
       )}
+      <Dialog
+        open={openReceptionPdf}
+        onClose={handleCloseReceptionPdf}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>Aperçu du Bon de Réception</DialogTitle>
+        <DialogContent sx={{ height: 900 }}>
+          {selectedReception && <Bdreceptionpdf br={selectedReception} />}
+        </DialogContent>
+      </Dialog>
     </Paper>
   );
 };
