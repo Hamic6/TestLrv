@@ -3,7 +3,7 @@ import { db } from "../../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import {
   Table, TableHead, TableRow, TableCell, TableBody, Button, Typography, Paper, Menu, MenuItem, TableContainer, useMediaQuery,
-  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination, Checkbox
+  Dialog, DialogTitle, DialogContent, IconButton, Box, TablePagination, Checkbox, TextField, Stack, Chip
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import QRCode from "qrcode";
@@ -28,6 +28,9 @@ const GestionLivraison = () => {
 
   // Sélection
   const [selected, setSelected] = useState([]);
+
+  // Filtrage
+  const [filterArticle, setFilterArticle] = useState("");
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -66,6 +69,20 @@ const GestionLivraison = () => {
     });
     setFilteredBons(sorted);
   }, [sortOrder, bons]);
+
+  useEffect(() => {
+    let filtered = bons;
+    if (filterArticle) {
+      filtered = filtered.filter(bon =>
+        Array.isArray(bon.entries) &&
+        bon.entries.some(entry =>
+          (entry.name || "").toLowerCase().includes(filterArticle.toLowerCase())
+        )
+      );
+    }
+    setFilteredBons(filtered);
+    setPage(0);
+  }, [filterArticle, bons]);
 
   const handleApplyFilters = (filtered) => {
     setFilteredBons(filtered);
@@ -113,6 +130,15 @@ const GestionLivraison = () => {
     <Paper sx={{ p: 2 }}>
       <Typography variant="h5" gutterBottom>Gestion des Bons de Livraison</Typography>
       <FiltreValidation onApplyFilters={handleApplyFilters} collectionName="bon_de_livraison" />
+      <Stack direction={isMobile ? "column" : "row"} spacing={2} sx={{ mb: 2 }}>
+        <TextField
+          label="Article"
+          size="small"
+          value={filterArticle}
+          onChange={e => setFilterArticle(e.target.value)}
+          sx={{ minWidth: 200 }}
+        />
+      </Stack>
       <Button
         variant="outlined"
         size="small"
@@ -135,6 +161,7 @@ const GestionLivraison = () => {
               <TableCell>Numéro</TableCell>
               {!isMobile && <TableCell>Client</TableCell>}
               <TableCell>Date</TableCell>
+              <TableCell>Articles</TableCell> {/* <-- Ajout ici */}
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -154,6 +181,28 @@ const GestionLivraison = () => {
                   {isMobile && (
                     <Typography variant="caption" color="text.secondary" display="block">
                       {bon.client?.name}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {Array.isArray(bon.entries) && bon.entries.length > 0 ? (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {(isMobile ? bon.entries.slice(0, 2) : bon.entries).map((entry, idx) => (
+                        <Chip
+                          key={entry.productId || idx}
+                          label={`${entry.name} (${entry.quantity} ${entry.unit})`}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                      ))}
+                      {isMobile && bon.entries.length > 2 && (
+                        <Chip label={`+${bon.entries.length - 2} autres`} size="small" />
+                      )}
+                    </Box>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">
+                      Aucun article
                     </Typography>
                   )}
                 </TableCell>

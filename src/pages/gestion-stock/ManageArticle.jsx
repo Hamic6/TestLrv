@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from "firebase/firestore";
 import {
   Grid,
   Card,
@@ -105,18 +105,9 @@ const ManageArticle = () => {
         photoURL: currentArticle.photoURL || ""
       });
     } else if (openModal && !currentArticle) {
-      setEditArticle({
-        name: "",
-        reference: "",
-        category: "",
-        unit: "",
-        description: "",
-        seuil: "",
-        stock: "",
-        photoURL: ""
-      });
+      setArticleHistory([]);
     }
-  }, [openModal, currentArticle]);
+  }, [openModal, currentArticle, db]);
 
   // Gestion de l'upload de la photo (modifiée pour stocker le fichier)
   const handlePhotoChange = (e) => {
