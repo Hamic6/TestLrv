@@ -280,22 +280,16 @@ const StockEntryForm = () => {
               />
             </Grid>
             <Grid item xs={12} sm={2}>
-              <FormControl fullWidth required>
-                <InputLabel>Unité</InputLabel>
-                <Select
-                  name="unit"
-                  value={entry.unit}
-                  label="Unité"
-                  onChange={e => handleEntryChange(index, e)}
-                >
-                  <MenuItem value="pcs">Pièce</MenuItem>
-                  <MenuItem value="boite">Boîte</MenuItem>
-                  <MenuItem value="kg">Kg</MenuItem>
-                  <MenuItem value="g">g</MenuItem>
-                  <MenuItem value="L">Litre</MenuItem>
-                  <MenuItem value="ml">ml</MenuItem>
-                </Select>
-              </FormControl>
+              <TextField
+                name="unit"
+                label="Unité"
+                value={entry.unit}
+                fullWidth
+                disabled
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
             </Grid>
             <Grid item xs={12} sm={2}>
               <TextField

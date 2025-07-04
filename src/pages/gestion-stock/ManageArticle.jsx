@@ -369,7 +369,10 @@ const ManageArticle = () => {
                         {article.reference}
                       </Typography>
                       <Typography variant="body2" color="primary">
-                        Stock disponible : {article.stock !== undefined && article.stock !== "" ? article.stock : "N/A"}
+                        Stock disponible :{" "}
+                        {article.stock !== undefined && article.stock !== ""
+                          ? `${article.stock} ${article.unit || ""}`
+                          : "N/A"}
                       </Typography>
                       {article.seuil !== undefined && article.seuil !== "" && (
                         <Typography variant="caption" color="warning.main" display="block">
