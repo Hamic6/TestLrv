@@ -27,7 +27,11 @@ const STATUS_COLORS = {
 };
 
 const bonsDeCommande = [
+<<<<<<< HEAD
   // Exemple de données, à remplacer par tes vraies données
+=======
+  // Exemple de données, à remplacer par les vraies données
+>>>>>>> 6066578 (mise à jour général)
   { id: 1, numero: "BDC-001", fournisseur: "Fournisseur A", montant: 500 },
   { id: 2, numero: "BDC-002", fournisseur: "Fournisseur B", montant: 800 },
 ];
