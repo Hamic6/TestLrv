@@ -531,21 +531,7 @@ const ManageArticle = () => {
               margin="normal"
               inputProps={{ min: 0 }}
             />
-<<<<<<< HEAD
-            <TextField
-              label="Stock disponible"
-              name="stock"
-              type="number"
-              value={editArticle.stock}
-              onChange={e => setEditArticle({ ...editArticle, stock: e.target.value })}
-              fullWidth
-              margin="normal"
-              inputProps={{ min: 0 }}
-              required
-            />
-=======
-          
->>>>>>> 6066578 (mise à jour général)
+    
             <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
               <Button variant="outlined" color="secondary" onClick={handleCloseModal}>
                 Annuler
