@@ -35,6 +35,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useTheme } from "@mui/material/styles";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { useStockAlert } from "../../contexts/StockAlertContext";
+import ExportExcel from "./ExportExcel";
 
 const ManageArticle = () => {
   const [articles, setArticles] = useState([]);
@@ -356,17 +357,20 @@ const ManageArticle = () => {
           </Select>
         </FormControl>
       </Stack>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => {
-          setCurrentArticle(null);
-          setOpenModal(true);
-        }}
-        style={{ marginBottom: 20 }}
-      >
-        Créer un Article
-      </Button>
+      <Box display="flex" alignItems="center" mb={2}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            setCurrentArticle(null);
+            setOpenModal(true);
+          }}
+          style={{ marginBottom: 20 }}
+        >
+          Créer un Article
+        </Button>
+        <ExportExcel articles={articles} />
+      </Box>
 
       {/* Gestion de la sélection */}
       <Box>
