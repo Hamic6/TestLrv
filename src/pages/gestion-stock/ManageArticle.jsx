@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import {
   Grid,
   Card,
@@ -61,6 +61,8 @@ const ManageArticle = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedArticles, setSelectedArticles] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState("");
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -300,6 +302,26 @@ const ManageArticle = () => {
     }
   };
 
+  // Charger les catégories au montage
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const snapshot = await getDocs(collection(db, "categories"));
+      setCategories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    };
+    fetchCategories();
+  }, []);
+
+  // Ajouter une nouvelle catégorie
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    const docRef = await addDoc(collection(db, "categories"), {
+      name: newCategory.trim(),
+    });
+    setCategories(prev => [...prev, { id: docRef.id, name: newCategory.trim() }]);
+    setEditArticle(prev => ({ ...prev, category: newCategory.trim() }));
+    setNewCategory("");
+  };
+
   return (
     <div>
       <Typography variant="h4" gutterBottom>
@@ -487,14 +509,40 @@ const ManageArticle = () => {
               fullWidth
               margin="normal"
             />
-            <TextField
-              label="Catégorie"
-              name="category"
-              value={editArticle.category}
-              onChange={e => setEditArticle({ ...editArticle, category: e.target.value })}
-              fullWidth
-              margin="normal"
-            />
+            {/* Catégorie : uniquement sélection */}
+            <FormControl fullWidth margin="normal" required>
+              <InputLabel>Catégorie</InputLabel>
+              <Select
+                name="category"
+                value={editArticle.category}
+                label="Catégorie"
+                onChange={e => setEditArticle({ ...editArticle, category: e.target.value })}
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {/* Ajout d'une nouvelle catégorie */}
+            <Box display="flex" gap={1} alignItems="center" mb={2}>
+              <TextField
+                label="Nouvelle catégorie"
+                value={newCategory}
+                onChange={e => setNewCategory(e.target.value)}
+                size="small"
+                fullWidth
+              />
+              <Button
+                variant="outlined"
+                onClick={handleAddCategory}
+                disabled={!newCategory.trim()}
+                size="small"
+              >
+                Ajouter
+              </Button>
+            </Box>
             <FormControl fullWidth margin="normal">
               <InputLabel>Unité</InputLabel>
               <Select

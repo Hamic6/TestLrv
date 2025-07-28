@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { db, storage } from "../../firebaseConfig";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   TextField,
@@ -31,6 +31,29 @@ const AddProducts = () => {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("success");
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState("");
+
+  // Charger les catégories au montage
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      const snapshot = await getDocs(collection(db, "categories"));
+      setCategories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    };
+    fetchCategories();
+  }, []);
+
+  // Ajouter une nouvelle catégorie
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    const docRef = await addDoc(collection(db, "categories"), {
+      name: newCategory.trim(),
+      createdAt: serverTimestamp(),
+    });
+    setCategories(prev => [...prev, { id: docRef.id, name: newCategory.trim() }]);
+    setProduct(prev => ({ ...prev, category: newCategory.trim() }));
+    setNewCategory("");
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -120,13 +143,42 @@ const AddProducts = () => {
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Catégorie"
-              name="category"
-              value={product.category}
-              onChange={handleChange}
-              fullWidth
-            />
+            <FormControl fullWidth>
+              <InputLabel>Catégorie</InputLabel>
+              <Select
+                name="category"
+                value={product.category}
+                label="Catégorie"
+                onChange={handleChange}
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Grid container spacing={1} alignItems="center" sx={{ mt: 1 }}>
+              <Grid item xs>
+                <TextField
+                  label="Nouvelle catégorie"
+                  value={newCategory}
+                  onChange={e => setNewCategory(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+              <Grid item>
+                <Button
+                  variant="outlined"
+                  onClick={handleAddCategory}
+                  disabled={!newCategory.trim()}
+                  size="small"
+                >
+                  Ajouter
+                </Button>
+              </Grid>
+            </Grid>
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
