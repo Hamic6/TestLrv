@@ -63,6 +63,7 @@ const ManageArticle = () => {
   const [selectedArticles, setSelectedArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(""); // Ajout de l'état
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -235,10 +236,11 @@ const ManageArticle = () => {
     setSnackbarOpen(false);
   };
 
-  // Recherche et tri alphabétique sur le nom de l'article
+  // Recherche et tri alphabétique sur le nom de l'article + filtre catégorie
   const filteredArticles = articles
     .filter(article =>
-      article.name?.toLowerCase().includes(search.toLowerCase())
+      article.name?.toLowerCase().includes(search.toLowerCase()) &&
+      (selectedCategory === "" || article.category === selectedCategory)
     )
     .sort((a, b) => (a.name || "").localeCompare(b.name || "", "fr", { sensitivity: "base" }));
 
@@ -340,6 +342,19 @@ const ManageArticle = () => {
           onChange={(e) => setSearch(e.target.value)}
           size={isMobile ? "small" : "medium"}
         />
+        <FormControl sx={{ minWidth: 180 }} size={isMobile ? "small" : "medium"}>
+          <InputLabel>Filtrer par catégorie</InputLabel>
+          <Select
+            value={selectedCategory}
+            label="Filtrer par catégorie"
+            onChange={e => setSelectedCategory(e.target.value)}
+          >
+            <MenuItem value="">Toutes les catégories</MenuItem>
+            {categories.map(cat => (
+              <MenuItem key={cat.id} value={cat.name}>{cat.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Stack>
       <Button
         variant="contained"
