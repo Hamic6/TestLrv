@@ -11,7 +11,8 @@ import {
   FormControl,
   InputLabel,
   Snackbar,
-  Alert
+  Alert,
+  Autocomplete
 } from '@mui/material';
 import styled from 'styled-components';
 import Invoice1PDF from './Invoice1PDF';
@@ -87,6 +88,8 @@ const InvoiceDetails = () => {
 
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+
+  const [clientSearch, setClientSearch] = useState(""); // Ajout de l'état pour la recherche
 
   const getLastInvoiceNumber = async () => {
     const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastInvoiceNumber'));
@@ -249,6 +252,9 @@ const InvoiceDetails = () => {
   const handleAlertClose = () => {
     setAlertOpen(false);
   };
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(clientSearch.toLowerCase())
+  );
   return (
     <>
       <form>
@@ -387,21 +393,33 @@ const InvoiceDetails = () => {
           </Grid>
         </Grid>
         <h3>Facturé à</h3>
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="client-select-label">Sélectionner un Client</InputLabel>
-          <Select
-            labelId="client-select-label"
-            value={selectedClient}
-            onChange={handleClientChange}
-            required
-          >
-            {clients.map((client) => (
-              <MenuItem key={client.id} value={client.id}>
-                {client.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Autocomplete
+          options={clients}
+          getOptionLabel={(option) => option.name}
+          value={clients.find(c => c.id === selectedClient) || null}
+          onChange={(event, newValue) => {
+            if (newValue) {
+              setSelectedClient(newValue.id);
+              setBillTo({
+                company: newValue.name,
+                address: newValue.address,
+                phone: newValue.phone,
+                email: newValue.email
+              });
+            } else {
+              setSelectedClient('');
+              setBillTo({
+                company: '',
+                address: '',
+                phone: '',
+                email: ''
+              });
+            }
+          }}
+          renderInput={(params) => (
+            <TextField {...params} label="Rechercher et sélectionner un client" variant="outlined" fullWidth margin="normal" required />
+          )}
+        />
         
         <h3>Services</h3>
         {services.map((service, index) => (
