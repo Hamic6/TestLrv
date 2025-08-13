@@ -205,7 +205,6 @@ const ClientList = () => {
                 defaultValue={currentClient ? currentClient.email : ''}
                 fullWidth
                 margin="normal"
-                required
               />
               <TextField
                 label="Téléphone"
@@ -213,7 +212,6 @@ const ClientList = () => {
                 defaultValue={currentClient ? currentClient.phone : ''}
                 fullWidth
                 margin="normal"
-                required
               />
               <TextField
                 label="Adresse"

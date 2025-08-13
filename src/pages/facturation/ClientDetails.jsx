@@ -87,9 +87,9 @@ const ClientDetails = () => {
           {logoUrl && <Avatar src={logoUrl} alt="logo" style={{ width: '60px', height: '60px', marginRight: '10px' }} />}
           <Typography variant="h5">{client.name}</Typography>
         </Box>
-        <Typography variant="body1">Email: {client.email}</Typography>
-        <Typography variant="body1">Téléphone: {client.phone}</Typography>
-        <Typography variant="body1">Adresse: {client.address}</Typography>
+        <Typography variant="body1">Email: {client.email || "Non renseigné"}</Typography>
+        <Typography variant="body1">Téléphone: {client.phone || "Non renseigné"}</Typography>
+        <Typography variant="body1">Adresse: {client.address || "Non renseigné"}</Typography>
         <div style={{ margin: '20px 0' }}>
           <Input 
             type="file"
