@@ -63,7 +63,9 @@ const InvoiceDetails = () => {
     date: '',
     dueDate: '',
     vatPercent: 16, // TVA par défaut
-    currency: 'USD'
+    currency: 'USD',
+    purchaseOrderNumber: '',      // Numéro du bon de commande
+    deliveryNoticeNumber: ''      // Numéro d'avis de passage
   });
   const [billTo, setBillTo] = useState({
     company: '',
@@ -327,7 +329,7 @@ const InvoiceDetails = () => {
               fullWidth
               value={invoiceInfo.number}
               onChange={handleInvoiceInfoChange}
-              disabled // Désactiver la modification du numéro de facture
+              disabled
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -391,6 +393,27 @@ const InvoiceDetails = () => {
               <option value="CDF">CDF</option>
             </TextField>
           </Grid>
+          {/* Ajout des deux nouveaux champs non obligatoires */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              id="purchaseOrderNumber"
+              name="purchaseOrderNumber"
+              label="Numéro du bon de commande"
+              fullWidth
+              value={invoiceInfo.purchaseOrderNumber}
+              onChange={handleInvoiceInfoChange}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              id="deliveryNoticeNumber"
+              name="deliveryNoticeNumber"
+              label="Numéro d'avis de passage"
+              fullWidth
+              value={invoiceInfo.deliveryNoticeNumber}
+              onChange={handleInvoiceInfoChange}
+            />
+          </Grid>
         </Grid>
         <h3>Facturé à</h3>
         <Autocomplete
@@ -438,10 +461,9 @@ const InvoiceDetails = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  required
                   id="libelle"
                   name="libelle"
-                  label="Numéro avis de passage"
+                  label="Libellé"
                   fullWidth
                   value={service.libelle}
                   onChange={(e) => handleServiceChange(index, e)}
@@ -556,6 +578,13 @@ const InvoiceDetails = () => {
             <p style={{ fontWeight: "bold" }}>N°: LRV{invoiceInfo.number}</p>
             <p>Date : {invoiceInfo.date}</p>
             <p>Date d'échéance : {invoiceInfo.dueDate}</p>
+            {/* Affichage des nouveaux champs si renseignés */}
+            {invoiceInfo.purchaseOrderNumber && (
+              <p>Bon de commande : {invoiceInfo.purchaseOrderNumber}</p>
+            )}
+            {invoiceInfo.deliveryNoticeNumber && (
+              <p>Avis de passage : {invoiceInfo.deliveryNoticeNumber}</p>
+            )}
           </InvoiceDetailsSection>
         </HeaderSection>
         <BillingSection>
@@ -570,7 +599,7 @@ const InvoiceDetails = () => {
             <thead>
               <tr>
                 <th>Description du service</th>
-                <th>Num_Avis de passage</th>
+                <th>Libellé</th>
                 <th>Quantité</th>
                 <th>Prix Unitaire ({invoiceInfo.currency})</th>
                 <th>Montant ({invoiceInfo.currency})</th>

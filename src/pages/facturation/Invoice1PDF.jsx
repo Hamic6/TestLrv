@@ -188,6 +188,13 @@ const Invoice1PDF = ({ invoice }) => {
                 <Text style={styles.documentTitle}>Facture</Text>
                 <Text>N°: LRV{invoiceInfo.number}</Text>
                 <Text>Date: {invoiceInfo.date}</Text>
+                {/* Ajout des deux nouveaux champs si renseignés */}
+                {invoiceInfo.purchaseOrderNumber && (
+                  <Text>Bon de commande : {invoiceInfo.purchaseOrderNumber}</Text>
+                )}
+                {invoiceInfo.deliveryNoticeNumber && (
+                  <Text>Avis de passage : {invoiceInfo.deliveryNoticeNumber}</Text>
+                )}
                 {qrCodeUrl && <Image src={qrCodeUrl} style={styles.qrCode} />}
               </View>
             )}
@@ -211,7 +218,7 @@ const Invoice1PDF = ({ invoice }) => {
             <View style={styles.tableHeader}>
               <Text style={[styles.tableHeaderCell, { width: "8%" }]}>N°</Text>
               <Text style={[styles.tableHeaderCell, { width: "34%", textAlign: "left" }]}>Service(s)</Text>
-              <Text style={[styles.tableHeaderCell, { width: "18%" }]}>Numéro Avis de passage</Text>
+              <Text style={[styles.tableHeaderCell, { width: "18%" }]}>Libellé</Text>
               <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Quantité</Text>
               <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Montant</Text>
             </View>
