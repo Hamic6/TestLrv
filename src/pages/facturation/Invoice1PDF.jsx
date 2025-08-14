@@ -216,10 +216,11 @@ const Invoice1PDF = ({ invoice }) => {
           {/* Tableau des services */}
           <View style={styles.table}>
             <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderCell, { width: "8%" }]}>N°</Text>
-              <Text style={[styles.tableHeaderCell, { width: "34%", textAlign: "left" }]}>Service(s)</Text>
-              <Text style={[styles.tableHeaderCell, { width: "18%" }]}>Libellé</Text>
-              <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Quantité</Text>
+              <Text style={[styles.tableHeaderCell, { width: "6%" }]}>N°</Text>
+              <Text style={[styles.tableHeaderCell, { width: "28%", textAlign: "left" }]}>Service(s)</Text>
+              <Text style={[styles.tableHeaderCell, { width: "16%" }]}>Numéro d'avis de passage</Text>
+              <Text style={[styles.tableHeaderCell, { width: "14%" }]}>Libellé</Text>
+              <Text style={[styles.tableHeaderCell, { width: "16%" }]}>Quantité</Text>
               <Text style={[styles.tableHeaderCell, { width: "20%" }]}>Montant</Text>
             </View>
             {servicesPage.length > 0 ? (
@@ -233,10 +234,11 @@ const Invoice1PDF = ({ invoice }) => {
                     ]}
                     key={index}
                   >
-                    <Text style={[styles.tableCell, { width: "8%" }]}>{globalIndex}</Text>
-                    <Text style={[styles.tableCell, { width: "34%", textAlign: "left" }]}>{service.description || "-"}</Text>
-                    <Text style={[styles.tableCell, { width: "18%" }]}>{service.libelle || "-"}</Text>
-                    <Text style={[styles.tableCell, { width: "20%" }]}>{service.quantity || "-"}</Text>
+                    <Text style={[styles.tableCell, { width: "6%" }]}>{globalIndex}</Text>
+                    <Text style={[styles.tableCell, { width: "28%", textAlign: "left" }]}>{service.description || "-"}</Text>
+                    <Text style={[styles.tableCell, { width: "16%" }]}>{service.libelle || "-"}</Text>
+                    <Text style={[styles.tableCell, { width: "14%" }]}>{service.deliveryNoticeNumber || "-"}</Text>
+                    <Text style={[styles.tableCell, { width: "16%" }]}>{service.quantity || "-"}</Text>
                     <Text style={[styles.tableCell, { width: "20%" }]}>
                       {(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}
                     </Text>

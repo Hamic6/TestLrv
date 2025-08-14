@@ -75,7 +75,7 @@ const InvoiceDetails = () => {
   });
 
   const [services, setServices] = useState([
-    { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }
+    { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0', deliveryNoticeNumber: '' }
   ]);
 
   const [paymentInfo, setPaymentInfo] = useState(
@@ -193,7 +193,7 @@ const InvoiceDetails = () => {
   };
 
   const addService = () => {
-    setServices([...services, { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0' }]);
+    setServices([...services, { description: '', libelle: '', quantity: '', unitPrice: '', amount: '0', deliveryNoticeNumber: '' }]);
   };
 
   const calculateSubtotal = () => {
@@ -393,7 +393,7 @@ const InvoiceDetails = () => {
               <option value="CDF">CDF</option>
             </TextField>
           </Grid>
-          {/* Ajout des deux nouveaux champs non obligatoires */}
+          {/* Seul le champ bon de commande reste ici */}
           <Grid item xs={12} sm={6}>
             <TextField
               id="purchaseOrderNumber"
@@ -401,16 +401,6 @@ const InvoiceDetails = () => {
               label="Numéro du bon de commande"
               fullWidth
               value={invoiceInfo.purchaseOrderNumber}
-              onChange={handleInvoiceInfoChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              id="deliveryNoticeNumber"
-              name="deliveryNoticeNumber"
-              label="Numéro d'avis de passage"
-              fullWidth
-              value={invoiceInfo.deliveryNoticeNumber}
               onChange={handleInvoiceInfoChange}
             />
           </Grid>
@@ -459,11 +449,12 @@ const InvoiceDetails = () => {
                   onChange={(e) => handleServiceChange(index, e)}
                 />
               </Grid>
+              {/* Champ Numéro d'avis de passage (remplace Libellé) */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   id="libelle"
                   name="libelle"
-                  label="Libellé"
+                  label="Numéro d'avis de passage"
                   fullWidth
                   value={service.libelle}
                   onChange={(e) => handleServiceChange(index, e)}
@@ -490,6 +481,17 @@ const InvoiceDetails = () => {
                   type="number"
                   fullWidth
                   value={service.unitPrice}
+                  onChange={(e) => handleServiceChange(index, e)}
+                />
+              </Grid>
+              {/* Champ Libellé (remplace Numéro d'avis de passage) */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  id="deliveryNoticeNumber"
+                  name="deliveryNoticeNumber"
+                  label="Libellé"
+                  fullWidth
+                  value={service.deliveryNoticeNumber}
                   onChange={(e) => handleServiceChange(index, e)}
                 />
               </Grid>
@@ -582,9 +584,6 @@ const InvoiceDetails = () => {
             {invoiceInfo.purchaseOrderNumber && (
               <p>Bon de commande : {invoiceInfo.purchaseOrderNumber}</p>
             )}
-            {invoiceInfo.deliveryNoticeNumber && (
-              <p>Avis de passage : {invoiceInfo.deliveryNoticeNumber}</p>
-            )}
           </InvoiceDetailsSection>
         </HeaderSection>
         <BillingSection>
@@ -599,6 +598,7 @@ const InvoiceDetails = () => {
             <thead>
               <tr>
                 <th>Description du service</th>
+                <th>Numéro d'avis de passage</th>
                 <th>Libellé</th>
                 <th>Quantité</th>
                 <th>Prix Unitaire ({invoiceInfo.currency})</th>
@@ -610,6 +610,7 @@ const InvoiceDetails = () => {
                 <tr key={index}>
                   <td>{service.description}</td>
                   <td>{service.libelle}</td>
+                  <td>{service.deliveryNoticeNumber}</td>
                   <td>{service.quantity}</td>
                   <td>{parseFloat(service.unitPrice).toFixed(2)}</td>
                   <td>{(parseFloat(service.unitPrice) * parseFloat(service.quantity)).toFixed(2)}</td>
