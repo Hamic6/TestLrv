@@ -19,7 +19,8 @@ import {
   Button,
   Box,
   Stack,
-  useMediaQuery
+  useMediaQuery,
+  TextField
 } from '@mui/material';
 import { useTheme } from "@mui/material/styles";
 import ArchiveIcon from '@mui/icons-material/Archive';
@@ -63,6 +64,8 @@ const InvoiceList = () => {
   const [currentInvoiceId, setCurrentInvoiceId] = useState(null);
   const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
   const [actionMenuInvoiceId, setActionMenuInvoiceId] = useState(null);
+  const [paymentDate, setPaymentDate] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -98,6 +101,10 @@ const InvoiceList = () => {
   const handleClickChip = (event, id) => {
     setAnchorEl(event.currentTarget);
     setCurrentInvoiceId(id);
+    // Préremplir le statut et la date si déjà "Payé"
+    const invoice = invoices.find(inv => inv.id === id);
+    setSelectedStatus(invoice?.status || '');
+    setPaymentDate(invoice?.paymentDate || '');
   };
 
   const handleCloseMenu = () => {
@@ -106,17 +113,34 @@ const InvoiceList = () => {
   };
 
   const handleMenuItemClick = async (status) => {
+    setSelectedStatus(status);
+    if (status === 'Payé') {
+      // On attend que l'utilisateur saisisse la date et valide
+      return;
+    }
     if (currentInvoiceId) {
       await handleStatusChange(currentInvoiceId, status);
     }
+    setPaymentDate('');
+    setSelectedStatus('');
     handleCloseMenu();
   };
 
-  const handleStatusChange = async (id, status) => {
+  const handleValidatePayed = async () => {
+    if (currentInvoiceId && paymentDate) {
+      await handleStatusChange(currentInvoiceId, 'Payé', paymentDate);
+      setPaymentDate('');
+      setSelectedStatus('');
+      handleCloseMenu();
+    }
+  };
+
+  const handleStatusChange = async (id, status, paymentDate = null) => {
     try {
       const invoiceDoc = doc(db, "invoices", id);
-      await updateDoc(invoiceDoc, { status });
-      setInvoices(invoices.map(invoice => invoice.id === id ? { ...invoice, status } : invoice));
+      const updateData = paymentDate ? { status, paymentDate } : { status };
+      await updateDoc(invoiceDoc, updateData);
+      setInvoices(invoices.map(invoice => invoice.id === id ? { ...invoice, status, paymentDate } : invoice));
     } catch (error) {
       console.error("Erreur lors de la mise à jour du statut de la facture :", error);
     }
@@ -271,6 +295,7 @@ const InvoiceList = () => {
               {!isMobile && <TableCell>Devise</TableCell>}
               {!isMobile && <TableCell>Services</TableCell>}
               <TableCell>Statut</TableCell>
+              {/* Supprimé la colonne Date paiement */}
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -356,37 +381,69 @@ const InvoiceList = () => {
                     )}
                     {/* Statut */}
                     <TableCell>
-                      <Chip
-                        icon={statusIcons[invoice.status] || null}
-                        label={invoice.status}
-                        color={statusColors[invoice.status] || 'default'}
-                        onClick={(event) => handleClickChip(event, invoice.id)}
-                        clickable
-                        size={isMobile ? "small" : "medium"}
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: isMobile ? 12 : 14,
-                          minWidth: isMobile ? 32 : 80,
-                          px: isMobile ? 0.5 : 2,
-                          transition: 'box-shadow 0.2s, background 0.2s',
-                          '&:hover': {
-                            boxShadow: 2,
-                            backgroundColor: (theme) => {
-                              const color = statusColors[invoice.status] || 'primary';
-                              return theme.palette[color] && theme.palette[color].light
-                                ? theme.palette[color].light
-                                : theme.palette.primary.light;
+                      <Box>
+                        <Chip
+                          icon={statusIcons[invoice.status] || null}
+                          label={invoice.status}
+                          color={statusColors[invoice.status] || 'default'}
+                          onClick={(event) => handleClickChip(event, invoice.id)}
+                          clickable
+                          size={isMobile ? "small" : "medium"}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: isMobile ? 12 : 14,
+                            minWidth: isMobile ? 32 : 80,
+                            px: isMobile ? 0.5 : 2,
+                            transition: 'box-shadow 0.2s, background 0.2s',
+                            '&:hover': {
+                              boxShadow: 2,
+                              backgroundColor: (theme) => {
+                                const color = statusColors[invoice.status] || 'primary';
+                                return theme.palette[color] && theme.palette[color].light
+                                  ? theme.palette[color].light
+                                  : theme.palette.primary.light;
+                              },
                             },
-                          },
-                        }}
-                      />
-                      <Menu anchorEl={anchorEl} open={Boolean(anchorEl) && currentInvoiceId === invoice.id} onClose={handleCloseMenu}>
-                        <MenuItem onClick={() => handleMenuItemClick('Payé')}>Payé</MenuItem>
-                        <MenuItem onClick={() => handleMenuItemClick('Envoyé')}>Envoyé</MenuItem>
-                        <MenuItem onClick={() => handleMenuItemClick('Non payé')}>Non payé</MenuItem>
-                        <MenuItem onClick={() => handleMenuItemClick('Vide')}>Vide</MenuItem>
-                        <MenuItem onClick={() => handleMenuItemClick('Erreur')}>Erreur</MenuItem>
-                      </Menu>
+                          }}
+                        />
+                        {invoice.status === 'Payé' && invoice.paymentDate && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                            {invoice.paymentDate}
+                          </Typography>
+                        )}
+                        <Menu anchorEl={anchorEl} open={Boolean(anchorEl) && currentInvoiceId === invoice.id} onClose={handleCloseMenu}>
+                          <MenuItem onClick={() => handleMenuItemClick('Payé')}>
+                            Payé
+                          </MenuItem>
+                          <MenuItem onClick={() => handleMenuItemClick('Envoyé')}>Envoyé</MenuItem>
+                          <MenuItem onClick={() => handleMenuItemClick('Non payé')}>Non payé</MenuItem>
+                          <MenuItem onClick={() => handleMenuItemClick('Vide')}>Vide</MenuItem>
+                          <MenuItem onClick={() => handleMenuItemClick('Erreur')}>Erreur</MenuItem>
+                          {/* Champ date et bouton valider si "Payé" sélectionné */}
+                          {selectedStatus === 'Payé' && (
+                            <Box px={2} py={1}>
+                              <TextField
+                                label="Date du paiement"
+                                type="date"
+                                size="small"
+                                InputLabelProps={{ shrink: true }}
+                                value={paymentDate}
+                                onChange={e => setPaymentDate(e.target.value)}
+                                fullWidth
+                              />
+                              <Button
+                                variant="contained"
+                                color="success"
+                                sx={{ mt: 1 }}
+                                onClick={handleValidatePayed}
+                                disabled={!paymentDate}
+                              >
+                                Valider
+                              </Button>
+                            </Box>
+                          )}
+                        </Menu>
+                      </Box>
                     </TableCell>
                     {/* Actions */}
                     <TableCell align="right">
