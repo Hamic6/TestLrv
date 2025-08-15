@@ -276,10 +276,19 @@ const InvoiceList = () => {
         Liste des Factures
       </Typography>
       <Filters onApplyFilters={handleApplyFilters} />
-      <TableContainer component={Paper} style={{ marginTop: '20px', maxWidth: "100vw", overflowX: "auto" }}>
-        <Table size={isMobile ? "small" : "medium"}>
+      <TableContainer
+        component={Paper}
+        style={{
+          marginTop: '20px',
+          maxWidth: isMobile ? "100vw" : "900px",
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          overflowX: "auto"
+        }}
+      >
+        <Table size="small"> {/* Toujours compact */}
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ minHeight: 40 }}> {/* Hauteur minimale uniforme */}
               <TableCell padding="checkbox">
                 <Checkbox
                   indeterminate={selected.length > 0 && selected.length < filteredInvoices.length}
@@ -316,6 +325,7 @@ const InvoiceList = () => {
                     key={invoice.id}
                     selected={isItemSelected}
                     onClick={(event) => handleClick(event, invoice.id)}
+                    sx={{ minHeight: 40 }} // Hauteur minimale uniforme
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
@@ -388,12 +398,12 @@ const InvoiceList = () => {
                           color={statusColors[invoice.status] || 'default'}
                           onClick={(event) => handleClickChip(event, invoice.id)}
                           clickable
-                          size={isMobile ? "small" : "medium"}
+                          size="small" // Réduit la taille du Chip
                           sx={{
                             fontWeight: 600,
-                            fontSize: isMobile ? 12 : 14,
-                            minWidth: isMobile ? 32 : 80,
-                            px: isMobile ? 0.5 : 2,
+                            fontSize: 12,
+                            minWidth: 60, // Réduit la largeur minimale
+                            px: 1,        // Réduit le padding horizontal
                             transition: 'box-shadow 0.2s, background 0.2s',
                             '&:hover': {
                               boxShadow: 2,
@@ -419,7 +429,6 @@ const InvoiceList = () => {
                           <MenuItem onClick={() => handleMenuItemClick('Non payé')}>Non payé</MenuItem>
                           <MenuItem onClick={() => handleMenuItemClick('Vide')}>Vide</MenuItem>
                           <MenuItem onClick={() => handleMenuItemClick('Erreur')}>Erreur</MenuItem>
-                          {/* Champ date et bouton valider si "Payé" sélectionné */}
                           {selectedStatus === 'Payé' && (
                             <Box px={2} py={1}>
                               <TextField
@@ -434,7 +443,7 @@ const InvoiceList = () => {
                               <Button
                                 variant="contained"
                                 color="success"
-                                sx={{ mt: 1 }}
+                                sx={{ mt: 1, minWidth: 80, px: 1 }} // Réduit la largeur du bouton Valider
                                 onClick={handleValidatePayed}
                                 disabled={!paymentDate}
                               >
