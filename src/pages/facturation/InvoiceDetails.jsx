@@ -62,10 +62,11 @@ const InvoiceDetails = () => {
     number: '',
     date: '',
     dueDate: '',
-    vatPercent: 16, // TVA par défaut
+    vatPercent: 16,
     currency: 'USD',
-    purchaseOrderNumber: '',      // Numéro du bon de commande
-    deliveryNoticeNumber: ''      // Numéro d'avis de passage
+    purchaseOrderNumber: '',
+    deliveryNoticeNumber: '',
+    billingPeriod: '', // Ajout de la période de facturation
   });
   const [billTo, setBillTo] = useState({
     company: '',
@@ -404,6 +405,33 @@ const InvoiceDetails = () => {
               onChange={handleInvoiceInfoChange}
             />
           </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth required>
+              <InputLabel id="billing-period-label">Période de facturation</InputLabel>
+              <Select
+                labelId="billing-period-label"
+                id="billingPeriod"
+                name="billingPeriod"
+                value={invoiceInfo.billingPeriod}
+                label="Période de facturation"
+                onChange={handleInvoiceInfoChange}
+              >
+                <MenuItem value=""><em>Choisir...</em></MenuItem>
+                <MenuItem value="Janvier">Janvier</MenuItem>
+                <MenuItem value="Février">Février</MenuItem>
+                <MenuItem value="Mars">Mars</MenuItem>
+                <MenuItem value="Avril">Avril</MenuItem>
+                <MenuItem value="Mai">Mai</MenuItem>
+                <MenuItem value="Juin">Juin</MenuItem>
+                <MenuItem value="Juillet">Juillet</MenuItem>
+                <MenuItem value="Août">Août</MenuItem>
+                <MenuItem value="Septembre">Septembre</MenuItem>
+                <MenuItem value="Octobre">Octobre</MenuItem>
+                <MenuItem value="Novembre">Novembre</MenuItem>
+                <MenuItem value="Décembre">Décembre</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
         </Grid>
         <h3>Facturé à</h3>
         <Autocomplete
@@ -583,6 +611,9 @@ const InvoiceDetails = () => {
             {/* Affichage des nouveaux champs si renseignés */}
             {invoiceInfo.purchaseOrderNumber && (
               <p>Bon de commande : {invoiceInfo.purchaseOrderNumber}</p>
+            )}
+            {invoiceInfo.billingPeriod && (
+              <p>Période de facturation : {invoiceInfo.billingPeriod}</p>
             )}
           </InvoiceDetailsSection>
         </HeaderSection>

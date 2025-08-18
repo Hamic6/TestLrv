@@ -188,7 +188,24 @@ const Invoice1PDF = ({ invoice }) => {
                 <Text style={styles.documentTitle}>Facture</Text>
                 <Text>N°: LRV{invoiceInfo.number}</Text>
                 <Text>Date: {invoiceInfo.date}</Text>
-                {/* Ajout des deux nouveaux champs si renseignés */}
+                {/* Ajout de la période de facturation */}
+                {invoiceInfo.billingPeriod && (
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "bold",
+                      color: "#3da61dff", // Bleu pour attirer l'œil
+                      marginTop: 6,
+                      marginBottom: 2,
+                      backgroundColor: "#e3f2fd", // Fond bleu clair
+                      padding: 4,
+                      borderRadius: 4,
+                      textAlign: "right",
+                    }}
+                  >
+                    Période de facturation : {invoiceInfo.billingPeriod}
+                  </Text>
+                )}
                 {invoiceInfo.purchaseOrderNumber && (
                   <Text>Bon de commande : {invoiceInfo.purchaseOrderNumber}</Text>
                 )}
