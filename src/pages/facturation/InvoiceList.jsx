@@ -36,6 +36,8 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import Invoice1PDF from './Invoice1PDF';
 import Filters from './Filters';
 import { useNavigate } from "react-router-dom";
+import InvoicePreview from "./InvoicePreview"; // Ajoute l'import
+import PreviewOutlinedIcon from '@mui/icons-material/PreviewOutlined';
 
 const statusIcons = {
   'Payé': <CheckCircleIcon fontSize="small" sx={{ mr: 0.5 }} />,
@@ -66,6 +68,8 @@ const InvoiceList = () => {
   const [actionMenuInvoiceId, setActionMenuInvoiceId] = useState(null);
   const [paymentDate, setPaymentDate] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewInvoice, setPreviewInvoice] = useState(null);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -270,6 +274,16 @@ const InvoiceList = () => {
     document.body.removeChild(link);
   };
 
+  const handleOpenPreview = (invoice) => {
+    setPreviewInvoice(invoice);
+    setPreviewOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewOpen(false);
+    setPreviewInvoice(null);
+  };
+
   return (
     <div>
       <Typography variant={isMobile ? "h6" : "h4"} gutterBottom>
@@ -359,7 +373,21 @@ const InvoiceList = () => {
                     </TableCell>
                     {/* Desktop only columns */}
                     {!isMobile && <TableCell>{invoice.invoiceInfo?.date || ''}</TableCell>}
-                    {!isMobile && <TableCell>{invoice.total}</TableCell>}
+                    {!isMobile && (
+                      <TableCell
+                        sx={{
+                          maxWidth: 90,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontSize: '0.95rem',
+                          fontWeight: 600,
+                        }}
+                        title={invoice.total}
+                      >
+                        {Number(invoice.total).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
+                      </TableCell>
+                    )}
                     {!isMobile && <TableCell>{invoice.invoiceInfo?.currency || ''}</TableCell>}
                     {!isMobile && (
                       <TableCell sx={{ minWidth: 180, maxWidth: 220, width: 200 }}>
@@ -470,6 +498,10 @@ const InvoiceList = () => {
                         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                       >
+                        <MenuItem onClick={() => { handleOpenPreview(invoice); handleActionMenuClose(); }}>
+                          <PreviewOutlinedIcon fontSize="small" sx={{ mr: 1 }} />
+                          Aperçu
+                        </MenuItem>
                         <MenuItem
                           onClick={() => {
                             invoice.archived ? handleUnarchive(invoice.id) : handleArchive(invoice.id);
@@ -529,6 +561,11 @@ const InvoiceList = () => {
           Importer des factures
         </Button>
       </Box>
+      <InvoicePreview
+        open={previewOpen}
+        onClose={handleClosePreview}
+        invoice={previewInvoice}
+      />
     </div>
   );
 };

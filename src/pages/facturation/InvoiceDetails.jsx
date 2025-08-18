@@ -38,8 +38,11 @@ import {
   limit,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  deleteDoc
 } from 'firebase/firestore';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
@@ -249,6 +252,19 @@ const InvoiceDetails = () => {
       setAlertMessage('Erreur lors de l\'enregistrement de la facture');
       setAlertOpen(true);
       console.error('Erreur lors de l\'enregistrement de la facture :', error);
+    }
+  };
+
+  const handleDeleteInvoice = async () => {
+    try {
+      await deleteDoc(doc(db, "invoices", invoiceInfo.number));
+      setAlertMessage("Facture supprimée avec succès");
+      setAlertOpen(true);
+      // Optionnel : reset l’état ou rediriger
+    } catch (error) {
+      setAlertMessage("Erreur lors de la suppression de la facture");
+      setAlertOpen(true);
+      console.error("Erreur suppression facture :", error);
     }
   };
 
@@ -591,6 +607,31 @@ const InvoiceDetails = () => {
       >
         Sauvegarder la facture
       </Button>
+      <Button
+        type="button"
+        variant="contained"
+        color="error"
+        style={{ marginTop: '20px', marginLeft: '10px' }}
+        onClick={handleDeleteInvoice}
+      >
+        Supprimer la facture
+      </Button>
+      <Menu
+        anchorEl={actionMenuAnchor}
+        open={Boolean(actionMenuAnchor)}
+        onClose={handleActionMenuClose}
+      >
+        {/* ...autres actions... */}
+        <MenuItem
+          onClick={() => {
+            handleDeleteInvoice();
+            handleActionMenuClose();
+          }}
+          style={{ color: 'red', fontWeight: 'bold' }}
+        >
+          Supprimer la facture
+        </MenuItem>
+      </Menu>
       <InvoiceContainer>
         <HeaderSection>
           <CompanyDetails>
