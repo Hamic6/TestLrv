@@ -113,8 +113,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   logo: {
-    width: 60,
-    height: 60,
+    width: 105,
+    height: 105,
     marginBottom: 10,
   },
   qrCode: {
