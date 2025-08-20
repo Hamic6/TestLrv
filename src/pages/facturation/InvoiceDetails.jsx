@@ -42,7 +42,6 @@ import {
   deleteDoc
 } from 'firebase/firestore';
 import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
