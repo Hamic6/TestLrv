@@ -41,15 +41,14 @@ import {
   setDoc,
   deleteDoc
 } from 'firebase/firestore';
-import Menu from '@mui/material/Menu';
 
 const StyledButton = styled(Button)`
   margin-top: 20px;
 `;
 
 const InvoiceDetails = () => {
-  const [logo, setLogo] = useState('/static/img/avatars/logo.png'); // Utiliser le logo par défaut à partir du chemin spécifié
-  const [invoiceReady, setInvoiceReady] = useState(false); // Désactiver le bouton de téléchargement par défaut
+  const [logo, setLogo] = useState('/static/img/avatars/logo.png');
+  const [invoiceReady, setInvoiceReady] = useState(false);
 
   const [companyInfo, setCompanyInfo] = useState({
     name: 'Le Rayon Vert',
@@ -68,7 +67,7 @@ const InvoiceDetails = () => {
     currency: 'USD',
     purchaseOrderNumber: '',
     deliveryNoticeNumber: '',
-    billingPeriod: '', // Ajout de la période de facturation
+    billingPeriod: '',
   });
   const [billTo, setBillTo] = useState({
     company: '',
@@ -93,8 +92,7 @@ const InvoiceDetails = () => {
 
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-
-  const [clientSearch, setClientSearch] = useState(""); // Ajout de l'état pour la recherche
+  const [clientSearch, setClientSearch] = useState("");
 
   const getLastInvoiceNumber = async () => {
     const lastNumberDoc = await getDoc(doc(db, 'metadata', 'lastInvoiceNumber'));
@@ -109,6 +107,7 @@ const InvoiceDetails = () => {
   const updateLastInvoiceNumber = async (number) => {
     await setDoc(doc(db, 'metadata', 'lastInvoiceNumber'), { number });
   };
+
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -142,6 +141,7 @@ const InvoiceDetails = () => {
 
     setInvoiceNumber();
   }, []);
+
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     const reader = new FileReader();
@@ -213,6 +213,7 @@ const InvoiceDetails = () => {
   const calculateTotal = (subtotal, vatAmount) => {
     return subtotal + vatAmount;
   };
+
   const invoiceData = {
     companyInfo,
     invoiceInfo,
@@ -254,25 +255,14 @@ const InvoiceDetails = () => {
     }
   };
 
-  const handleDeleteInvoice = async () => {
-    try {
-      await deleteDoc(doc(db, "invoices", invoiceInfo.number));
-      setAlertMessage("Facture supprimée avec succès");
-      setAlertOpen(true);
-      // Optionnel : reset l’état ou rediriger
-    } catch (error) {
-      setAlertMessage("Erreur lors de la suppression de la facture");
-      setAlertOpen(true);
-      console.error("Erreur suppression facture :", error);
-    }
-  };
-
   const handleAlertClose = () => {
     setAlertOpen(false);
   };
+
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase())
   );
+
   return (
     <>
       <form>
@@ -606,31 +596,6 @@ const InvoiceDetails = () => {
       >
         Sauvegarder la facture
       </Button>
-      <Button
-        type="button"
-        variant="contained"
-        color="error"
-        style={{ marginTop: '20px', marginLeft: '10px' }}
-        onClick={handleDeleteInvoice}
-      >
-        Supprimer la facture
-      </Button>
-      <Menu
-        anchorEl={actionMenuAnchor}
-        open={Boolean(actionMenuAnchor)}
-        onClose={handleActionMenuClose}
-      >
-        {/* ...autres actions... */}
-        <MenuItem
-          onClick={() => {
-            handleDeleteInvoice();
-            handleActionMenuClose();
-          }}
-          style={{ color: 'red', fontWeight: 'bold' }}
-        >
-          Supprimer la facture
-        </MenuItem>
-      </Menu>
       <InvoiceContainer>
         <HeaderSection>
           <CompanyDetails>
