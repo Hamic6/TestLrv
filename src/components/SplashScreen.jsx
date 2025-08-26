@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 
 const SplashScreen = ({ 
-  logo = "/static/img/brands/Lrv.svg", 
+  logo = "/static/img/brands/Lrv.png", 
   brandName = "Rayon vert",
   duration = 0.8,
   backgroundColor = "#ffffff",
